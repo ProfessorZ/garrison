@@ -50,6 +50,31 @@ export interface ScheduledCommand {
   command: string;
   cron_expression: string;
   is_active: boolean;
+  last_run: string | null;
+  next_run: string | null;
+  run_count: number;
+  last_result: string | null;
+  created_at: string | null;
+}
+
+export interface SchedulePresetCommand {
+  name: string;
+  command: string;
+  cron_expression: string;
+}
+
+export interface SchedulePreset {
+  name: string;
+  description: string;
+  commands: SchedulePresetCommand[];
+}
+
+export interface ServerOption {
+  name: string;
+  value: string;
+  type: "boolean" | "number" | "string";
+  category: string;
+  description: string;
 }
 
 export interface LoginRequest {

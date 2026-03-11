@@ -12,6 +12,8 @@ import {
   MessageSquare,
   Activity,
   Shield,
+  Clock,
+  SlidersHorizontal,
 } from "lucide-react";
 import { serversApi } from "../api/servers";
 import { useAuth } from "../contexts/AuthContext";
@@ -20,8 +22,10 @@ import PlayerList from "../components/PlayerList";
 import ChatLog from "../components/ChatLog";
 import ActivityFeed from "../components/ActivityFeed";
 import ServerPermissions from "../components/ServerPermissions";
+import ScheduleManager from "../components/ScheduleManager";
+import ServerOptions from "../components/ServerOptions";
 
-type Tab = "console" | "players" | "chat" | "activity" | "settings" | "permissions";
+type Tab = "console" | "players" | "chat" | "schedules" | "options" | "activity" | "settings" | "permissions";
 
 export default function ServerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -60,8 +64,10 @@ export default function ServerDetailPage() {
     { key: "console", label: "Console", icon: Terminal },
     { key: "players", label: "Players", icon: Users },
     { key: "chat", label: "Chat", icon: MessageSquare },
+    { key: "schedules", label: "Schedules", icon: Clock },
+    { key: "options", label: "Options", icon: SlidersHorizontal },
     { key: "activity", label: "Activity", icon: Activity },
-    { key: "settings", label: "Settings", icon: Settings },
+    { key: "settings", label: "Settings", icon: Settings, adminOnly: true },
     { key: "permissions", label: "Access", icon: Shield, adminOnly: true },
   ];
 
@@ -165,6 +171,14 @@ export default function ServerDetailPage() {
       )}
       {tab === "players" && <PlayerList serverId={serverId} />}
       {tab === "chat" && <ChatLog serverId={serverId} />}
+      {tab === "schedules" && (
+        <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
+          <ScheduleManager serverId={serverId} />
+        </div>
+      )}
+      {tab === "options" && (
+        <ServerOptions serverId={serverId} />
+      )}
       {tab === "activity" && (
         <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
           <ActivityFeed serverId={serverId} limit={25} />

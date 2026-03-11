@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, X, Pause, Play, Trash2 } from "lucide-react";
-import { schedulerApi, serversApi } from "../api/servers";
+import { Plus, X, Pause, Play, Trash2, Clock } from "lucide-react";
+import { serversApi } from "../api/servers";
+import { schedulesApi } from "../api/schedules";
+import type { ScheduledCommand } from "../types";
 
 export default function SchedulerPage() {
   const queryClient = useQueryClient();
@@ -13,43 +15,47 @@ export default function SchedulerPage() {
     cron_expression: "",
   });
 
-  const { data: commands = [] } = useQuery({
-    queryKey: ["scheduled-commands"],
-    queryFn: schedulerApi.list,
-  });
-
   const { data: servers = [] } = useQuery({
     queryKey: ["servers"],
     queryFn: serversApi.list,
   });
 
+  // Fetch schedules for all servers
+  const { data: allCommands = [] } = useQuery({
+    queryKey: ["all-schedules", servers.map((s) => s.id)],
+    queryFn: async () => {
+      const results = await Promise.all(
+        servers.map((s) => schedulesApi.list(s.id).catch(() => []))
+      );
+      return results.flat();
+    },
+    enabled: servers.length > 0,
+  });
+
   const createCommand = useMutation({
-    mutationFn: schedulerApi.create,
+    mutationFn: (data: { server_id: number; name: string; command: string; cron_expression: string }) =>
+      schedulesApi.create(data.server_id, {
+        name: data.name,
+        command: data.command,
+        cron_expression: data.cron_expression,
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["scheduled-commands"] });
+      queryClient.invalidateQueries({ queryKey: ["all-schedules"] });
       setShowAdd(false);
       setForm({ server_id: "", name: "", command: "", cron_expression: "" });
     },
   });
 
   const toggleActive = useMutation({
-    mutationFn: ({
-      id,
-      is_active,
-    }: {
-      id: number;
-      is_active: boolean;
-    }) => schedulerApi.update(id, { is_active }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["scheduled-commands"] });
-    },
+    mutationFn: ({ id, server_id, is_active }: { id: number; server_id: number; is_active: boolean }) =>
+      schedulesApi.update(server_id, id, { is_active }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["all-schedules"] }),
   });
 
   const deleteCommand = useMutation({
-    mutationFn: schedulerApi.delete,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["scheduled-commands"] });
-    },
+    mutationFn: ({ id, server_id }: { id: number; server_id: number }) =>
+      schedulesApi.delete(server_id, id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["all-schedules"] }),
   });
 
   const handleAdd = (e: FormEvent) => {
@@ -74,7 +80,7 @@ export default function SchedulerPage() {
             Scheduled Commands
           </h2>
           <p className="text-sm text-slate-500 mt-0.5">
-            Automate recurring RCON commands
+            Automate recurring RCON commands across all servers
           </p>
         </div>
         <button
@@ -177,10 +183,14 @@ export default function SchedulerPage() {
       )}
 
       {/* Commands table */}
-      {commands.length === 0 ? (
+      {allCommands.length === 0 ? (
         <div className="text-center py-16">
+          <Clock className="h-8 w-8 text-slate-600 mx-auto mb-2" />
           <p className="text-slate-500 text-sm">
             No scheduled commands configured.
+          </p>
+          <p className="text-xs text-slate-600 mt-1">
+            Create schedules per-server from the server detail page, or add one here.
           </p>
         </div>
       ) : (
@@ -203,15 +213,18 @@ export default function SchedulerPage() {
                 <th className="text-left px-4 py-3 text-xs font-medium text-slate-400">
                   Status
                 </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-slate-400">
+                  Runs
+                </th>
                 <th className="text-right px-4 py-3 text-xs font-medium text-slate-400">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody>
-              {commands.map((cmd) => (
+              {allCommands.map((cmd) => (
                 <tr
-                  key={cmd.id}
+                  key={`${cmd.server_id}-${cmd.id}`}
                   className="border-b border-slate-700/50 last:border-0"
                 >
                   <td className="px-4 py-3 text-sm text-slate-200">
@@ -220,7 +233,7 @@ export default function SchedulerPage() {
                   <td className="px-4 py-3 text-sm text-slate-400">
                     {serverName(cmd.server_id)}
                   </td>
-                  <td className="px-4 py-3 text-xs font-mono text-slate-400">
+                  <td className="px-4 py-3 text-xs font-mono text-slate-400 max-w-[200px] truncate">
                     {cmd.command}
                   </td>
                   <td className="px-4 py-3 text-xs font-mono text-slate-400">
@@ -237,11 +250,15 @@ export default function SchedulerPage() {
                       {cmd.is_active ? "Active" : "Paused"}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-xs text-slate-500">
+                    {cmd.run_count}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() =>
                         toggleActive.mutate({
                           id: cmd.id,
+                          server_id: cmd.server_id,
                           is_active: !cmd.is_active,
                         })
                       }
@@ -260,7 +277,10 @@ export default function SchedulerPage() {
                     <button
                       onClick={() => {
                         if (confirm("Delete this scheduled command?"))
-                          deleteCommand.mutate(cmd.id);
+                          deleteCommand.mutate({
+                            id: cmd.id,
+                            server_id: cmd.server_id,
+                          });
                       }}
                       className="inline-flex items-center gap-1 rounded bg-red-500/10 px-2 py-1 text-xs text-red-400 hover:bg-red-500/20 transition-colors"
                     >
