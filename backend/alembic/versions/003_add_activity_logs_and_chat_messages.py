@@ -19,18 +19,16 @@ ACTION_TYPE_VALUES = (
     "SERVER_CREATE", "SERVER_UPDATE", "SERVER_DELETE", "LOGIN",
 )
 
-action_type_enum = sa.Enum(*ACTION_TYPE_VALUES, name="action_type")
+action_type_enum = sa.Enum(*ACTION_TYPE_VALUES, name="action_type", create_constraint=True)
 
 
 def upgrade() -> None:
-    action_type_enum.create(op.get_bind(), checkfirst=True)
-
     op.create_table(
         "activity_logs",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("server_id", sa.Integer(), sa.ForeignKey("servers.id", ondelete="SET NULL"), nullable=True),
         sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
-        sa.Column("action", action_type_enum, nullable=False),
+        sa.Column("action", sa.String(50), nullable=False),
         sa.Column("detail", sa.Text(), server_default=""),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now()),
     )
@@ -53,4 +51,3 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_table("chat_messages")
     op.drop_table("activity_logs")
-    action_type_enum.drop(op.get_bind(), checkfirst=True)
