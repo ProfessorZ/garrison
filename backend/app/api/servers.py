@@ -1,14 +1,19 @@
+import logging
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.deps import get_current_user
 from app.auth.security import encrypt_rcon_password, decrypt_rcon_password
-from app.database import get_db
+from app.database import get_db, async_session
 from app.games.registry import get_plugin
 from app.models.server import Server
 from app.models.user import User
 from app.schemas.server import ServerCreate, ServerUpdate, ServerOut, ServerStatus
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/servers", tags=["servers"])
 
@@ -102,14 +107,45 @@ async def server_status(
         raise HTTPException(status_code=404, detail="Server not found")
     plugin = get_plugin(server.game_type)
     password = decrypt_rcon_password(server.rcon_password_encrypted)
-    await plugin.connect(server.host, server.rcon_port, password)
+    await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
     try:
         status_info = await plugin.get_status()
     finally:
         await plugin.disconnect()
+
+    # Persist polled status
+    server.last_status = status_info.get("online", False)
+    server.player_count = status_info.get("player_count")
+    server.last_checked = datetime.now(timezone.utc)
+    await db.commit()
+
     return ServerStatus(
         server_id=server.id,
         name=server.name,
         online=status_info.get("online", False),
         player_count=status_info.get("player_count"),
     )
+
+
+async def poll_all_servers():
+    """Background task: poll every server's RCON status and persist results."""
+    async with async_session() as db:
+        result = await db.execute(select(Server))
+        servers = result.scalars().all()
+        for server in servers:
+            try:
+                plugin = get_plugin(server.game_type)
+                password = decrypt_rcon_password(server.rcon_password_encrypted)
+                await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
+                try:
+                    status_info = await plugin.get_status()
+                finally:
+                    await plugin.disconnect()
+                server.last_status = status_info.get("online", False)
+                server.player_count = status_info.get("player_count")
+            except Exception as e:
+                logger.warning("Status poll failed for server %s (%s): %s", server.id, server.name, e)
+                server.last_status = False
+                server.player_count = None
+            server.last_checked = datetime.now(timezone.utc)
+        await db.commit()

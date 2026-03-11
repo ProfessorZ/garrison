@@ -8,7 +8,7 @@ class GamePlugin(ABC):
     display_name: str = ""
 
     @abstractmethod
-    async def connect(self, host: str, port: int, password: str) -> None:
+    async def connect(self, host: str, port: int, password: str, *, server_id: int = 0) -> None:
         """Establish RCON connection."""
 
     @abstractmethod

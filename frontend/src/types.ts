@@ -20,6 +20,23 @@ export interface ServerStatus {
 
 export interface Player {
   name: string;
+  connected_at?: string;
+}
+
+export interface UpdateServerRequest {
+  name?: string;
+  host?: string;
+  port?: number;
+  rcon_port?: number;
+  rcon_password?: string;
+  game_type?: string;
+}
+
+export interface ConsoleLine {
+  id: number;
+  timestamp: Date;
+  type: "command" | "output" | "error" | "system";
+  text: string;
 }
 
 export interface ScheduledCommand {

@@ -2,6 +2,7 @@ import logging
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,7 +35,7 @@ async def _run_scheduled_command(scheduled_id: int):
             return
         plugin = get_plugin(server.game_type)
         password = decrypt_rcon_password(server.rcon_password_encrypted)
-        await plugin.connect(server.host, server.rcon_port, password)
+        await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
         try:
             output = await plugin.send_command(sc.command)
             logger.info("Scheduled command '%s' output: %s", sc.name, output)
@@ -77,6 +78,17 @@ async def load_scheduled_jobs():
                 _register_job(sc)
             except Exception as e:
                 logger.error("Failed to register job %s: %s", sc.id, e)
+
+    # Register background status polling (every 30 seconds)
+    from app.api.servers import poll_all_servers
+    if not scheduler.get_job("status_poll"):
+        scheduler.add_job(
+            poll_all_servers,
+            IntervalTrigger(seconds=30),
+            id="status_poll",
+            replace_existing=True,
+        )
+
     if not scheduler.running:
         scheduler.start()
 

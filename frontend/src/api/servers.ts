@@ -4,6 +4,7 @@ import type {
   ServerStatus,
   Player,
   CreateServerRequest,
+  UpdateServerRequest,
   ScheduledCommand,
 } from "../types";
 
@@ -23,6 +24,11 @@ export const serversApi = {
     return res.data;
   },
 
+  update: async (id: number, data: UpdateServerRequest): Promise<Server> => {
+    const res = await client.put<Server>(`/servers/${id}`, data);
+    return res.data;
+  },
+
   delete: async (id: number): Promise<void> => {
     await client.delete(`/servers/${id}`);
   },
@@ -37,6 +43,18 @@ export const serversApi = {
       `/servers/${id}/players`
     );
     return res.data;
+  },
+
+  kickPlayer: async (id: number, playerName: string): Promise<void> => {
+    await client.post(
+      `/servers/${id}/players/${encodeURIComponent(playerName)}/kick`
+    );
+  },
+
+  banPlayer: async (id: number, playerName: string): Promise<void> => {
+    await client.post(
+      `/servers/${id}/players/${encodeURIComponent(playerName)}/ban`
+    );
   },
 
   getChat: async (id: number): Promise<{ messages: string[] }> => {

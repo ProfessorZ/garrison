@@ -12,6 +12,7 @@ from slowapi.util import get_remote_address
 from app.config import settings
 from app.api import auth, servers, console, players, scheduler
 from app.database import engine
+from app.rcon.manager import rcon_manager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ async def lifespan(app: FastAPI):
     yield
     if scheduler.scheduler.running:
         scheduler.scheduler.shutdown(wait=False)
+    await rcon_manager.close_all()
     await engine.dispose()
     logger.info("Garrison backend stopped")
 

@@ -1,5 +1,8 @@
+import asyncio
 import json
 import logging
+import time
+from collections import defaultdict, deque
 
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from sqlalchemy import select
@@ -15,10 +18,15 @@ from app.auth.deps import get_current_user
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/servers", tags=["console"])
+router = APIRouter(prefix="/api", tags=["console"])
+
+# In-memory command history: server_id -> deque of {command, output, timestamp, user}
+_command_history: dict[int, deque] = defaultdict(lambda: deque(maxlen=50))
+
+KEEPALIVE_INTERVAL = 30  # seconds
 
 
-@router.post("/{server_id}/command", response_model=CommandResponse)
+@router.post("/servers/{server_id}/command", response_model=CommandResponse)
 async def send_command(
     server_id: int,
     data: CommandRequest,
@@ -31,7 +39,7 @@ async def send_command(
         raise HTTPException(status_code=404, detail="Server not found")
     plugin = get_plugin(server.game_type)
     password = decrypt_rcon_password(server.rcon_password_encrypted)
-    await plugin.connect(server.host, server.rcon_port, password)
+    await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
     try:
         output = await plugin.send_command(data.command)
     finally:
@@ -39,8 +47,9 @@ async def send_command(
     return CommandResponse(output=output)
 
 
-@router.websocket("/{server_id}/ws")
+@router.websocket("/ws/console/{server_id}")
 async def websocket_console(websocket: WebSocket, server_id: int):
+    # Authenticate via query param token (JWT)
     token = websocket.query_params.get("token")
     if not token:
         await websocket.close(code=4001, reason="Missing token")
@@ -49,36 +58,78 @@ async def websocket_console(websocket: WebSocket, server_id: int):
     if not payload:
         await websocket.close(code=4001, reason="Invalid token")
         return
+    username = payload.get("sub", "unknown")
 
     await websocket.accept()
 
+    # Look up server and establish RCON
     async with async_session() as db:
         result = await db.execute(select(Server).where(Server.id == server_id))
         server = result.scalar_one_or_none()
-        if not server:
-            await websocket.send_json({"error": "Server not found"})
-            await websocket.close()
-            return
 
-        plugin = get_plugin(server.game_type)
-        password = decrypt_rcon_password(server.rcon_password_encrypted)
-        await plugin.connect(server.host, server.rcon_port, password)
+    if not server:
+        await websocket.send_json({"type": "error", "message": "Server not found"})
+        await websocket.close(code=4004)
+        return
 
+    plugin = get_plugin(server.game_type)
+    password = decrypt_rcon_password(server.rcon_password_encrypted)
+    try:
+        await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
+    except Exception as e:
+        await websocket.send_json({"type": "error", "message": f"RCON connection failed: {e}"})
+        await websocket.close(code=4002)
+        return
+
+    await websocket.send_json({"type": "connected", "server_id": server_id, "server_name": server.name})
+
+    # Send existing command history for this server
+    history = list(_command_history[server_id])
+    if history:
+        await websocket.send_json({"type": "history", "entries": history})
+
+    async def keepalive():
+        """Send periodic pings to detect dead connections."""
         try:
             while True:
-                raw = await websocket.receive_text()
-                try:
-                    data = json.loads(raw)
-                    command = data.get("command", "")
-                except (json.JSONDecodeError, AttributeError):
-                    command = raw
+                await asyncio.sleep(KEEPALIVE_INTERVAL)
+                await websocket.send_json({"type": "ping", "ts": time.time()})
+        except Exception:
+            pass
 
-                if not command:
-                    continue
+    ping_task = asyncio.create_task(keepalive())
 
-                output = await plugin.send_command(command)
-                await websocket.send_json({"command": command, "output": output})
-        except WebSocketDisconnect:
-            logger.info("WebSocket disconnected for server %s", server_id)
-        finally:
-            await plugin.disconnect()
+    try:
+        while True:
+            raw = await websocket.receive_text()
+            try:
+                data = json.loads(raw)
+            except (json.JSONDecodeError, AttributeError):
+                data = {"command": raw}
+
+            # Handle pong from client
+            if data.get("type") == "pong":
+                continue
+
+            command = data.get("command", "").strip()
+            if not command:
+                continue
+
+            output = await plugin.send_command(command)
+
+            entry = {
+                "command": command,
+                "output": output,
+                "timestamp": time.time(),
+                "user": username,
+            }
+            _command_history[server_id].append(entry)
+
+            await websocket.send_json({"type": "response", "command": command, "output": output})
+    except WebSocketDisconnect:
+        logger.info("WebSocket disconnected for server %s (user=%s)", server_id, username)
+    except Exception as e:
+        logger.error("WebSocket error for server %s: %s", server_id, e)
+    finally:
+        ping_task.cancel()
+        await plugin.disconnect()

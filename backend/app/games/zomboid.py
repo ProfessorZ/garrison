@@ -1,9 +1,8 @@
-import asyncio
 import logging
-
-from rcon.source import Client as RconClient
+import re
 
 from app.games.base import GamePlugin
+from app.rcon.manager import rcon_manager
 
 logger = logging.getLogger(__name__)
 
@@ -13,37 +12,46 @@ class ZomboidPlugin(GamePlugin):
     display_name = "Project Zomboid"
 
     def __init__(self):
+        self._server_id: int | None = None
         self._host: str = ""
         self._port: int = 0
         self._password: str = ""
 
-    async def connect(self, host: str, port: int, password: str) -> None:
+    async def connect(self, host: str, port: int, password: str, *, server_id: int = 0) -> None:
         self._host = host
         self._port = port
         self._password = password
+        self._server_id = server_id
+        await rcon_manager.connect(server_id, host, port, password)
 
     async def disconnect(self) -> None:
-        self._host = ""
-        self._port = 0
-        self._password = ""
-
-    def _rcon_command(self, command: str) -> str:
-        with RconClient(self._host, self._port, passwd=self._password) as client:
-            return client.run(command)
+        if self._server_id is not None:
+            await rcon_manager.disconnect(self._server_id)
+        self._server_id = None
 
     async def send_command(self, command: str) -> str:
+        if self._server_id is None:
+            return "Error: not connected"
         try:
-            return await asyncio.to_thread(self._rcon_command, command)
+            return await rcon_manager.send_command(self._server_id, command)
         except Exception as e:
             logger.error("RCON command failed: %s", e)
             return f"Error: {e}"
 
     async def get_players(self) -> list[dict]:
         raw = await self.send_command("players")
+        if raw.startswith("Error:"):
+            return []
         players = []
         for line in raw.strip().splitlines():
             line = line.strip().lstrip("-").strip()
-            if line and not line.lower().startswith("players"):
+            if not line or line.lower().startswith("players"):
+                continue
+            # Try to extract steam ID if present (format: "name (steamid:12345)")
+            m = re.match(r"^(.+?)\s*\(steamid:(\d+)\)$", line)
+            if m:
+                players.append({"name": m.group(1).strip(), "steam_id": m.group(2)})
+            else:
                 players.append({"name": line})
         return players
 
@@ -54,6 +62,12 @@ class ZomboidPlugin(GamePlugin):
     async def ban_player(self, player_name: str, reason: str = "") -> str:
         cmd = f'banuser "{player_name}" "{reason}"' if reason else f'banuser "{player_name}"'
         return await self.send_command(cmd)
+
+    async def unban_player(self, player_name: str) -> str:
+        return await self.send_command(f'unbanuser "{player_name}"')
+
+    async def broadcast(self, message: str) -> str:
+        return await self.send_command(f'servermsg "{message}"')
 
     async def get_chat(self) -> list[str]:
         return []

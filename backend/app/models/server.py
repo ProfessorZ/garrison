@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, func
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -15,5 +15,10 @@ class Server(Base):
     game_type = Column(String(50), nullable=False, default="zomboid")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    # Status polling columns
+    last_status = Column(Boolean, nullable=True)
+    last_checked = Column(DateTime(timezone=True), nullable=True)
+    player_count = Column(Integer, nullable=True)
 
     scheduled_commands = relationship("ScheduledCommand", back_populates="server", cascade="all, delete-orphan")

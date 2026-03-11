@@ -19,7 +19,7 @@ async def _get_server_plugin(server_id: int, db: AsyncSession):
         raise HTTPException(status_code=404, detail="Server not found")
     plugin = get_plugin(server.game_type)
     password = decrypt_rcon_password(server.rcon_password_encrypted)
-    await plugin.connect(server.host, server.rcon_port, password)
+    await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
     return server, plugin
 
 
@@ -64,6 +64,24 @@ async def ban_player(
     server, plugin = await _get_server_plugin(server_id, db)
     try:
         result = await plugin.ban_player(player_name, reason)
+    finally:
+        await plugin.disconnect()
+    return {"result": result}
+
+
+@router.post("/{server_id}/players/{player_name}/unban")
+async def unban_player(
+    server_id: int,
+    player_name: str,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
+    _server, plugin = await _get_server_plugin(server_id, db)
+    try:
+        if hasattr(plugin, "unban_player"):
+            result = await plugin.unban_player(player_name)
+        else:
+            result = await plugin.send_command(f'unbanuser "{player_name}"')
     finally:
         await plugin.disconnect()
     return {"result": result}

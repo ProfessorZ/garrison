@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -26,6 +28,9 @@ class ServerOut(BaseModel):
     port: int
     rcon_port: int
     game_type: str
+    last_status: bool | None = None
+    last_checked: datetime | None = None
+    player_count: int | None = None
 
     model_config = {"from_attributes": True}
 
