@@ -15,6 +15,12 @@ export function useAuth() {
   );
   const [loading, setLoading] = useState(true);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem("garrison_token");
+    setToken(null);
+    setUser(null);
+  }, []);
+
   const fetchUser = useCallback(async (t: string) => {
     try {
       const res = await fetch(`${API}/me`, {
@@ -30,7 +36,7 @@ export function useAuth() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [logout]);
 
   useEffect(() => {
     if (token) {
@@ -63,12 +69,6 @@ export function useAuth() {
       throw new Error(err.detail || "Registration failed");
     }
     await login(username, password);
-  };
-
-  const logout = () => {
-    localStorage.removeItem("garrison_token");
-    setToken(null);
-    setUser(null);
   };
 
   return { user, token, loading, login, register, logout };

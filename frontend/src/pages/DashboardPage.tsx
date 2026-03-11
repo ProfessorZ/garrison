@@ -1,151 +1,230 @@
-import { useState, useEffect, FormEvent } from "react";
-import { Link } from "react-router-dom";
-import { useApi } from "../hooks/useApi";
+import { useState, type FormEvent } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, X } from "lucide-react";
+import { serversApi } from "../api/servers";
+import ServerCard from "../components/ServerCard";
+import type { ServerStatus } from "../types";
 
-interface Server {
-  id: number;
-  name: string;
-  host: string;
-  port: number;
-  rcon_port: number;
-  game_type: string;
-}
-
-interface StatusMap {
-  [id: number]: { online: boolean; player_count: number | null } | null;
-}
-
-export default function DashboardPage({ token }: { token: string | null }) {
-  const { apiFetch } = useApi(token);
-  const [servers, setServers] = useState<Server[]>([]);
-  const [statuses, setStatuses] = useState<StatusMap>({});
+export default function DashboardPage() {
+  const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ name: "", host: "", port: "", rcon_port: "", rcon_password: "", game_type: "zomboid" });
+  const [form, setForm] = useState({
+    name: "",
+    host: "",
+    port: "",
+    rcon_port: "",
+    rcon_password: "",
+    game_type: "zomboid",
+  });
 
-  const loadServers = async () => {
-    const data = await apiFetch("/api/servers/");
-    setServers(data);
-  };
+  const { data: servers = [] } = useQuery({
+    queryKey: ["servers"],
+    queryFn: serversApi.list,
+  });
 
-  useEffect(() => {
-    loadServers();
-  }, []);
+  // Fetch statuses for each server
+  const statusQueries = useQuery({
+    queryKey: ["server-statuses", servers.map((s) => s.id)],
+    queryFn: async () => {
+      const statuses: Record<number, ServerStatus | null> = {};
+      await Promise.allSettled(
+        servers.map(async (s) => {
+          try {
+            statuses[s.id] = await serversApi.getStatus(s.id);
+          } catch {
+            statuses[s.id] = { online: false, player_count: null };
+          }
+        })
+      );
+      return statuses;
+    },
+    enabled: servers.length > 0,
+    refetchInterval: 30000,
+  });
 
-  useEffect(() => {
-    servers.forEach(async (s) => {
-      try {
-        const st = await apiFetch(`/api/servers/${s.id}/status`);
-        setStatuses((prev) => ({ ...prev, [s.id]: st }));
-      } catch {
-        setStatuses((prev) => ({ ...prev, [s.id]: { online: false, player_count: null } }));
-      }
-    });
-  }, [servers]);
+  const createServer = useMutation({
+    mutationFn: serversApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["servers"] });
+      setShowAdd(false);
+      setForm({
+        name: "",
+        host: "",
+        port: "",
+        rcon_port: "",
+        rcon_password: "",
+        game_type: "zomboid",
+      });
+    },
+  });
 
-  const handleAdd = async (e: FormEvent) => {
+  const deleteServer = useMutation({
+    mutationFn: serversApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["servers"] });
+    },
+  });
+
+  const handleAdd = (e: FormEvent) => {
     e.preventDefault();
-    await apiFetch("/api/servers/", {
-      method: "POST",
-      body: JSON.stringify({
-        ...form,
-        port: parseInt(form.port),
-        rcon_port: parseInt(form.rcon_port),
-      }),
+    createServer.mutate({
+      ...form,
+      port: parseInt(form.port),
+      rcon_port: parseInt(form.rcon_port),
     });
-    setShowAdd(false);
-    setForm({ name: "", host: "", port: "", rcon_port: "", rcon_password: "", game_type: "zomboid" });
-    loadServers();
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm("Delete this server?")) return;
-    await apiFetch(`/api/servers/${id}`, { method: "DELETE" });
-    loadServers();
   };
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 600 }}>Servers</h2>
-        <button className="btn-primary" onClick={() => setShowAdd(!showAdd)}>
-          {showAdd ? "Cancel" : "+ Add Server"}
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-semibold text-slate-100">Servers</h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Manage your game servers
+          </p>
+        </div>
+        <button
+          onClick={() => setShowAdd(!showAdd)}
+          className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+            showAdd
+              ? "bg-slate-700 text-slate-300 hover:bg-slate-600"
+              : "bg-emerald-600 text-white hover:bg-emerald-500"
+          }`}
+        >
+          {showAdd ? (
+            <>
+              <X className="h-4 w-4" /> Cancel
+            </>
+          ) : (
+            <>
+              <Plus className="h-4 w-4" /> Add Server
+            </>
+          )}
         </button>
       </div>
 
+      {/* Add server form */}
       {showAdd && (
-        <form className="card" style={{ marginBottom: 20 }} onSubmit={handleAdd}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <form
+          onSubmit={handleAdd}
+          className="bg-slate-800 border border-slate-700 rounded-lg p-5 mb-6"
+        >
+          <h3 className="text-sm font-semibold text-slate-200 mb-4">
+            New Server
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label style={{ fontSize: 13, color: "var(--text-secondary)" }}>Name</label>
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                Name
+              </label>
+              <input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                placeholder="My Server"
+              />
             </div>
             <div>
-              <label style={{ fontSize: 13, color: "var(--text-secondary)" }}>Host</label>
-              <input value={form.host} onChange={(e) => setForm({ ...form, host: e.target.value })} required />
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                Host
+              </label>
+              <input
+                value={form.host}
+                onChange={(e) => setForm({ ...form, host: e.target.value })}
+                required
+                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                placeholder="192.168.1.100"
+              />
             </div>
             <div>
-              <label style={{ fontSize: 13, color: "var(--text-secondary)" }}>Game Port</label>
-              <input type="number" value={form.port} onChange={(e) => setForm({ ...form, port: e.target.value })} required />
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                Game Port
+              </label>
+              <input
+                type="number"
+                value={form.port}
+                onChange={(e) => setForm({ ...form, port: e.target.value })}
+                required
+                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                placeholder="16261"
+              />
             </div>
             <div>
-              <label style={{ fontSize: 13, color: "var(--text-secondary)" }}>RCON Port</label>
-              <input type="number" value={form.rcon_port} onChange={(e) => setForm({ ...form, rcon_port: e.target.value })} required />
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                RCON Port
+              </label>
+              <input
+                type="number"
+                value={form.rcon_port}
+                onChange={(e) =>
+                  setForm({ ...form, rcon_port: e.target.value })
+                }
+                required
+                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                placeholder="27015"
+              />
             </div>
             <div>
-              <label style={{ fontSize: 13, color: "var(--text-secondary)" }}>RCON Password</label>
-              <input type="password" value={form.rcon_password} onChange={(e) => setForm({ ...form, rcon_password: e.target.value })} required />
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                RCON Password
+              </label>
+              <input
+                type="password"
+                value={form.rcon_password}
+                onChange={(e) =>
+                  setForm({ ...form, rcon_password: e.target.value })
+                }
+                required
+                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              />
             </div>
             <div>
-              <label style={{ fontSize: 13, color: "var(--text-secondary)" }}>Game Type</label>
-              <select value={form.game_type} onChange={(e) => setForm({ ...form, game_type: e.target.value })}>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                Game Type
+              </label>
+              <select
+                value={form.game_type}
+                onChange={(e) =>
+                  setForm({ ...form, game_type: e.target.value })
+                }
+                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              >
                 <option value="zomboid">Project Zomboid</option>
               </select>
             </div>
           </div>
-          <button className="btn-primary" style={{ marginTop: 12 }} type="submit">
-            Add Server
+          <button
+            type="submit"
+            disabled={createServer.isPending}
+            className="mt-4 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
+          >
+            {createServer.isPending ? "Adding..." : "Add Server"}
           </button>
         </form>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
-        {servers.map((s) => {
-          const st = statuses[s.id];
-          return (
-            <div key={s.id} className="card">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-                <div>
-                  <Link to={`/server/${s.id}`} style={{ fontSize: 16, fontWeight: 600 }}>
-                    {s.name}
-                  </Link>
-                  <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>
-                    {s.host}:{s.port} &middot; {s.game_type}
-                  </p>
-                </div>
-                <span className={`badge ${st?.online ? "badge-online" : "badge-offline"}`}>
-                  {st === undefined ? "..." : st?.online ? "Online" : "Offline"}
-                </span>
-              </div>
-              {st?.online && st.player_count !== null && (
-                <p style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 8 }}>
-                  {st.player_count} player{st.player_count !== 1 ? "s" : ""} online
-                </p>
-              )}
-              <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-                <Link to={`/server/${s.id}`}>
-                  <button className="btn-secondary" style={{ fontSize: 13 }}>Manage</button>
-                </Link>
-                <button className="btn-danger" style={{ fontSize: 13 }} onClick={() => handleDelete(s.id)}>
-                  Delete
-                </button>
-              </div>
-            </div>
-          );
-        })}
-        {servers.length === 0 && (
-          <p style={{ color: "var(--text-muted)" }}>No servers configured. Click &quot;+ Add Server&quot; to get started.</p>
-        )}
+      {/* Server grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {servers.map((s) => (
+          <ServerCard
+            key={s.id}
+            server={s}
+            status={statusQueries.data?.[s.id]}
+            onDelete={(id) => deleteServer.mutate(id)}
+          />
+        ))}
       </div>
+
+      {servers.length === 0 && (
+        <div className="text-center py-16">
+          <p className="text-slate-500 text-sm">
+            No servers configured. Click &ldquo;Add Server&rdquo; to get
+            started.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

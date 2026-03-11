@@ -1,85 +1,124 @@
-import { useState, useEffect, FormEvent } from "react";
-import { useApi } from "../hooks/useApi";
+import { useState, type FormEvent } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, X, Pause, Play, Trash2 } from "lucide-react";
+import { schedulerApi, serversApi } from "../api/servers";
 
-interface Server {
-  id: number;
-  name: string;
-}
-
-interface ScheduledCommand {
-  id: number;
-  server_id: number;
-  name: string;
-  command: string;
-  cron_expression: string;
-  is_active: boolean;
-}
-
-export default function SchedulerPage({ token }: { token: string | null }) {
-  const { apiFetch } = useApi(token);
-  const [commands, setCommands] = useState<ScheduledCommand[]>([]);
-  const [servers, setServers] = useState<Server[]>([]);
+export default function SchedulerPage() {
+  const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ server_id: "", name: "", command: "", cron_expression: "" });
+  const [form, setForm] = useState({
+    server_id: "",
+    name: "",
+    command: "",
+    cron_expression: "",
+  });
 
-  const load = async () => {
-    const [cmds, srvs] = await Promise.all([
-      apiFetch("/api/scheduled-commands/"),
-      apiFetch("/api/servers/"),
-    ]);
-    setCommands(cmds);
-    setServers(srvs);
-  };
+  const { data: commands = [] } = useQuery({
+    queryKey: ["scheduled-commands"],
+    queryFn: schedulerApi.list,
+  });
 
-  useEffect(() => {
-    load();
-  }, []);
+  const { data: servers = [] } = useQuery({
+    queryKey: ["servers"],
+    queryFn: serversApi.list,
+  });
 
-  const handleAdd = async (e: FormEvent) => {
+  const createCommand = useMutation({
+    mutationFn: schedulerApi.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["scheduled-commands"] });
+      setShowAdd(false);
+      setForm({ server_id: "", name: "", command: "", cron_expression: "" });
+    },
+  });
+
+  const toggleActive = useMutation({
+    mutationFn: ({
+      id,
+      is_active,
+    }: {
+      id: number;
+      is_active: boolean;
+    }) => schedulerApi.update(id, { is_active }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["scheduled-commands"] });
+    },
+  });
+
+  const deleteCommand = useMutation({
+    mutationFn: schedulerApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["scheduled-commands"] });
+    },
+  });
+
+  const handleAdd = (e: FormEvent) => {
     e.preventDefault();
-    await apiFetch("/api/scheduled-commands/", {
-      method: "POST",
-      body: JSON.stringify({
-        ...form,
-        server_id: parseInt(form.server_id),
-      }),
+    createCommand.mutate({
+      server_id: parseInt(form.server_id),
+      name: form.name,
+      command: form.command,
+      cron_expression: form.cron_expression,
     });
-    setShowAdd(false);
-    setForm({ server_id: "", name: "", command: "", cron_expression: "" });
-    load();
   };
 
-  const toggleActive = async (cmd: ScheduledCommand) => {
-    await apiFetch(`/api/scheduled-commands/${cmd.id}`, {
-      method: "PUT",
-      body: JSON.stringify({ is_active: !cmd.is_active }),
-    });
-    load();
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm("Delete this scheduled command?")) return;
-    await apiFetch(`/api/scheduled-commands/${id}`, { method: "DELETE" });
-    load();
-  };
-
-  const serverName = (id: number) => servers.find((s) => s.id === id)?.name ?? `Server #${id}`;
+  const serverName = (id: number) =>
+    servers.find((s) => s.id === id)?.name ?? `Server #${id}`;
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <h2 style={{ fontSize: 20, fontWeight: 600 }}>Scheduled Commands</h2>
-        <button className="btn-primary" onClick={() => setShowAdd(!showAdd)}>
-          {showAdd ? "Cancel" : "+ Add Job"}
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-semibold text-slate-100">
+            Scheduled Commands
+          </h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Automate recurring RCON commands
+          </p>
+        </div>
+        <button
+          onClick={() => setShowAdd(!showAdd)}
+          className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+            showAdd
+              ? "bg-slate-700 text-slate-300 hover:bg-slate-600"
+              : "bg-emerald-600 text-white hover:bg-emerald-500"
+          }`}
+        >
+          {showAdd ? (
+            <>
+              <X className="h-4 w-4" /> Cancel
+            </>
+          ) : (
+            <>
+              <Plus className="h-4 w-4" /> Add Job
+            </>
+          )}
         </button>
       </div>
 
+      {/* Add form */}
       {showAdd && (
-        <form className="card" style={{ marginBottom: 20 }} onSubmit={handleAdd}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <form
+          onSubmit={handleAdd}
+          className="bg-slate-800 border border-slate-700 rounded-lg p-5 mb-6"
+        >
+          <h3 className="text-sm font-semibold text-slate-200 mb-4">
+            New Scheduled Command
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label style={{ fontSize: 13, color: "var(--text-secondary)" }}>Server</label>
-              <select value={form.server_id} onChange={(e) => setForm({ ...form, server_id: e.target.value })} required>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                Server
+              </label>
+              <select
+                value={form.server_id}
+                onChange={(e) =>
+                  setForm({ ...form, server_id: e.target.value })
+                }
+                required
+                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              >
                 <option value="">Select server...</option>
                 {servers.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -89,67 +128,150 @@ export default function SchedulerPage({ token }: { token: string | null }) {
               </select>
             </div>
             <div>
-              <label style={{ fontSize: 13, color: "var(--text-secondary)" }}>Job Name</label>
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                Job Name
+              </label>
+              <input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                placeholder="Daily restart"
+              />
             </div>
             <div>
-              <label style={{ fontSize: 13, color: "var(--text-secondary)" }}>RCON Command</label>
-              <input value={form.command} onChange={(e) => setForm({ ...form, command: e.target.value })} required />
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                RCON Command
+              </label>
+              <input
+                value={form.command}
+                onChange={(e) => setForm({ ...form, command: e.target.value })}
+                required
+                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                placeholder='servermsg "Restarting in 5..."'
+              />
             </div>
             <div>
-              <label style={{ fontSize: 13, color: "var(--text-secondary)" }}>Cron Expression (min hr day mon dow)</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                Cron Expression
+              </label>
               <input
                 value={form.cron_expression}
-                onChange={(e) => setForm({ ...form, cron_expression: e.target.value })}
-                placeholder="0 */6 * * *"
+                onChange={(e) =>
+                  setForm({ ...form, cron_expression: e.target.value })
+                }
                 required
+                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                placeholder="0 */6 * * *"
               />
             </div>
           </div>
-          <button className="btn-primary" style={{ marginTop: 12 }} type="submit">
-            Add Job
+          <button
+            type="submit"
+            disabled={createCommand.isPending}
+            className="mt-4 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
+          >
+            {createCommand.isPending ? "Adding..." : "Add Job"}
           </button>
         </form>
       )}
 
+      {/* Commands table */}
       {commands.length === 0 ? (
-        <p style={{ color: "var(--text-muted)" }}>No scheduled commands configured.</p>
+        <div className="text-center py-16">
+          <p className="text-slate-500 text-sm">
+            No scheduled commands configured.
+          </p>
+        </div>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ borderBottom: "1px solid var(--border)" }}>
-              <th style={{ textAlign: "left", padding: 10, color: "var(--text-secondary)", fontSize: 13 }}>Name</th>
-              <th style={{ textAlign: "left", padding: 10, color: "var(--text-secondary)", fontSize: 13 }}>Server</th>
-              <th style={{ textAlign: "left", padding: 10, color: "var(--text-secondary)", fontSize: 13 }}>Command</th>
-              <th style={{ textAlign: "left", padding: 10, color: "var(--text-secondary)", fontSize: 13 }}>Schedule</th>
-              <th style={{ textAlign: "left", padding: 10, color: "var(--text-secondary)", fontSize: 13 }}>Status</th>
-              <th style={{ textAlign: "right", padding: 10, color: "var(--text-secondary)", fontSize: 13 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {commands.map((cmd) => (
-              <tr key={cmd.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                <td style={{ padding: 10, fontSize: 14 }}>{cmd.name}</td>
-                <td style={{ padding: 10, fontSize: 14, color: "var(--text-secondary)" }}>{serverName(cmd.server_id)}</td>
-                <td style={{ padding: 10, fontSize: 13, fontFamily: "monospace", color: "var(--text-secondary)" }}>{cmd.command}</td>
-                <td style={{ padding: 10, fontSize: 13, fontFamily: "monospace", color: "var(--text-secondary)" }}>{cmd.cron_expression}</td>
-                <td style={{ padding: 10 }}>
-                  <span className={`badge ${cmd.is_active ? "badge-online" : "badge-offline"}`}>
-                    {cmd.is_active ? "Active" : "Paused"}
-                  </span>
-                </td>
-                <td style={{ padding: 10, textAlign: "right" }}>
-                  <button className="btn-secondary" style={{ fontSize: 12, marginRight: 6 }} onClick={() => toggleActive(cmd)}>
-                    {cmd.is_active ? "Pause" : "Resume"}
-                  </button>
-                  <button className="btn-danger" style={{ fontSize: 12 }} onClick={() => handleDelete(cmd.id)}>
-                    Delete
-                  </button>
-                </td>
+        <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-slate-700">
+                <th className="text-left px-4 py-3 text-xs font-medium text-slate-400">
+                  Name
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-slate-400">
+                  Server
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-slate-400">
+                  Command
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-slate-400">
+                  Schedule
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-slate-400">
+                  Status
+                </th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-slate-400">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {commands.map((cmd) => (
+                <tr
+                  key={cmd.id}
+                  className="border-b border-slate-700/50 last:border-0"
+                >
+                  <td className="px-4 py-3 text-sm text-slate-200">
+                    {cmd.name}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-slate-400">
+                    {serverName(cmd.server_id)}
+                  </td>
+                  <td className="px-4 py-3 text-xs font-mono text-slate-400">
+                    {cmd.command}
+                  </td>
+                  <td className="px-4 py-3 text-xs font-mono text-slate-400">
+                    {cmd.cron_expression}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        cmd.is_active
+                          ? "bg-emerald-500/15 text-emerald-400"
+                          : "bg-slate-700 text-slate-400"
+                      }`}
+                    >
+                      {cmd.is_active ? "Active" : "Paused"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() =>
+                        toggleActive.mutate({
+                          id: cmd.id,
+                          is_active: !cmd.is_active,
+                        })
+                      }
+                      className="inline-flex items-center gap-1 rounded bg-slate-700 px-2 py-1 text-xs text-slate-300 hover:bg-slate-600 mr-2 transition-colors"
+                    >
+                      {cmd.is_active ? (
+                        <>
+                          <Pause className="h-3 w-3" /> Pause
+                        </>
+                      ) : (
+                        <>
+                          <Play className="h-3 w-3" /> Resume
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm("Delete this scheduled command?"))
+                          deleteCommand.mutate(cmd.id);
+                      }}
+                      className="inline-flex items-center gap-1 rounded bg-red-500/10 px-2 py-1 text-xs text-red-400 hover:bg-red-500/20 transition-colors"
+                    >
+                      <Trash2 className="h-3 w-3" /> Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

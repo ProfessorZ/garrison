@@ -7,3 +7,7 @@ python-jose[cryptography]>=3.3,<4
 passlib[bcrypt]>=1.7,<2
 cryptography>=42,<44
 pydantic-settings>=2.2,<3
+pydantic[email]>=2.0,<3
+rcon>=2.0,<3
+slowapi>=0.1,<1
+apscheduler>=3.10,<4

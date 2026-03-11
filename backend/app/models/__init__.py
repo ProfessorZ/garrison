@@ -1,5 +1,5 @@
 from app.models.user import User
-from app.models.server import GameServer
-from app.models.game import Game
+from app.models.server import Server
+from app.models.scheduled_command import ScheduledCommand
 
-__all__ = ["User", "GameServer", "Game"]
+__all__ = ["User", "Server", "ScheduledCommand"]

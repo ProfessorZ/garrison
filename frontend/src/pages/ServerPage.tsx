@@ -36,7 +36,6 @@ export default function ServerPage({ token }: { token: string | null }) {
     apiFetch(`/api/servers/${id}`).then(setServer).catch(() => {});
   }, [id]);
 
-  // WebSocket console connection
   useEffect(() => {
     if (!token || !id) return;
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";

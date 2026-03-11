@@ -1,14 +1,13 @@
-import { useState, FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Terminal, Loader2 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
-interface Props {
-  onLogin: (username: string, password: string) => Promise<void>;
-  onRegister: (username: string, password: string) => Promise<void>;
-}
-
-export default function LoginPage({ onLogin, onRegister }: Props) {
+export default function LoginPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -17,63 +16,88 @@ export default function LoginPage({ onLogin, onRegister }: Props) {
     setError("");
     setLoading(true);
     try {
-      if (isRegister) {
-        await onRegister(username, password);
-      } else {
-        await onLogin(username, password);
-      }
-    } catch (err: any) {
-      setError(err.message);
+      await login(username, password);
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Invalid credentials"
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        background: "var(--bg-primary)",
-      }}
-    >
-      <div className="card" style={{ width: 380 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--accent)", marginBottom: 4 }}>Garrison</h1>
-        <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 24 }}>RCON Dashboard</p>
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: "block", fontSize: 13, color: "var(--text-secondary)", marginBottom: 4 }}>
-              Username
-            </label>
-            <input value={username} onChange={(e) => setUsername(e.target.value)} required />
+    <div className="flex items-center justify-center min-h-screen bg-slate-900 px-4">
+      <div className="w-full max-w-sm">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-emerald-500/10 mb-4">
+            <Terminal className="h-6 w-6 text-emerald-500" />
           </div>
-          <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontSize: 13, color: "var(--text-secondary)", marginBottom: 4 }}>
-              Password
-            </label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-          </div>
-          {error && (
-            <p style={{ color: "var(--danger)", fontSize: 13, marginBottom: 12 }}>{error}</p>
-          )}
-          <button className="btn-primary" style={{ width: "100%" }} disabled={loading}>
-            {loading ? "..." : isRegister ? "Register" : "Login"}
-          </button>
-        </form>
-        <p style={{ textAlign: "center", marginTop: 16, fontSize: 13, color: "var(--text-muted)" }}>
-          {isRegister ? "Already have an account?" : "No account yet?"}{" "}
-          <span
-            style={{ color: "var(--accent)", cursor: "pointer" }}
-            onClick={() => {
-              setIsRegister(!isRegister);
-              setError("");
-            }}
-          >
-            {isRegister ? "Login" : "Register"}
-          </span>
-        </p>
+          <h1 className="text-2xl font-bold text-emerald-500">Garrison</h1>
+          <p className="text-sm text-slate-500 mt-1">RCON Dashboard</p>
+        </div>
+
+        {/* Form */}
+        <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-slate-100 mb-6">
+            Sign in
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                Username
+              </label>
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                autoFocus
+                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                placeholder="Enter username"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                placeholder="Enter password"
+              />
+            </div>
+
+            {error && (
+              <p className="text-sm text-red-400 bg-red-500/10 rounded-md px-3 py-2">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {loading ? "Signing in..." : "Sign in"}
+            </button>
+          </form>
+
+          <p className="mt-4 text-center text-xs text-slate-500">
+            No account yet?{" "}
+            <Link
+              to="/register"
+              className="text-emerald-400 hover:text-emerald-300 font-medium"
+            >
+              Register
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
