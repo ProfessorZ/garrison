@@ -5,6 +5,7 @@ asyncpg>=0.29,<1
 alembic>=1.13,<2
 python-jose[cryptography]>=3.3,<4
 passlib[bcrypt]>=1.7,<2
+bcrypt>=4.0,<5
 cryptography>=42,<44
 pydantic-settings>=2.2,<3
 pydantic[email]>=2.0,<3
