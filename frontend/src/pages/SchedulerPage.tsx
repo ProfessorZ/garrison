@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, X, Pause, Play, Trash2, Clock } from "lucide-react";
 import { serversApi } from "../api/servers";
 import { schedulesApi } from "../api/schedules";
-import type { ScheduledCommand } from "../types";
 
 export default function SchedulerPage() {
   const queryClient = useQueryClient();

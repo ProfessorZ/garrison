@@ -38,7 +38,7 @@ export default function ServerOptions({ serverId }: Props) {
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
     new Set()
   );
-  const [hoveredOption, setHoveredOption] = useState<string | null>(null);
+  const [_hoveredOption, setHoveredOption] = useState<string | null>(null);
   const [savingOption, setSavingOption] = useState<string | null>(null);
 
   const { data: options = [], isLoading, error } = useQuery({

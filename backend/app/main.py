@@ -50,16 +50,16 @@ app.add_middleware(
 
 # Routers
 app.include_router(auth.router)
-app.include_router(servers.router)
 app.include_router(console.router)
 app.include_router(players.router)
 app.include_router(scheduler.router)
+app.include_router(server_options.router)
+app.include_router(chat.router)
+app.include_router(servers.router)
 app.include_router(activity.router)
 app.include_router(dashboard.router)
-app.include_router(chat.router)
 app.include_router(commands.router)
 app.include_router(users.router)
-app.include_router(server_options.router)
 
 
 @app.get("/api/health")

@@ -13,7 +13,7 @@ import {
   Package,
 } from "lucide-react";
 import { schedulesApi } from "../api/schedules";
-import type { ScheduledCommand, SchedulePreset } from "../types";
+import type { ScheduledCommand } from "../types";
 
 // ── Cron helpers ────────────────────────────────────────────────────────────
 
