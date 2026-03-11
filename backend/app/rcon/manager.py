@@ -37,7 +37,7 @@ async def _read_packet(reader: asyncio.StreamReader) -> tuple[int, int, str]:
     """Read and decode a single Source RCON packet. Returns (id, type, body)."""
     size_data = await asyncio.wait_for(reader.readexactly(4), timeout=10.0)
     (size,) = struct.unpack("<i", size_data)
-    if size < MIN_PACKET_SIZE or size > 4096:
+    if size < MIN_PACKET_SIZE or size > 65536:
         raise ValueError(f"Invalid RCON packet size: {size}")
     payload = await asyncio.wait_for(reader.readexactly(size), timeout=10.0)
     request_id, packet_type = struct.unpack("<ii", payload[:8])
