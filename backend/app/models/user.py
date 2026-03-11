@@ -1,5 +1,23 @@
+import enum
+
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
 from app.database import Base
+
+
+class UserRole(str, enum.Enum):
+    OWNER = "OWNER"
+    ADMIN = "ADMIN"
+    MODERATOR = "MODERATOR"
+    VIEWER = "VIEWER"
+
+
+# Hierarchy: OWNER > ADMIN > MODERATOR > VIEWER
+ROLE_HIERARCHY = {
+    UserRole.OWNER: 4,
+    UserRole.ADMIN: 3,
+    UserRole.MODERATOR: 2,
+    UserRole.VIEWER: 1,
+}
 
 
 class User(Base):
@@ -9,4 +27,5 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
     is_admin = Column(Boolean, default=False)
+    role = Column(String(20), nullable=False, default=UserRole.VIEWER.value)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

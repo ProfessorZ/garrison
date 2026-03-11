@@ -2,9 +2,13 @@ import logging
 import re
 
 from app.games.base import GamePlugin
+from app.games.schemas.zomboid_v1 import register as _register_zomboid_v1
 from app.rcon.manager import rcon_manager
 
 logger = logging.getLogger(__name__)
+
+# Register the PZ command schema on import
+_register_zomboid_v1()
 
 
 class ZomboidPlugin(GamePlugin):
@@ -29,9 +33,14 @@ class ZomboidPlugin(GamePlugin):
             await rcon_manager.disconnect(self._server_id)
         self._server_id = None
 
-    async def send_command(self, command: str) -> str:
+    async def send_command(self, command: str, *, validate: bool = False) -> str:
         if self._server_id is None:
             return "Error: not connected"
+        if validate:
+            cmd_name = command.split()[0] if command.strip() else ""
+            schema = self.get_commands()
+            if schema and not any(c.name == cmd_name for c in schema.commands):
+                return f"Error: unknown command '{cmd_name}'"
         try:
             return await rcon_manager.send_command(self._server_id, command)
         except Exception as e:

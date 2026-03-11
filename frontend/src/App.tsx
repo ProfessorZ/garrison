@@ -9,6 +9,7 @@ import DashboardPage from "./pages/DashboardPage";
 import ServerDetailPage from "./pages/ServerDetailPage";
 import SchedulerPage from "./pages/SchedulerPage";
 import ActivityPage from "./pages/ActivityPage";
+import UsersPage from "./pages/UsersPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +40,7 @@ export default function App() {
               <Route path="server/:id" element={<ServerDetailPage />} />
               <Route path="scheduler" element={<SchedulerPage />} />
               <Route path="activity" element={<ActivityPage />} />
+              <Route path="users" element={<UsersPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

@@ -1,7 +1,11 @@
+export type UserRole = "OWNER" | "ADMIN" | "MODERATOR" | "VIEWER";
+
 export interface User {
   id: number;
   username: string;
   is_admin: boolean;
+  role: UserRole;
+  created_at?: string;
 }
 
 export interface Server {
@@ -122,4 +126,37 @@ export interface DashboardStats {
   total_servers: number;
   online_servers: number;
   total_players: number;
+}
+
+// Server permissions
+export interface ServerPermission {
+  id: number;
+  user_id: number;
+  server_id: number;
+  role: string;
+  username?: string;
+  created_at?: string;
+}
+
+// Game commands (for autocomplete)
+export interface CommandParam {
+  name: string;
+  type: string;
+  required: boolean;
+  description: string;
+  enum_values?: string[];
+}
+
+export interface GameCommand {
+  name: string;
+  description: string;
+  usage: string;
+  category: string;
+  parameters: CommandParam[];
+}
+
+export interface GameCommandSchema {
+  game_name: string;
+  schema_version: string;
+  commands: GameCommand[];
 }

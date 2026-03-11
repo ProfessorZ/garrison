@@ -9,13 +9,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.security import decode_access_token, decrypt_rcon_password
+from app.auth.permissions import require_server_access
 from app.database import get_db, async_session
 from app.games.registry import get_plugin
 from app.models.server import Server
-from app.models.user import User
+from app.models.user import User, UserRole, ROLE_HIERARCHY
+from app.models.server_permission import ServerPermission
 from app.models.activity_log import ActionType
 from app.schemas.server import CommandRequest, CommandResponse
-from app.auth.deps import get_current_user
 from app.api.activity import log_activity
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ async def send_command(
     server_id: int,
     data: CommandRequest,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_server_access(UserRole.MODERATOR)),
 ):
     result = await db.execute(select(Server).where(Server.id == server_id))
     server = result.scalar_one_or_none()
@@ -51,6 +52,35 @@ async def send_command(
     return CommandResponse(output=output)
 
 
+async def _ws_check_server_access(username: str, server_id: int) -> tuple[int | None, bool]:
+    """Check if a WebSocket user has MODERATOR+ access to a server.
+
+    Returns (user_id, has_access).
+    """
+    async with async_session() as db:
+        res = await db.execute(select(User).where(User.username == username))
+        user = res.scalar_one_or_none()
+        if not user:
+            return None, False
+
+        # Global ADMIN+ can access everything
+        if ROLE_HIERARCHY.get(UserRole(user.role), 0) >= ROLE_HIERARCHY[UserRole.ADMIN]:
+            return user.id, True
+
+        # Check per-server permission (MODERATOR+)
+        perm_res = await db.execute(
+            select(ServerPermission).where(
+                ServerPermission.user_id == user.id,
+                ServerPermission.server_id == server_id,
+            )
+        )
+        perm = perm_res.scalar_one_or_none()
+        if perm and ROLE_HIERARCHY.get(UserRole(perm.role), 0) >= ROLE_HIERARCHY[UserRole.MODERATOR]:
+            return user.id, True
+
+        return user.id, False
+
+
 @router.websocket("/ws/console/{server_id}")
 async def websocket_console(websocket: WebSocket, server_id: int):
     # Authenticate via query param token (JWT)
@@ -64,13 +94,11 @@ async def websocket_console(websocket: WebSocket, server_id: int):
         return
     username = payload.get("sub", "unknown")
 
-    # Resolve user_id for activity logging
-    ws_user_id = None
-    async with async_session() as _db:
-        _res = await _db.execute(select(User).where(User.username == username))
-        _u = _res.scalar_one_or_none()
-        if _u:
-            ws_user_id = _u.id
+    # Check permissions (MODERATOR+ on this server)
+    ws_user_id, has_access = await _ws_check_server_access(username, server_id)
+    if not has_access:
+        await websocket.close(code=4003, reason="Insufficient permissions")
+        return
 
     await websocket.accept()
 

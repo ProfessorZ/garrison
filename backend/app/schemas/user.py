@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -10,6 +13,8 @@ class UserOut(BaseModel):
     id: int
     username: str
     is_admin: bool
+    role: str = "VIEWER"
+    created_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
 
@@ -17,3 +22,23 @@ class UserOut(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class SetRoleRequest(BaseModel):
+    role: str
+
+
+class ServerPermissionCreate(BaseModel):
+    user_id: int
+    role: str  # ADMIN, MODERATOR, VIEWER
+
+
+class ServerPermissionOut(BaseModel):
+    id: int
+    user_id: int
+    server_id: int
+    role: str
+    username: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+    model_config = {"from_attributes": True}

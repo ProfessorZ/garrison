@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.deps import get_current_user
+from app.auth.permissions import require_server_access
 from app.auth.security import decrypt_rcon_password
 from app.database import get_db
 from app.games.registry import get_plugin
 from app.models.server import Server
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.activity_log import ActionType
 from app.api.activity import log_activity
 
@@ -29,7 +29,7 @@ async def _get_server_plugin(server_id: int, db: AsyncSession):
 async def list_players(
     server_id: int,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_server_access(UserRole.VIEWER)),
 ):
     server, plugin = await _get_server_plugin(server_id, db)
     try:
@@ -45,7 +45,7 @@ async def kick_player(
     player_name: str,
     reason: str = "",
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_server_access(UserRole.MODERATOR)),
 ):
     server, plugin = await _get_server_plugin(server_id, db)
     try:
@@ -63,7 +63,7 @@ async def ban_player(
     player_name: str,
     reason: str = "",
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_server_access(UserRole.MODERATOR)),
 ):
     server, plugin = await _get_server_plugin(server_id, db)
     try:
@@ -80,7 +80,7 @@ async def unban_player(
     server_id: int,
     player_name: str,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_server_access(UserRole.MODERATOR)),
 ):
     _server, plugin = await _get_server_plugin(server_id, db)
     try:
@@ -99,7 +99,7 @@ async def unban_player(
 async def get_chat(
     server_id: int,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_server_access(UserRole.VIEWER)),
 ):
     server, plugin = await _get_server_plugin(server_id, db)
     try:

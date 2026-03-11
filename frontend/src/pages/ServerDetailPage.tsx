@@ -11,17 +11,21 @@ import {
   WifiOff,
   MessageSquare,
   Activity,
+  Shield,
 } from "lucide-react";
 import { serversApi } from "../api/servers";
+import { useAuth } from "../contexts/AuthContext";
 import RconConsole from "../components/RconConsole";
 import PlayerList from "../components/PlayerList";
 import ChatLog from "../components/ChatLog";
 import ActivityFeed from "../components/ActivityFeed";
+import ServerPermissions from "../components/ServerPermissions";
 
-type Tab = "console" | "players" | "chat" | "activity" | "settings";
+type Tab = "console" | "players" | "chat" | "activity" | "settings" | "permissions";
 
 export default function ServerDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const serverId = Number(id);
 
@@ -50,14 +54,18 @@ export default function ServerDetailPage() {
 
   const isOnline = status?.online ?? false;
   const playerCount = status?.player_count;
+  const isAdmin = user?.role === "OWNER" || user?.role === "ADMIN";
 
-  const tabs: { key: Tab; label: string; icon: typeof Terminal }[] = [
+  const tabs: { key: Tab; label: string; icon: typeof Terminal; adminOnly?: boolean }[] = [
     { key: "console", label: "Console", icon: Terminal },
     { key: "players", label: "Players", icon: Users },
     { key: "chat", label: "Chat", icon: MessageSquare },
     { key: "activity", label: "Activity", icon: Activity },
     { key: "settings", label: "Settings", icon: Settings },
+    { key: "permissions", label: "Access", icon: Shield, adminOnly: true },
   ];
+
+  const visibleTabs = tabs.filter((t) => !t.adminOnly || isAdmin);
 
   return (
     <div>
@@ -132,7 +140,7 @@ export default function ServerDetailPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-4 border-b border-slate-700 pb-px overflow-x-auto">
-        {tabs.map((t) => {
+        {visibleTabs.map((t) => {
           const Icon = t.icon;
           return (
             <button
@@ -152,7 +160,9 @@ export default function ServerDetailPage() {
       </div>
 
       {/* Tab content */}
-      {tab === "console" && <RconConsole serverId={serverId} />}
+      {tab === "console" && (
+        <RconConsole serverId={serverId} gameType={server.game_type} />
+      )}
       {tab === "players" && <PlayerList serverId={serverId} />}
       {tab === "chat" && <ChatLog serverId={serverId} />}
       {tab === "activity" && (
@@ -168,6 +178,9 @@ export default function ServerDetailPage() {
             queryClient.invalidateQueries({ queryKey: ["server", serverId] })
           }
         />
+      )}
+      {tab === "permissions" && isAdmin && (
+        <ServerPermissions serverId={serverId} />
       )}
     </div>
   );

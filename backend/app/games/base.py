@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
+
+from app.schemas.rcon_commands import GameCommandSchema, get_schema
 
 
 class GamePlugin(ABC):
@@ -38,3 +42,7 @@ class GamePlugin(ABC):
     @abstractmethod
     async def get_status(self) -> dict:
         """Return server status info (online, player_count, etc.)."""
+
+    def get_commands(self, version: str | None = None) -> GameCommandSchema | None:
+        """Return the RCON command schema for this game."""
+        return get_schema(self.name, version)

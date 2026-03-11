@@ -8,12 +8,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.deps import get_current_user
+from app.auth.permissions import require_role
 from app.auth.security import decrypt_rcon_password
 from app.database import get_db, async_session
 from app.games.registry import get_plugin
 from app.models.scheduled_command import ScheduledCommand
 from app.models.server import Server
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.scheduler import ScheduledCommandCreate, ScheduledCommandUpdate, ScheduledCommandOut
 
 logger = logging.getLogger(__name__)
@@ -106,7 +107,7 @@ async def load_scheduled_jobs():
 @router.get("/", response_model=list[ScheduledCommandOut])
 async def list_scheduled(
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_role(UserRole.ADMIN)),
 ):
     result = await db.execute(select(ScheduledCommand))
     return result.scalars().all()
@@ -116,7 +117,7 @@ async def list_scheduled(
 async def create_scheduled(
     data: ScheduledCommandCreate,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_role(UserRole.ADMIN)),
 ):
     try:
         _parse_cron(data.cron_expression)
@@ -136,7 +137,7 @@ async def update_scheduled(
     cmd_id: int,
     data: ScheduledCommandUpdate,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_role(UserRole.ADMIN)),
 ):
     result = await db.execute(select(ScheduledCommand).where(ScheduledCommand.id == cmd_id))
     sc = result.scalar_one_or_none()
@@ -160,7 +161,7 @@ async def update_scheduled(
 async def delete_scheduled(
     cmd_id: int,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_role(UserRole.ADMIN)),
 ):
     result = await db.execute(select(ScheduledCommand).where(ScheduledCommand.id == cmd_id))
     sc = result.scalar_one_or_none()

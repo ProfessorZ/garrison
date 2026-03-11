@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -11,15 +11,17 @@ import {
   Server,
   Menu,
   X,
+  Users,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { serversApi } from "../api/servers";
 
-const navItems = [
-  { path: "/", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/activity", label: "Activity", icon: Activity },
-  { path: "/scheduler", label: "Scheduler", icon: Clock },
-];
+const ROLE_COLORS: Record<string, string> = {
+  OWNER: "text-amber-400",
+  ADMIN: "text-red-400",
+  MODERATOR: "text-blue-400",
+  VIEWER: "text-slate-400",
+};
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -30,6 +32,20 @@ export default function Layout() {
     queryKey: ["servers"],
     queryFn: serversApi.list,
   });
+
+  const isAdmin = user?.role === "OWNER" || user?.role === "ADMIN";
+
+  const navItems = useMemo(
+    () => [
+      { path: "/", label: "Dashboard", icon: LayoutDashboard },
+      { path: "/activity", label: "Activity", icon: Activity },
+      { path: "/scheduler", label: "Scheduler", icon: Clock },
+      ...(isAdmin
+        ? [{ path: "/users", label: "Users", icon: Users }]
+        : []),
+    ],
+    [isAdmin]
+  );
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
@@ -142,10 +158,10 @@ export default function Layout() {
               <p className="text-sm font-medium text-slate-300 truncate">
                 {user?.username}
               </p>
-              {user?.is_admin && (
-                <p className="flex items-center gap-1 text-xs text-amber-500">
+              {user?.role && (
+                <p className={`flex items-center gap-1 text-xs ${ROLE_COLORS[user.role] || "text-slate-500"}`}>
                   <Shield className="h-3 w-3" />
-                  Admin
+                  {user.role}
                 </p>
               )}
             </div>

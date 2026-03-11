@@ -6,11 +6,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.deps import get_current_user
+from app.auth.permissions import require_role, require_server_access
 from app.auth.security import encrypt_rcon_password, decrypt_rcon_password
 from app.database import get_db, async_session
 from app.games.registry import get_plugin
 from app.models.server import Server
-from app.models.user import User
+from app.models.user import User, UserRole, ROLE_HIERARCHY
+from app.models.server_permission import ServerPermission
 from app.models.activity_log import ActionType
 from app.schemas.server import ServerCreate, ServerUpdate, ServerOut, ServerStatus
 from app.api.activity import log_activity
@@ -23,9 +25,21 @@ router = APIRouter(prefix="/api/servers", tags=["servers"])
 @router.get("/", response_model=list[ServerOut])
 async def list_servers(
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(Server))
+    # ADMIN+ see all servers; others see only servers they have access to
+    if ROLE_HIERARCHY.get(UserRole(user.role), 0) >= ROLE_HIERARCHY[UserRole.ADMIN]:
+        result = await db.execute(select(Server))
+        return result.scalars().all()
+
+    # Get server IDs user has permission for
+    perm_result = await db.execute(
+        select(ServerPermission.server_id).where(ServerPermission.user_id == user.id)
+    )
+    server_ids = [row[0] for row in perm_result.all()]
+    if not server_ids:
+        return []
+    result = await db.execute(select(Server).where(Server.id.in_(server_ids)))
     return result.scalars().all()
 
 
@@ -33,7 +47,7 @@ async def list_servers(
 async def create_server(
     data: ServerCreate,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_role(UserRole.ADMIN)),
 ):
     server = Server(
         name=data.name,
@@ -55,7 +69,7 @@ async def create_server(
 async def get_server(
     server_id: int,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_server_access(UserRole.VIEWER)),
 ):
     result = await db.execute(select(Server).where(Server.id == server_id))
     server = result.scalar_one_or_none()
@@ -69,7 +83,7 @@ async def update_server(
     server_id: int,
     data: ServerUpdate,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_server_access(UserRole.ADMIN)),
 ):
     result = await db.execute(select(Server).where(Server.id == server_id))
     server = result.scalar_one_or_none()
@@ -90,7 +104,7 @@ async def update_server(
 async def delete_server(
     server_id: int,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_role(UserRole.ADMIN)),
 ):
     result = await db.execute(select(Server).where(Server.id == server_id))
     server = result.scalar_one_or_none()
@@ -106,7 +120,7 @@ async def delete_server(
 async def server_status(
     server_id: int,
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_server_access(UserRole.VIEWER)),
 ):
     result = await db.execute(select(Server).where(Server.id == server_id))
     server = result.scalar_one_or_none()

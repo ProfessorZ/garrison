@@ -5,9 +5,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.deps import get_current_user
+from app.auth.permissions import require_server_access
 from app.database import get_db
 from app.models.activity_log import ActivityLog, ActionType
-from app.models.user import User
+from app.models.user import User, UserRole, ROLE_HIERARCHY
+from app.models.server_permission import ServerPermission
 from app.schemas.activity import ActivityLogOut
 
 router = APIRouter(prefix="/api", tags=["activity"])
@@ -57,6 +59,21 @@ async def list_activity(
     _user: User = Depends(get_current_user),
 ):
     q = select(ActivityLog)
+
+    # Non-ADMIN users can only see activity for servers they have MODERATOR+ access to
+    user_level = ROLE_HIERARCHY.get(UserRole(_user.role), 0)
+    if user_level < ROLE_HIERARCHY[UserRole.ADMIN]:
+        perm_result = await db.execute(
+            select(ServerPermission.server_id).where(
+                ServerPermission.user_id == _user.id,
+                ServerPermission.role.in_([UserRole.MODERATOR.value, UserRole.ADMIN.value]),
+            )
+        )
+        allowed_server_ids = [row[0] for row in perm_result.all()]
+        if not allowed_server_ids:
+            return []
+        q = q.where(ActivityLog.server_id.in_(allowed_server_ids))
+
     if server_id is not None:
         q = q.where(ActivityLog.server_id == server_id)
     if user_id is not None:
@@ -74,7 +91,7 @@ async def server_activity(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_server_access(UserRole.MODERATOR)),
 ):
     q = (
         select(ActivityLog)

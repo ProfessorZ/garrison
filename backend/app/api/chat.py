@@ -5,13 +5,13 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.deps import get_current_user
+from app.auth.permissions import require_server_access
 from app.auth.security import decrypt_rcon_password
 from app.database import get_db, async_session
 from app.games.registry import get_plugin
 from app.models.chat_message import ChatMessage
 from app.models.server import Server
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.chat import ChatMessageOut
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ async def get_chat_log(
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
-    _user: User = Depends(get_current_user),
+    _user: User = Depends(require_server_access(UserRole.VIEWER)),
 ):
     """Get stored chat messages for a server (paginated)."""
     q = (
