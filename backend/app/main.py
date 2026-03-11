@@ -10,7 +10,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from app.config import settings
-from app.api import auth, servers, console, players, scheduler
+from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat
 from app.database import engine
 from app.rcon.manager import rcon_manager
 
@@ -54,6 +54,9 @@ app.include_router(servers.router)
 app.include_router(console.router)
 app.include_router(players.router)
 app.include_router(scheduler.router)
+app.include_router(activity.router)
+app.include_router(dashboard.router)
+app.include_router(chat.router)
 
 
 @app.get("/api/health")

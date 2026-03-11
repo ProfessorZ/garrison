@@ -11,7 +11,9 @@ from app.database import get_db, async_session
 from app.games.registry import get_plugin
 from app.models.server import Server
 from app.models.user import User
+from app.models.activity_log import ActionType
 from app.schemas.server import ServerCreate, ServerUpdate, ServerOut, ServerStatus
+from app.api.activity import log_activity
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +44,8 @@ async def create_server(
         game_type=data.game_type,
     )
     db.add(server)
+    await db.flush()
+    await log_activity(db, server_id=server.id, user_id=_user.id, action=ActionType.SERVER_CREATE, detail=f"Created server '{data.name}'")
     await db.commit()
     await db.refresh(server)
     return server
@@ -76,6 +80,7 @@ async def update_server(
         update_data["rcon_password_encrypted"] = encrypt_rcon_password(update_data.pop("rcon_password"))
     for key, value in update_data.items():
         setattr(server, key, value)
+    await log_activity(db, server_id=server.id, user_id=_user.id, action=ActionType.SERVER_UPDATE, detail=f"Updated server '{server.name}'")
     await db.commit()
     await db.refresh(server)
     return server
@@ -91,6 +96,8 @@ async def delete_server(
     server = result.scalar_one_or_none()
     if not server:
         raise HTTPException(status_code=404, detail="Server not found")
+    server_name = server.name
+    await log_activity(db, server_id=None, user_id=_user.id, action=ActionType.SERVER_DELETE, detail=f"Deleted server '{server_name}' (id={server_id})")
     await db.delete(server)
     await db.commit()
 

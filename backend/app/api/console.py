@@ -13,8 +13,10 @@ from app.database import get_db, async_session
 from app.games.registry import get_plugin
 from app.models.server import Server
 from app.models.user import User
+from app.models.activity_log import ActionType
 from app.schemas.server import CommandRequest, CommandResponse
 from app.auth.deps import get_current_user
+from app.api.activity import log_activity
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,8 @@ async def send_command(
         output = await plugin.send_command(data.command)
     finally:
         await plugin.disconnect()
+    await log_activity(db, server_id=server_id, user_id=_user.id, action=ActionType.COMMAND, detail=data.command)
+    await db.commit()
     return CommandResponse(output=output)
 
 
@@ -59,6 +63,14 @@ async def websocket_console(websocket: WebSocket, server_id: int):
         await websocket.close(code=4001, reason="Invalid token")
         return
     username = payload.get("sub", "unknown")
+
+    # Resolve user_id for activity logging
+    ws_user_id = None
+    async with async_session() as _db:
+        _res = await _db.execute(select(User).where(User.username == username))
+        _u = _res.scalar_one_or_none()
+        if _u:
+            ws_user_id = _u.id
 
     await websocket.accept()
 
@@ -124,6 +136,14 @@ async def websocket_console(websocket: WebSocket, server_id: int):
                 "user": username,
             }
             _command_history[server_id].append(entry)
+
+            # Log command activity
+            try:
+                async with async_session() as _db:
+                    await log_activity(_db, server_id=server_id, user_id=ws_user_id, action=ActionType.COMMAND, detail=command)
+                    await _db.commit()
+            except Exception:
+                logger.debug("Failed to log WS command activity", exc_info=True)
 
             await websocket.send_json({"type": "response", "command": command, "output": output})
     except WebSocketDisconnect:

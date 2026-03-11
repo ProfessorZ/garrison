@@ -8,6 +8,8 @@ from app.database import get_db
 from app.games.registry import get_plugin
 from app.models.server import Server
 from app.models.user import User
+from app.models.activity_log import ActionType
+from app.api.activity import log_activity
 
 router = APIRouter(prefix="/api/servers", tags=["players"])
 
@@ -50,6 +52,8 @@ async def kick_player(
         result = await plugin.kick_player(player_name, reason)
     finally:
         await plugin.disconnect()
+    await log_activity(db, server_id=server_id, user_id=_user.id, action=ActionType.KICK, detail=f"Kicked {player_name}" + (f": {reason}" if reason else ""))
+    await db.commit()
     return {"result": result}
 
 
@@ -66,6 +70,8 @@ async def ban_player(
         result = await plugin.ban_player(player_name, reason)
     finally:
         await plugin.disconnect()
+    await log_activity(db, server_id=server_id, user_id=_user.id, action=ActionType.BAN, detail=f"Banned {player_name}" + (f": {reason}" if reason else ""))
+    await db.commit()
     return {"result": result}
 
 
@@ -84,6 +90,8 @@ async def unban_player(
             result = await plugin.send_command(f'unbanuser "{player_name}"')
     finally:
         await plugin.disconnect()
+    await log_activity(db, server_id=server_id, user_id=_user.id, action=ActionType.UNBAN, detail=f"Unbanned {player_name}")
+    await db.commit()
     return {"result": result}
 
 

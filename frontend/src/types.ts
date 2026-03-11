@@ -66,3 +66,60 @@ export interface CreateServerRequest {
   rcon_password: string;
   game_type: string;
 }
+
+// Activity
+export type ActivityAction =
+  | "rcon_command"
+  | "kick"
+  | "ban"
+  | "server_start"
+  | "server_stop"
+  | "server_add"
+  | "server_update"
+  | "server_delete"
+  | "scheduler_create"
+  | "scheduler_update";
+
+export interface ActivityEntry {
+  id: number;
+  user: string;
+  action: ActivityAction;
+  description: string;
+  server_name?: string;
+  server_id?: number;
+  created_at: string;
+}
+
+export interface ActivityFilters {
+  server_id?: number;
+  user?: string;
+  action?: ActivityAction;
+  date_from?: string;
+  date_to?: string;
+  page?: number;
+  per_page?: number;
+}
+
+export interface PaginatedActivity {
+  items: ActivityEntry[];
+  total: number;
+  page: number;
+  per_page: number;
+  pages: number;
+}
+
+// Chat
+export interface ChatMessage {
+  id: number;
+  player_name: string;
+  message: string;
+  is_system: boolean;
+  timestamp: string;
+}
+
+// Dashboard stats
+export interface DashboardStats {
+  total_servers: number;
+  online_servers: number;
+  total_players: number;
+}

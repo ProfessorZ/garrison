@@ -9,12 +9,16 @@ import {
   Save,
   Wifi,
   WifiOff,
+  MessageSquare,
+  Activity,
 } from "lucide-react";
 import { serversApi } from "../api/servers";
 import RconConsole from "../components/RconConsole";
 import PlayerList from "../components/PlayerList";
+import ChatLog from "../components/ChatLog";
+import ActivityFeed from "../components/ActivityFeed";
 
-type Tab = "console" | "players" | "settings";
+type Tab = "console" | "players" | "chat" | "activity" | "settings";
 
 export default function ServerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -50,6 +54,8 @@ export default function ServerDetailPage() {
   const tabs: { key: Tab; label: string; icon: typeof Terminal }[] = [
     { key: "console", label: "Console", icon: Terminal },
     { key: "players", label: "Players", icon: Users },
+    { key: "chat", label: "Chat", icon: MessageSquare },
+    { key: "activity", label: "Activity", icon: Activity },
     { key: "settings", label: "Settings", icon: Settings },
   ];
 
@@ -125,14 +131,14 @@ export default function ServerDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 border-b border-slate-700 pb-px">
+      <div className="flex gap-1 mb-4 border-b border-slate-700 pb-px overflow-x-auto">
         {tabs.map((t) => {
           const Icon = t.icon;
           return (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+              className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${
                 tab === t.key
                   ? "border-emerald-500 text-emerald-400"
                   : "border-transparent text-slate-400 hover:text-slate-200"
@@ -148,6 +154,12 @@ export default function ServerDetailPage() {
       {/* Tab content */}
       {tab === "console" && <RconConsole serverId={serverId} />}
       {tab === "players" && <PlayerList serverId={serverId} />}
+      {tab === "chat" && <ChatLog serverId={serverId} />}
+      {tab === "activity" && (
+        <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
+          <ActivityFeed serverId={serverId} limit={25} />
+        </div>
+      )}
       {tab === "settings" && (
         <SettingsPanel
           serverId={serverId}

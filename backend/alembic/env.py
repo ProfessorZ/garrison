@@ -13,6 +13,8 @@ from app.models.user import User  # noqa: F401
 from app.models.server import Server  # noqa: F401
 from app.models.game import Game  # noqa: F401
 from app.models.scheduled_command import ScheduledCommand  # noqa: F401
+from app.models.activity_log import ActivityLog  # noqa: F401
+from app.models.chat_message import ChatMessage  # noqa: F401
 
 config = context.config
 

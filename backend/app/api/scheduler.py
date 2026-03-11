@@ -89,6 +89,16 @@ async def load_scheduled_jobs():
             replace_existing=True,
         )
 
+    # Register background chat polling (every 60 seconds)
+    from app.api.chat import poll_all_chat
+    if not scheduler.get_job("chat_poll"):
+        scheduler.add_job(
+            poll_all_chat,
+            IntervalTrigger(seconds=60),
+            id="chat_poll",
+            replace_existing=True,
+        )
+
     if not scheduler.running:
         scheduler.start()
 
