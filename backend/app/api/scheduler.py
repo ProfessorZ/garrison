@@ -13,7 +13,7 @@ from app.api.activity import log_activity
 from app.auth.security import decrypt_rcon_password
 from app.auth.permissions import require_server_access
 from app.database import get_db, async_session
-from app.games.registry import get_plugin
+from app.plugins.bridge import get_plugin
 from app.models.activity_log import ActionType
 from app.models.scheduled_command import ScheduledCommand
 from app.models.server import Server

@@ -1,4 +1,6 @@
 import logging
+import os
+import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -10,19 +12,115 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from app.config import settings
-from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat, commands, users, server_options, known_players
+from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat, commands, users, server_options, known_players, plugins
 from app.database import engine
 from app.rcon.manager import rcon_manager
 from app.services.player_tracker import poll_players
+from app.plugins.loader import PluginLoader
+from app.plugins.installer import PluginInstaller
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 limiter = Limiter(key_func=get_remote_address, default_limits=[settings.RATE_LIMIT])
 
+PLUGINS_DIR = os.environ.get(
+    "GARRISON_PLUGINS_DIR",
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "plugins"),
+)
+
+
+def _register_plugin_schemas(loader: PluginLoader):
+    """Register command schemas from loaded plugins into the legacy schema registry."""
+    from app.schemas.rcon_commands import (
+        GameCommandSchema,
+        RconCommandSchema,
+        CommandParam as SchemaParam,
+        ParamType,
+        CommandCategory,
+        register_schema,
+    )
+
+    _type_map = {
+        "string": ParamType.STRING,
+        "integer": ParamType.INTEGER,
+        "boolean": ParamType.BOOLEAN,
+        "float": ParamType.FLOAT,
+        "choice": ParamType.ENUM,
+    }
+    _cat_map = {
+        "ADMIN": CommandCategory.ADMIN,
+        "PLAYER_MGMT": CommandCategory.PLAYER_MGMT,
+        "WORLD": CommandCategory.WORLD,
+        "MODERATION": CommandCategory.MODERATION,
+        "SERVER": CommandCategory.SERVER,
+        "WHITELIST": CommandCategory.WHITELIST,
+        "DEBUG": CommandCategory.DEBUG,
+    }
+
+    for game_type, plugin in loader.plugins.items():
+        try:
+            cmds = plugin.get_commands()
+        except Exception as e:
+            logger.warning("Failed to get commands from plugin %s: %s", game_type, e)
+            continue
+
+        rcon_commands = []
+        for cmd in cmds:
+            params = []
+            for p in (cmd.params or []):
+                params.append(SchemaParam(
+                    name=p.name,
+                    type=_type_map.get(p.type, ParamType.STRING),
+                    required=p.required,
+                    description=p.description,
+                    enum_values=p.choices if p.choices else None,
+                ))
+            rcon_commands.append(RconCommandSchema(
+                name=cmd.name,
+                description=cmd.description,
+                usage=cmd.example or cmd.name,
+                category=_cat_map.get(cmd.category, CommandCategory.SERVER),
+                parameters=params,
+            ))
+
+        schema = GameCommandSchema(
+            game_name=game_type,
+            schema_version="1.0.0",
+            min_game_version="0.0",
+            commands=rcon_commands,
+        )
+        register_schema(game_type, schema)
+        logger.info("Registered %d commands for plugin %s", len(rcon_commands), game_type)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Initialize plugin system
+    loader = PluginLoader(PLUGINS_DIR)
+
+    # Add plugin directories to sys.path so relative imports within plugins work
+    import pathlib
+    plugins_path = pathlib.Path(PLUGINS_DIR)
+    if plugins_path.exists():
+        for entry in sorted(plugins_path.iterdir()):
+            if entry.is_dir() and (entry / "plugin.py").exists():
+                if str(entry) not in sys.path:
+                    sys.path.insert(0, str(entry))
+
+    loader.load_all()
+    _register_plugin_schemas(loader)
+
+    installer = PluginInstaller(PLUGINS_DIR)
+
+    app.state.plugin_loader = loader
+    app.state.plugin_installer = installer
+
+    logger.info(
+        "Plugin system initialized: %d plugins loaded from %s",
+        len(loader.plugins), PLUGINS_DIR,
+    )
+
     await scheduler.load_scheduled_jobs()
     # Start player tracker (every 15 seconds)
     from apscheduler.triggers.interval import IntervalTrigger
@@ -41,7 +139,7 @@ async def lifespan(app: FastAPI):
     logger.info("Garrison backend stopped")
 
 
-app = FastAPI(title="Garrison", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Garrison", version="0.2.0", lifespan=lifespan)
 
 # Rate limiting
 app.state.limiter = limiter
@@ -70,6 +168,7 @@ app.include_router(dashboard.router)
 app.include_router(commands.router)
 app.include_router(users.router)
 app.include_router(known_players.router)
+app.include_router(plugins.router)
 
 
 @app.get("/api/health")

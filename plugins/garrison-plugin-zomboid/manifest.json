@@ -1,0 +1,15 @@
+{
+  "id": "zomboid",
+  "name": "garrison-plugin-zomboid",
+  "version": "1.0.0",
+  "display_name": "Project Zomboid",
+  "description": "RCON plugin for Project Zomboid dedicated servers",
+  "author": "Garrison",
+  "repo": "https://github.com/ProfessorZ/garrison-plugin-zomboid",
+  "garrison_api": "1",
+  "default_ports": {
+    "game": 16261,
+    "rcon": 27015
+  },
+  "icon": "\ud83e\udddf"
+}

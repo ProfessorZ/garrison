@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.security import decode_access_token, decrypt_rcon_password
 from app.auth.permissions import require_server_access
 from app.database import get_db, async_session
-from app.games.registry import get_plugin
+from app.plugins.bridge import get_plugin
 from app.models.server import Server
 from app.models.user import User, UserRole, ROLE_HIERARCHY
 from app.models.server_permission import ServerPermission

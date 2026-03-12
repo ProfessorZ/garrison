@@ -1,6 +1,6 @@
 # Garrison
 
-RCON web dashboard for dedicated game servers. Currently supports **Project Zomboid** with a plugin architecture for adding more games.
+RCON web dashboard for dedicated game servers. Modular plugin system supports **Project Zomboid**, **Factorio**, and any game with RCON.
 
 ## Features
 
@@ -8,9 +8,11 @@ RCON web dashboard for dedicated game servers. Currently supports **Project Zomb
 - **RCON Console** — Send commands via WebSocket with live output
 - **Player List** — View connected players, kick, and ban
 - **Server Status** — Online/offline polling with player counts
+- **Server Options** — View and modify server settings per game
 - **Chat Log** — View server chat messages
 - **Scheduled Commands** — Cron-style automated RCON commands via APScheduler
-- **Multi-game Plugins** — Abstract `GamePlugin` interface with Project Zomboid implementation
+- **Plugin System** — External, modular game plugins installable via git URL
+- **Player Database** — Persistent player tracking, sessions, bans, and name history
 
 ## Quick Start
 
@@ -74,6 +76,115 @@ make up
 - **Auth:** JWT + bcrypt, Fernet-encrypted RCON passwords
 - **Infra:** Docker Compose, nginx reverse proxy
 
+## Plugin System
+
+Garrison uses a modular plugin architecture. Each game is an external plugin with its own directory.
+
+### Plugin Directory
+
+Plugins live in a configurable directory:
+- **Docker:** `/data/plugins` (mounted from `./plugins`)
+- **Local dev:** `./plugins` (relative to backend)
+- **Custom:** Set `GARRISON_PLUGINS_DIR` env var
+
+### Plugin Structure
+
+```
+plugins/
+  garrison-plugin-zomboid/
+    manifest.json       # Plugin metadata
+    plugin.py           # GamePlugin subclass
+    schema.py           # RCON command definitions
+    options.py          # Server options handler
+  garrison-plugin-factorio/
+    manifest.json
+    plugin.py
+    schema.py
+    options.py
+```
+
+### manifest.json
+
+```json
+{
+  "id": "zomboid",
+  "name": "garrison-plugin-zomboid",
+  "version": "1.0.0",
+  "display_name": "Project Zomboid",
+  "description": "RCON plugin for Project Zomboid dedicated servers",
+  "author": "Garrison",
+  "repo": "https://github.com/ProfessorZ/garrison-plugin-zomboid",
+  "garrison_api": "1",
+  "default_ports": { "game": 16261, "rcon": 27015 },
+  "icon": "🧟"
+}
+```
+
+### Installing Plugins
+
+**Manual (recommended for development):**
+```bash
+cd plugins/
+git clone https://github.com/ProfessorZ/garrison-plugin-zomboid.git
+# Restart Garrison to load
+```
+
+**Via API (Owner only):**
+```bash
+curl -X POST /api/plugins/install \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"url": "https://github.com/ProfessorZ/garrison-plugin-zomboid.git"}'
+```
+
+**Plugin management endpoints:**
+- `GET /api/plugins` — List installed plugins
+- `POST /api/plugins/install` — Install from git URL (Owner)
+- `DELETE /api/plugins/{id}` — Uninstall (Owner)
+- `POST /api/plugins/{id}/update` — Update from repo (Owner)
+
+### Writing a Plugin
+
+Create a class that extends `GamePlugin` from `app.plugins.base`:
+
+```python
+from app.plugins.base import GamePlugin, PlayerInfo, ServerStatus, CommandDef, ServerOption
+
+class MyGamePlugin(GamePlugin):
+    @property
+    def game_type(self) -> str:
+        return "mygame"
+
+    @property
+    def display_name(self) -> str:
+        return "My Game"
+
+    async def parse_players(self, raw_response: str) -> list[PlayerInfo]:
+        # Parse RCON player list output
+        ...
+
+    async def get_status(self, send_command) -> ServerStatus:
+        # Check if server is online
+        ...
+
+    def get_commands(self) -> list[CommandDef]:
+        # Return available RCON commands
+        ...
+
+    async def get_options(self, send_command) -> list[ServerOption]:
+        # Fetch server configuration options
+        ...
+
+    async def set_option(self, send_command, name, value) -> str:
+        # Modify a server option
+        ...
+
+    async def kick_player(self, send_command, name, reason="") -> str:
+        ...
+
+    async def ban_player(self, send_command, name, reason="") -> str:
+        ...
+```
+
 ## Development
 
 ```bash
@@ -87,11 +198,6 @@ cd frontend
 npm install
 npm run dev
 ```
-
-## Adding a Game Plugin
-
-1. Create `backend/app/games/yourgame.py` implementing `GamePlugin`
-2. Register it in `backend/app/games/registry.py`
 
 ## Contributing
 

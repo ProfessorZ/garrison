@@ -22,6 +22,9 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql+asyncpg://garrison:garrison@db:5432/garrison
+      GARRISON_PLUGINS_DIR: /data/plugins
+    volumes:
+      - ./plugins:/data/plugins
     depends_on:
       db:
         condition: service_healthy

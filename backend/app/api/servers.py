@@ -9,7 +9,7 @@ from app.auth.deps import get_current_user
 from app.auth.permissions import require_role, require_server_access
 from app.auth.security import encrypt_rcon_password, decrypt_rcon_password
 from app.database import get_db, async_session
-from app.games.registry import get_plugin
+from app.plugins.bridge import get_plugin
 from app.models.server import Server
 from app.models.user import User, UserRole, ROLE_HIERARCHY
 from app.models.server_permission import ServerPermission

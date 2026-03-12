@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.security import decrypt_rcon_password
 from app.database import async_session
-from app.games.registry import get_plugin
+from app.plugins.bridge import get_plugin
 from app.models.known_player import KnownPlayer
 from app.models.player_session import PlayerSession
 from app.models.player_name import PlayerNameHistory
