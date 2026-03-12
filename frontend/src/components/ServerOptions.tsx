@@ -169,12 +169,12 @@ export default function ServerOptions({ serverId }: Props) {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748b]" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748b] pointer-events-none" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search options by name, description, or category..."
-          className="w-full rounded-2xl pl-11 pr-4 py-3.5 text-sm text-[#e2e8f0] placeholder-[#4a5568] focus:outline-none transition-all duration-200"
+          placeholder="Search options..."
+          className="w-full rounded-2xl pl-12 pr-4 py-3.5 text-sm text-[#e2e8f0] placeholder-[#4a5568] focus:outline-none transition-all duration-200"
           style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
           onFocus={(e) => (e.target.style.borderColor = "rgba(0,212,170,0.3)")}
           onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.06)")}
