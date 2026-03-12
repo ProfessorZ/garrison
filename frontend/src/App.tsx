@@ -10,6 +10,8 @@ import ServerDetailPage from "./pages/ServerDetailPage";
 import SchedulerPage from "./pages/SchedulerPage";
 import ActivityPage from "./pages/ActivityPage";
 import UsersPage from "./pages/UsersPage";
+import PlayersPage from "./pages/PlayersPage";
+import PlayerProfilePage from "./pages/PlayerProfilePage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +40,8 @@ export default function App() {
             >
               <Route index element={<DashboardPage />} />
               <Route path="server/:id" element={<ServerDetailPage />} />
+              <Route path="players" element={<PlayersPage />} />
+              <Route path="players/:playerId" element={<PlayerProfilePage />} />
               <Route path="scheduler" element={<SchedulerPage />} />
               <Route path="activity" element={<ActivityPage />} />
               <Route path="users" element={<UsersPage />} />

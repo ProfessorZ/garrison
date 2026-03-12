@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Gamepad2,
   Clock,
+  Database,
 } from "lucide-react";
 import { serversApi } from "../api/servers";
 import { dashboardApi } from "../api/dashboard";
@@ -63,11 +64,13 @@ export default function DashboardPage() {
   const onlineServers = stats?.online_servers ?? computedOnline;
   const totalPlayers = stats?.total_players ?? computedPlayers;
 
+  const knownPlayers = stats?.known_players ?? 0;
+
   const statCards = [
     { label: "Total Servers", value: totalServers, icon: Server, accent: "#00d4aa" },
     { label: "Online", value: onlineServers, icon: Wifi, accent: "#00d4aa" },
     { label: "Players", value: totalPlayers, icon: Users, accent: "#818cf8" },
-    { label: "Commands", value: "—", icon: Terminal, accent: "#fbbf24" },
+    { label: "Known Players", value: knownPlayers, icon: Database, accent: "#fbbf24" },
   ];
 
   return (

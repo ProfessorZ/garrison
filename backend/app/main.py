@@ -10,9 +10,10 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from app.config import settings
-from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat, commands, users, server_options
+from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat, commands, users, server_options, known_players
 from app.database import engine
 from app.rcon.manager import rcon_manager
+from app.services.player_tracker import poll_players
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,6 +24,14 @@ limiter = Limiter(key_func=get_remote_address, default_limits=[settings.RATE_LIM
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await scheduler.load_scheduled_jobs()
+    # Start player tracker (every 15 seconds)
+    from apscheduler.triggers.interval import IntervalTrigger
+    scheduler.scheduler.add_job(poll_players, IntervalTrigger(seconds=15), id="player_tracker", replace_existing=True)
+    # Initial poll to seed state
+    try:
+        await poll_players()
+    except Exception as e:
+        logger.warning("Initial player poll failed: %s", e)
     logger.info("Garrison backend started")
     yield
     if scheduler.scheduler.running:
@@ -60,6 +69,7 @@ app.include_router(activity.router)
 app.include_router(dashboard.router)
 app.include_router(commands.router)
 app.include_router(users.router)
+app.include_router(known_players.router)
 
 
 @app.get("/api/health")

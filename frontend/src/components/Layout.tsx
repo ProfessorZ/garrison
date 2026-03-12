@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   Users,
+  Database,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { serversApi } from "../api/servers";
@@ -37,6 +38,7 @@ export default function Layout() {
   const navItems = useMemo(
     () => [
       { path: "/", label: "Dashboard", icon: LayoutDashboard },
+      { path: "/players", label: "Players", icon: Database },
       { path: "/activity", label: "Activity", icon: Activity },
       { path: "/scheduler", label: "Scheduler", icon: Clock },
       ...(isAdmin

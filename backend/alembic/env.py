@@ -15,6 +15,10 @@ from app.models.game import Game  # noqa: F401
 from app.models.scheduled_command import ScheduledCommand  # noqa: F401
 from app.models.activity_log import ActivityLog  # noqa: F401
 from app.models.chat_message import ChatMessage  # noqa: F401
+from app.models.known_player import KnownPlayer  # noqa: F401
+from app.models.player_session import PlayerSession  # noqa: F401
+from app.models.player_ban import PlayerBan  # noqa: F401
+from app.models.player_name import PlayerNameHistory  # noqa: F401
 
 config = context.config
 

@@ -10,6 +10,7 @@ class DashboardStats(BaseModel):
     total_servers: int
     online_servers: int
     total_players: int
+    known_players: int = 0
     recent_activity: list[ActivityLogOut]
 
 

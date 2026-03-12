@@ -30,6 +30,95 @@ export interface Player {
   connected_at?: string;
 }
 
+// Enriched player from server endpoint
+export interface EnrichedPlayer {
+  name: string;
+  connected_at?: string;
+  known_player_id?: number;
+  total_playtime_seconds?: number;
+  session_count?: number;
+  is_banned?: boolean;
+  first_seen?: string;
+  first_seen_on_server?: string;
+  total_time_on_server?: number;
+  sessions_on_server?: number;
+}
+
+// Known player database
+export interface KnownPlayer {
+  id: number;
+  name: string;
+  first_seen?: string;
+  last_seen?: string;
+  total_playtime_seconds: number;
+  session_count: number;
+  is_banned: boolean;
+  ban_count: number;
+  notes?: string;
+  is_online: boolean;
+  current_server_id?: number;
+  current_server_name?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface KnownPlayerList {
+  items: KnownPlayer[];
+  total: number;
+  page: number;
+  per_page: number;
+  pages: number;
+}
+
+export interface PlayerSession {
+  id: number;
+  player_id: number;
+  server_id: number;
+  server_name?: string;
+  joined_at?: string;
+  left_at?: string;
+  duration_seconds?: number;
+}
+
+export interface PlayerSessionList {
+  items: PlayerSession[];
+  total: number;
+  page: number;
+  per_page: number;
+  pages: number;
+}
+
+export interface PlayerBan {
+  id: number;
+  player_id: number;
+  server_id?: number;
+  server_name?: string;
+  banned_by_user_id?: number;
+  banned_by_username?: string;
+  reason?: string;
+  banned_at?: string;
+  expires_at?: string;
+  is_active: boolean;
+  unbanned_at?: string;
+  unbanned_by_user_id?: number;
+  unbanned_by_username?: string;
+}
+
+export interface PlayerNameHistory {
+  id: number;
+  player_id: number;
+  name: string;
+  first_seen_with_name?: string;
+  last_seen_with_name?: string;
+}
+
+export interface PlayerProfile {
+  player: KnownPlayer;
+  sessions: PlayerSession[];
+  bans: PlayerBan[];
+  name_history: PlayerNameHistory[];
+}
+
 export interface UpdateServerRequest {
   name?: string;
   host?: string;
@@ -154,6 +243,7 @@ export interface DashboardStats {
   total_servers: number;
   online_servers: number;
   total_players: number;
+  known_players: number;
 }
 
 // Server permissions

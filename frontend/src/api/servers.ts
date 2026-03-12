@@ -2,7 +2,7 @@ import client from "./client";
 import type {
   Server,
   ServerStatus,
-  Player,
+  EnrichedPlayer,
   CreateServerRequest,
   UpdateServerRequest,
 } from "../types";
@@ -37,8 +37,8 @@ export const serversApi = {
     return res.data;
   },
 
-  getPlayers: async (id: number): Promise<{ players: Player[] }> => {
-    const res = await client.get<{ players: Player[] }>(
+  getPlayers: async (id: number): Promise<{ players: EnrichedPlayer[] }> => {
+    const res = await client.get<{ players: EnrichedPlayer[] }>(
       `/servers/${id}/players`
     );
     return res.data;

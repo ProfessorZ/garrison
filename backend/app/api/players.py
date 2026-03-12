@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.permissions import require_server_access
@@ -9,6 +9,8 @@ from app.games.registry import get_plugin
 from app.models.server import Server
 from app.models.user import User, UserRole
 from app.models.activity_log import ActionType
+from app.models.known_player import KnownPlayer
+from app.models.player_session import PlayerSession
 from app.api.activity import log_activity
 
 router = APIRouter(prefix="/api/servers", tags=["players"])
@@ -36,7 +38,41 @@ async def list_players(
         players = await plugin.get_players()
     finally:
         await plugin.disconnect()
-    return {"players": players}
+
+    # Enrich with KnownPlayer data
+    enriched = []
+    for p in players:
+        name = p.get("name", "")
+        entry = {"name": name}
+
+        kp_result = await db.execute(select(KnownPlayer).where(KnownPlayer.name == name))
+        kp = kp_result.scalar_one_or_none()
+        if kp:
+            entry["known_player_id"] = kp.id
+            entry["total_playtime_seconds"] = kp.total_playtime_seconds
+            entry["session_count"] = kp.session_count
+            entry["is_banned"] = kp.is_banned
+            entry["first_seen"] = kp.first_seen.isoformat() if kp.first_seen else None
+
+            # Per-server stats
+            srv_sessions = await db.execute(
+                select(
+                    func.count(PlayerSession.id),
+                    func.coalesce(func.sum(PlayerSession.duration_seconds), 0),
+                    func.min(PlayerSession.joined_at),
+                ).where(
+                    PlayerSession.player_id == kp.id,
+                    PlayerSession.server_id == server_id,
+                )
+            )
+            row = srv_sessions.one()
+            entry["sessions_on_server"] = row[0]
+            entry["total_time_on_server"] = row[1]
+            entry["first_seen_on_server"] = row[2].isoformat() if row[2] else None
+
+        enriched.append(entry)
+
+    return {"players": enriched}
 
 
 @router.post("/{server_id}/players/{player_name}/kick")
