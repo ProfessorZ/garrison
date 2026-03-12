@@ -224,9 +224,9 @@ export default function ServerOptions({ serverId }: Props) {
                   return (
                     <div
                       key={opt.name}
-                      className="flex items-center justify-between gap-6 px-6 py-4 transition-colors hover:bg-[rgba(255,255,255,0.015)]"
+                      className="flex items-center justify-between gap-6 px-6 py-4 transition-colors hover:bg-[rgba(255,255,255,0.025)]"
                       style={{
-                        background: isChanged ? "rgba(255,165,2,0.02)" : "transparent",
+                        background: isChanged ? "rgba(255,165,2,0.03)" : idx % 2 === 1 ? "rgba(255,255,255,0.015)" : "transparent",
                         borderBottom: idx < opts.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none",
                       }}
                     >
