@@ -160,6 +160,13 @@ async def _run_scheduled_command(scheduled_id: int):
                 detail=f"Scheduled '{sc.name}': {sc.command} → {(output or '')[:200]}",
             )
             logger.info("Scheduled command '%s' executed: %s", sc.name, (output or "")[:100])
+
+            # Discord notification
+            from app.services.discord_webhooks import notify_scheduled_command
+            try:
+                await notify_scheduled_command(server.id, server.name, server.game_type, sc.name, sc.command, output or "")
+            except Exception:
+                pass
         except Exception as e:
             sc.last_run = now
             sc.last_result = f"Error: {e}"

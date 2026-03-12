@@ -12,6 +12,7 @@ import ActivityPage from "./pages/ActivityPage";
 import UsersPage from "./pages/UsersPage";
 import PlayersPage from "./pages/PlayersPage";
 import PlayerProfilePage from "./pages/PlayerProfilePage";
+import DiscordPage from "./pages/DiscordPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,6 +45,7 @@ export default function App() {
               <Route path="players/:playerId" element={<PlayerProfilePage />} />
               <Route path="scheduler" element={<SchedulerPage />} />
               <Route path="activity" element={<ActivityPage />} />
+              <Route path="discord" element={<DiscordPage />} />
               <Route path="users" element={<UsersPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -134,6 +134,21 @@ async def poll_players() -> None:
                 for name in left:
                     await _handle_player_leave(db, name, server.id, now)
 
+                # Send Discord webhook notifications for joins/leaves
+                if joined or left:
+                    from app.services.discord_webhooks import notify_player_join, notify_player_leave
+                    player_count = len(current_names)
+                    for name in joined:
+                        try:
+                            await notify_player_join(server.id, server.name, server.game_type, name, player_count)
+                        except Exception:
+                            pass
+                    for name in left:
+                        try:
+                            await notify_player_leave(server.id, server.name, server.game_type, name, player_count)
+                        except Exception:
+                            pass
+
                 # Update last_seen for still-online players
                 still_online = current_names & previous_names
                 if still_online:

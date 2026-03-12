@@ -13,6 +13,7 @@ RCON web dashboard for dedicated game servers. Modular plugin system supports **
 - **Scheduled Commands** — Cron-style automated RCON commands via APScheduler
 - **Plugin System** — External, modular game plugins installable via git URL
 - **Player Database** — Persistent player tracking, sessions, bans, and name history
+- **Discord Integration** — Webhook notifications for server events + slash command bot
 
 ## Quick Start
 
@@ -184,6 +185,68 @@ class MyGamePlugin(GamePlugin):
     async def ban_player(self, send_command, name, reason="") -> str:
         ...
 ```
+
+## Discord Integration
+
+Garrison supports two types of Discord integration:
+
+### Webhook Notifications (No bot required)
+
+Send server events to any Discord channel via webhooks.
+
+1. In Discord, go to **Server Settings > Integrations > Webhooks**
+2. Click **New Webhook**
+3. Name it (e.g., "Garrison Alerts")
+4. Choose the channel for notifications
+5. Copy the **Webhook URL**
+6. In Garrison, go to **Server Settings > Discord** tab
+7. Paste the webhook URL and select which events to notify
+8. Click **Test** to verify, then **Save**
+
+**Supported events:** Server online/offline, player join/leave, player kick/ban, scheduled command execution, server errors.
+
+### Discord Bot (Optional, for slash commands)
+
+Control your servers directly from Discord.
+
+#### Creating the Bot
+
+1. Go to the Discord Developer Portal (https://discord.com/developers/applications)
+2. Click **New Application**, name it "Garrison"
+3. Go to **Bot** tab, click **Add Bot**
+4. Under **Privileged Gateway Intents**, enable:
+   - Server Members Intent
+   - Message Content Intent
+5. Click **Reset Token** and copy your bot token
+6. Go to **OAuth2 > URL Generator**:
+   - Scopes: `bot`, `applications.commands`
+   - Bot Permissions: `Send Messages`, `Embed Links`, `Use Slash Commands`
+7. Copy the generated URL and open it to invite the bot to your server
+
+#### Configuration
+
+Add to your `.env` file:
+
+```
+DISCORD_BOT_TOKEN=your_bot_token_here
+DISCORD_GUILD_ID=your_discord_server_id
+DISCORD_ADMIN_ROLE_ID=role_id_for_rcon_access
+```
+
+To find your Guild ID: Enable Developer Mode in Discord (Settings > Advanced), right-click your server > Copy Server ID.
+
+To find a Role ID: Server Settings > Roles > right-click the role > Copy Role ID.
+
+#### Available Commands
+
+| Command | Description | Permission |
+|---------|-------------|------------|
+| `/status` | Show all servers | Everyone |
+| `/servers` | List configured servers | Everyone |
+| `/players <server>` | List online players | Everyone |
+| `/rcon <server> <command>` | Execute RCON command | Admin role |
+| `/kick <server> <player> [reason]` | Kick a player | Admin role |
+| `/ban <server> <player> [reason]` | Ban a player | Admin role |
 
 ## Development
 

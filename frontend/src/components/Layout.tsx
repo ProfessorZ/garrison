@@ -12,6 +12,7 @@ import {
   X,
   Users,
   Database,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { serversApi } from "../api/servers";
@@ -42,7 +43,10 @@ export default function Layout() {
       { path: "/activity", label: "Activity", icon: Activity },
       { path: "/scheduler", label: "Scheduler", icon: Clock },
       ...(isAdmin
-        ? [{ path: "/users", label: "Users", icon: Users }]
+        ? [
+            { path: "/discord", label: "Discord", icon: Bell },
+            { path: "/users", label: "Users", icon: Users },
+          ]
         : []),
     ],
     [isAdmin]

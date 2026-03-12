@@ -90,6 +90,12 @@ async def kick_player(
         await plugin.disconnect()
     await log_activity(db, server_id=server_id, user_id=_user.id, action=ActionType.KICK, detail=f"Kicked {player_name}" + (f": {reason}" if reason else ""))
     await db.commit()
+    # Discord notification
+    from app.services.discord_webhooks import notify_player_kick
+    try:
+        await notify_player_kick(server_id, server.name, server.game_type, player_name, reason, _user.username)
+    except Exception:
+        pass
     return {"result": result}
 
 
@@ -108,6 +114,12 @@ async def ban_player(
         await plugin.disconnect()
     await log_activity(db, server_id=server_id, user_id=_user.id, action=ActionType.BAN, detail=f"Banned {player_name}" + (f": {reason}" if reason else ""))
     await db.commit()
+    # Discord notification
+    from app.services.discord_webhooks import notify_player_ban
+    try:
+        await notify_player_ban(server_id, server.name, server.game_type, player_name, reason, _user.username)
+    except Exception:
+        pass
     return {"result": result}
 
 

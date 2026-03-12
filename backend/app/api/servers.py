@@ -150,10 +150,13 @@ async def server_status(
 
 async def poll_all_servers():
     """Background task: poll every server's RCON status and persist results."""
+    from app.services.discord_webhooks import notify_server_online, notify_server_offline, notify_server_error
+
     async with async_session() as db:
         result = await db.execute(select(Server))
         servers = result.scalars().all()
         for server in servers:
+            previous_status = server.last_status
             try:
                 plugin = get_plugin(server.game_type)
                 password = decrypt_rcon_password(server.rcon_password_encrypted)
@@ -162,10 +165,30 @@ async def poll_all_servers():
                     status_info = await plugin.get_status()
                 finally:
                     await plugin.disconnect()
-                server.last_status = status_info.get("online", False)
+                new_status = status_info.get("online", False)
+                server.last_status = new_status
                 server.player_count = status_info.get("player_count")
+
+                # Notify on status change
+                if previous_status is not None and new_status != previous_status:
+                    try:
+                        if new_status:
+                            await notify_server_online(server.id, server.name, server.game_type, server.player_count)
+                        else:
+                            await notify_server_offline(server.id, server.name, server.game_type)
+                    except Exception:
+                        pass
             except Exception as e:
                 logger.warning("Status poll failed for server %s (%s): %s", server.id, server.name, e)
+                if previous_status is True:
+                    try:
+                        await notify_server_offline(server.id, server.name, server.game_type)
+                    except Exception:
+                        pass
+                    try:
+                        await notify_server_error(server.id, server.name, server.game_type, str(e))
+                    except Exception:
+                        pass
                 server.last_status = False
                 server.player_count = None
             server.last_checked = datetime.now(timezone.utc)

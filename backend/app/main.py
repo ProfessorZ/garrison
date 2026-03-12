@@ -12,7 +12,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from app.config import settings
-from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat, commands, users, server_options, known_players, plugins
+from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat, commands, users, server_options, known_players, plugins, webhooks
 from app.database import engine
 from app.rcon.manager import rcon_manager
 from app.services.player_tracker import poll_players
@@ -130,8 +130,33 @@ async def lifespan(app: FastAPI):
         await poll_players()
     except Exception as e:
         logger.warning("Initial player poll failed: %s", e)
+    # Start Discord bot if configured
+    if settings.DISCORD_BOT_TOKEN and settings.DISCORD_GUILD_ID:
+        from app.services.discord_bot import start_bot
+        admin_role_id = int(settings.DISCORD_ADMIN_ROLE_ID) if settings.DISCORD_ADMIN_ROLE_ID else None
+        try:
+            await start_bot(
+                token=settings.DISCORD_BOT_TOKEN,
+                guild_id=int(settings.DISCORD_GUILD_ID),
+                admin_role_id=admin_role_id,
+            )
+            logger.info("Discord bot started")
+        except Exception as e:
+            logger.warning("Failed to start Discord bot: %s", e)
+    else:
+        logger.info("Discord bot not configured — skipping")
+
     logger.info("Garrison backend started")
     yield
+
+    # Shutdown Discord bot
+    if settings.DISCORD_BOT_TOKEN and settings.DISCORD_GUILD_ID:
+        from app.services.discord_bot import stop_bot
+        try:
+            await stop_bot()
+        except Exception as e:
+            logger.warning("Error stopping Discord bot: %s", e)
+
     if scheduler.scheduler.running:
         scheduler.scheduler.shutdown(wait=False)
     await rcon_manager.close_all()
@@ -169,6 +194,7 @@ app.include_router(commands.router)
 app.include_router(users.router)
 app.include_router(known_players.router)
 app.include_router(plugins.router)
+app.include_router(webhooks.router)
 
 
 @app.get("/api/health")

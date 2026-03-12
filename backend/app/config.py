@@ -9,6 +9,12 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "http://localhost:5173"
     RATE_LIMIT: str = "60/minute"
 
+    # Discord integration (optional)
+    DISCORD_BOT_TOKEN: str = ""
+    DISCORD_GUILD_ID: str = ""
+    DISCORD_ADMIN_ROLE_ID: str = ""
+    DISCORD_WEBHOOK_URL: str = ""
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 
