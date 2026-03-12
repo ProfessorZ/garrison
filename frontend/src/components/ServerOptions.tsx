@@ -224,7 +224,7 @@ export default function ServerOptions({ serverId }: Props) {
                   return (
                     <div
                       key={opt.name}
-                      className="flex items-center justify-between gap-6 px-6 py-4 transition-colors hover:bg-[rgba(255,255,255,0.025)]"
+                      className="flex items-center justify-between gap-8 px-6 py-5 transition-colors hover:bg-[rgba(255,255,255,0.025)]"
                       style={{
                         background: isChanged ? "rgba(255,165,2,0.03)" : idx % 2 === 1 ? "rgba(255,255,255,0.015)" : "transparent",
                         borderBottom: idx < opts.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none",
@@ -233,7 +233,7 @@ export default function ServerOptions({ serverId }: Props) {
                       {/* Label + description */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className={`text-sm font-medium ${isChanged ? "text-[#ffa502]" : "text-[#e2e8f0]"}`}>
+                          <span className={`text-[13px] font-semibold ${isChanged ? "text-[#ffa502]" : "text-[#e2e8f0]"}`}>
                             {opt.name}
                           </span>
                           {isChanged && (
@@ -244,7 +244,7 @@ export default function ServerOptions({ serverId }: Props) {
                           )}
                         </div>
                         {opt.description && (
-                          <p className="text-xs text-[#4a5568] mt-0.5 truncate max-w-md">{opt.description}</p>
+                          <p className="text-xs text-[#4a5568] mt-1">{opt.description}</p>
                         )}
                       </div>
 
