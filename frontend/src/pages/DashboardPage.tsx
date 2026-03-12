@@ -7,7 +7,7 @@ import {
   WifiOff,
   Users,
   Plus,
-  Terminal,
+
   ChevronRight,
   Gamepad2,
   Clock,

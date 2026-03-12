@@ -8,7 +8,7 @@ import {
   Ban,
   FileText,
   Wifi,
-  WifiOff,
+
   ChevronLeft,
   ChevronRight,
   Server,
@@ -18,7 +18,6 @@ import {
   History,
 } from "lucide-react";
 import { knownPlayersApi } from "../api/knownPlayers";
-import type { KnownPlayer, PlayerSession, PlayerBan as PlayerBanType } from "../types";
 
 function formatPlaytime(seconds: number): string {
   if (seconds < 60) return "<1m";

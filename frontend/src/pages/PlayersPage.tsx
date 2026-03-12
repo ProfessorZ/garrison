@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { knownPlayersApi } from "../api/knownPlayers";
 import { serversApi } from "../api/servers";
-import type { KnownPlayer } from "../types";
 
 function formatPlaytime(seconds: number): string {
   if (seconds < 60) return "<1m";

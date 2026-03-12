@@ -10,16 +10,6 @@ interface PlayerListProps {
   serverId: number;
 }
 
-function formatConnectedTime(connectedAt: string): string {
-  const start = new Date(connectedAt);
-  const diff = Date.now() - start.getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ${mins % 60}m`;
-  return `${Math.floor(hours / 24)}d ${hours % 24}h`;
-}
 
 function formatPlaytime(seconds: number): string {
   if (seconds < 60) return "<1m";
