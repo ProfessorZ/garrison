@@ -17,6 +17,9 @@ import {
   Mic,
   Settings,
   Server,
+  Globe,
+  Eye,
+  Wifi,
 } from "lucide-react";
 import { serverOptionsApi } from "../api/serverOptions";
 import type { ServerOption } from "../types";
@@ -26,6 +29,7 @@ interface Props {
 }
 
 const CATEGORY_CONFIG: Record<string, { icon: typeof Shield; accent: string; description: string }> = {
+  // Shared / PZ categories
   "Gameplay": { icon: Gamepad2, accent: "#00d4aa", description: "Core game mechanics and rules" },
   "Server": { icon: Server, accent: "#818cf8", description: "Server performance and configuration" },
   "Safehouse": { icon: Home, accent: "#fbbf24", description: "Player safehouse rules" },
@@ -35,6 +39,11 @@ const CATEGORY_CONFIG: Record<string, { icon: typeof Shield; accent: string; des
   "Map": { icon: Map, accent: "#a78bfa", description: "World and map configuration" },
   "Mods": { icon: Package, accent: "#34d399", description: "Mod management" },
   "Voice": { icon: Mic, accent: "#f87171", description: "Voice chat settings" },
+  // Factorio categories
+  "General": { icon: Globe, accent: "#38bdf8", description: "Server name, description, and access" },
+  "Network": { icon: Wifi, accent: "#fb923c", description: "Upload and bandwidth settings" },
+  "Visibility": { icon: Eye, accent: "#a78bfa", description: "Server browser visibility" },
+  // Fallback
   "Other": { icon: Settings, accent: "#94a3b8", description: "Miscellaneous settings" },
 };
 

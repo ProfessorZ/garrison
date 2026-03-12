@@ -1,8 +1,10 @@
 from app.games.base import GamePlugin
+from app.games.factorio import FactorioPlugin
 from app.games.zomboid import ZomboidPlugin
 
 _PLUGINS: dict[str, type[GamePlugin]] = {
     "zomboid": ZomboidPlugin,
+    "factorio": FactorioPlugin,
 }
 
 

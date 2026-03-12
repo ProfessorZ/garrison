@@ -288,6 +288,13 @@ function SettingsPanel({ serverId, server, onSaved }: SettingsPanelProps) {
               style={inputStyle}
             >
               <option value="zomboid">Project Zomboid</option>
+              <option value="factorio">Factorio</option>
+              <option value="minecraft">Minecraft</option>
+              <option value="valheim">Valheim</option>
+              <option value="ark">ARK: Survival</option>
+              <option value="rust">Rust</option>
+              <option value="csgo">CS2 / CS:GO</option>
+              <option value="other">Other</option>
             </select>
           </div>
         </div>

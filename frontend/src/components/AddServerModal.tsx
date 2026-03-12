@@ -11,6 +11,7 @@ interface AddServerModalProps {
 
 const GAME_TYPES = [
   { value: "zomboid", label: "Project Zomboid" },
+  { value: "factorio", label: "Factorio" },
   { value: "minecraft", label: "Minecraft" },
   { value: "valheim", label: "Valheim" },
   { value: "ark", label: "ARK: Survival" },
