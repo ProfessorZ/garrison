@@ -19,7 +19,6 @@ export default function SchedulerPage() {
     queryFn: serversApi.list,
   });
 
-  // Fetch schedules for all servers
   const { data: allCommands = [] } = useQuery({
     queryKey: ["all-schedules", servers.map((s) => s.id)],
     queryFn: async () => {
@@ -70,221 +69,113 @@ export default function SchedulerPage() {
   const serverName = (id: number) =>
     servers.find((s) => s.id === id)?.name ?? `Server #${id}`;
 
+  const inputCls = "w-full rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none transition-all duration-150";
+  const inputStyle = { background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" };
+
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="animate-fade-in">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-xl font-semibold text-slate-100">
-            Scheduled Commands
-          </h2>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Automate recurring RCON commands across all servers
-          </p>
+          <h2 className="text-2xl font-bold text-[#e2e8f0]">Scheduled Commands</h2>
+          <p className="text-sm text-[#64748b] mt-1">Automate recurring RCON commands across all servers</p>
         </div>
         <button
           onClick={() => setShowAdd(!showAdd)}
-          className={`inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-            showAdd
-              ? "bg-slate-700 text-slate-300 hover:bg-slate-600"
-              : "bg-emerald-600 text-white hover:bg-emerald-500"
-          }`}
+          className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all duration-150"
+          style={showAdd
+            ? { background: "#1a1f2e", color: "#e2e8f0", border: "1px solid rgba(255,255,255,0.06)" }
+            : { background: "#00d4aa", color: "#0a0e1a", border: "none" }
+          }
         >
-          {showAdd ? (
-            <>
-              <X className="h-4 w-4" /> Cancel
-            </>
-          ) : (
-            <>
-              <Plus className="h-4 w-4" /> Add Job
-            </>
-          )}
+          {showAdd ? <><X className="h-4 w-4" /> Cancel</> : <><Plus className="h-4 w-4" /> Add Job</>}
         </button>
       </div>
 
-      {/* Add form */}
       {showAdd && (
-        <form
-          onSubmit={handleAdd}
-          className="bg-slate-800 border border-slate-700 rounded-lg p-5 mb-6"
-        >
-          <h3 className="text-sm font-semibold text-slate-200 mb-4">
-            New Scheduled Command
-          </h3>
+        <form onSubmit={handleAdd} className="rounded-xl p-6 mb-6 animate-fade-in"
+          style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <h3 className="text-sm font-bold text-[#e2e8f0] mb-5 uppercase tracking-wider">New Scheduled Command</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                Server
-              </label>
-              <select
-                value={form.server_id}
-                onChange={(e) =>
-                  setForm({ ...form, server_id: e.target.value })
-                }
-                required
-                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-              >
+              <label className="block text-[11px] font-bold text-[#94a3b8] mb-1.5 uppercase tracking-wider">Server</label>
+              <select value={form.server_id} onChange={(e) => setForm({ ...form, server_id: e.target.value })} required className={inputCls} style={inputStyle}>
                 <option value="">Select server...</option>
-                {servers.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
+                {servers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                Job Name
-              </label>
-              <input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                required
-                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                placeholder="Daily restart"
-              />
+              <label className="block text-[11px] font-bold text-[#94a3b8] mb-1.5 uppercase tracking-wider">Job Name</label>
+              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className={inputCls} style={inputStyle} placeholder="Daily restart" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                RCON Command
-              </label>
-              <input
-                value={form.command}
-                onChange={(e) => setForm({ ...form, command: e.target.value })}
-                required
-                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                placeholder='servermsg "Restarting in 5..."'
-              />
+              <label className="block text-[11px] font-bold text-[#94a3b8] mb-1.5 uppercase tracking-wider">RCON Command</label>
+              <input value={form.command} onChange={(e) => setForm({ ...form, command: e.target.value })} required className={inputCls} style={{ ...inputStyle, fontFamily: "var(--font-mono)" }} placeholder='servermsg "Restarting..."' />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                Cron Expression
-              </label>
-              <input
-                value={form.cron_expression}
-                onChange={(e) =>
-                  setForm({ ...form, cron_expression: e.target.value })
-                }
-                required
-                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                placeholder="0 */6 * * *"
-              />
+              <label className="block text-[11px] font-bold text-[#94a3b8] mb-1.5 uppercase tracking-wider">Cron Expression</label>
+              <input value={form.cron_expression} onChange={(e) => setForm({ ...form, cron_expression: e.target.value })} required className={inputCls} style={{ ...inputStyle, fontFamily: "var(--font-mono)" }} placeholder="0 */6 * * *" />
             </div>
           </div>
-          <button
-            type="submit"
-            disabled={createCommand.isPending}
-            className="mt-4 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
-          >
+          <button type="submit" disabled={createCommand.isPending}
+            className="mt-5 rounded-lg px-4 py-2.5 text-sm font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-150"
+            style={{ background: "#00d4aa" }}>
             {createCommand.isPending ? "Adding..." : "Add Job"}
           </button>
         </form>
       )}
 
-      {/* Commands table */}
       {allCommands.length === 0 ? (
-        <div className="text-center py-16">
-          <Clock className="h-8 w-8 text-slate-600 mx-auto mb-2" />
-          <p className="text-slate-500 text-sm">
-            No scheduled commands configured.
-          </p>
-          <p className="text-xs text-slate-600 mt-1">
-            Create schedules per-server from the server detail page, or add one here.
-          </p>
+        <div className="text-center py-20">
+          <Clock className="h-8 w-8 text-[#1a1f2e] mx-auto mb-3" />
+          <p className="text-[#94a3b8] text-sm">No scheduled commands configured</p>
+          <p className="text-xs text-[#64748b] mt-1">Create schedules per-server or add one here</p>
         </div>
       ) : (
-        <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+        <div className="rounded-xl overflow-hidden" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-700">
-                <th className="text-left px-4 py-3 text-xs font-medium text-slate-400">
-                  Name
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-slate-400">
-                  Server
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-slate-400">
-                  Command
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-slate-400">
-                  Schedule
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-slate-400">
-                  Status
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-slate-400">
-                  Runs
-                </th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-slate-400">
-                  Actions
-                </th>
+              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                {["Name", "Server", "Command", "Schedule", "Status", "Runs", "Actions"].map((h, i) => (
+                  <th key={h} className={`${i === 6 ? "text-right" : "text-left"} px-4 py-3 text-[11px] font-bold text-[#64748b] uppercase tracking-wider`}>{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {allCommands.map((cmd) => (
-                <tr
-                  key={`${cmd.server_id}-${cmd.id}`}
-                  className="border-b border-slate-700/50 last:border-0"
+                <tr key={`${cmd.server_id}-${cmd.id}`}
+                  className="transition-colors"
+                  style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
-                  <td className="px-4 py-3 text-sm text-slate-200">
-                    {cmd.name}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-slate-400">
-                    {serverName(cmd.server_id)}
-                  </td>
-                  <td className="px-4 py-3 text-xs font-mono text-slate-400 max-w-[200px] truncate">
-                    {cmd.command}
-                  </td>
-                  <td className="px-4 py-3 text-xs font-mono text-slate-400">
-                    {cmd.cron_expression}
-                  </td>
+                  <td className="px-4 py-3 text-sm text-[#e2e8f0] font-medium">{cmd.name}</td>
+                  <td className="px-4 py-3 text-sm text-[#94a3b8]">{serverName(cmd.server_id)}</td>
+                  <td className="px-4 py-3 text-xs text-[#94a3b8] max-w-[200px] truncate" style={{ fontFamily: "var(--font-mono)" }}>{cmd.command}</td>
+                  <td className="px-4 py-3 text-xs text-[#94a3b8]" style={{ fontFamily: "var(--font-mono)" }}>{cmd.cron_expression}</td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        cmd.is_active
-                          ? "bg-emerald-500/15 text-emerald-400"
-                          : "bg-slate-700 text-slate-400"
-                      }`}
-                    >
+                    <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold"
+                      style={{
+                        background: cmd.is_active ? "rgba(0,212,170,0.08)" : "#1a1f2e",
+                        color: cmd.is_active ? "#00d4aa" : "#64748b",
+                      }}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${cmd.is_active ? "bg-[#00d4aa]" : "bg-[#64748b]"}`} />
                       {cmd.is_active ? "Active" : "Paused"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-slate-500">
-                    {cmd.run_count}
-                  </td>
+                  <td className="px-4 py-3 text-xs text-[#64748b]" style={{ fontFamily: "var(--font-mono)" }}>{cmd.run_count}</td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() =>
-                        toggleActive.mutate({
-                          id: cmd.id,
-                          server_id: cmd.server_id,
-                          is_active: !cmd.is_active,
-                        })
-                      }
-                      className="inline-flex items-center gap-1 rounded bg-slate-700 px-2 py-1 text-xs text-slate-300 hover:bg-slate-600 mr-2 transition-colors"
-                    >
-                      {cmd.is_active ? (
-                        <>
-                          <Pause className="h-3 w-3" /> Pause
-                        </>
-                      ) : (
-                        <>
-                          <Play className="h-3 w-3" /> Resume
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (confirm("Delete this scheduled command?"))
-                          deleteCommand.mutate({
-                            id: cmd.id,
-                            server_id: cmd.server_id,
-                          });
-                      }}
-                      className="inline-flex items-center gap-1 rounded bg-red-500/10 px-2 py-1 text-xs text-red-400 hover:bg-red-500/20 transition-colors"
-                    >
-                      <Trash2 className="h-3 w-3" /> Delete
-                    </button>
+                    <div className="inline-flex items-center gap-1">
+                      <button onClick={() => toggleActive.mutate({ id: cmd.id, server_id: cmd.server_id, is_active: !cmd.is_active })}
+                        className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium text-[#e2e8f0] transition-all duration-150"
+                        style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        {cmd.is_active ? <><Pause className="h-3 w-3" /> Pause</> : <><Play className="h-3 w-3" /> Resume</>}
+                      </button>
+                      <button onClick={() => { if (confirm("Delete this scheduled command?")) deleteCommand.mutate({ id: cmd.id, server_id: cmd.server_id }); }}
+                        className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium text-[#ff4757] transition-all duration-150"
+                        style={{ background: "rgba(255,71,87,0.08)", border: "1px solid rgba(255,71,87,0.12)" }}>
+                        <Trash2 className="h-3 w-3" /> Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

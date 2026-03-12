@@ -7,8 +7,6 @@ import {
   Users,
   Settings,
   Save,
-  Wifi,
-  WifiOff,
   MessageSquare,
   Activity,
   Shield,
@@ -51,7 +49,7 @@ export default function ServerDetailPage() {
   if (serverLoading || !server) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-r-transparent" />
+        <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
       </div>
     );
   }
@@ -74,89 +72,95 @@ export default function ServerDetailPage() {
   const visibleTabs = tabs.filter((t) => !t.adminOnly || isAdmin);
 
   return (
-    <div>
+    <div className="animate-fade-in">
       {/* Back link */}
       <Link
         to="/"
-        className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 mb-4 transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs text-[#64748b] hover:text-[#e2e8f0] mb-5 transition-colors font-medium"
       >
         <ArrowLeft className="h-3 w-3" />
         Back to servers
       </Link>
 
       {/* Server header */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-5 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="rounded-xl p-6 mb-6" style={{
+        background: "#111827",
+        border: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="min-w-0">
-            <div className="flex items-center gap-3">
-              <h2 className="text-xl font-semibold text-slate-100 truncate">
+            <div className="flex items-center gap-3 mb-2">
+              <h2 className="text-2xl font-bold text-[#e2e8f0] truncate">
                 {server.name}
               </h2>
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold shrink-0 ${
-                  status === undefined
-                    ? "bg-slate-700 text-slate-400"
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold shrink-0"
+                style={{
+                  background: status === undefined
+                    ? "#1a1f2e"
                     : isOnline
-                      ? "bg-emerald-500/15 text-emerald-400"
-                      : "bg-red-500/15 text-red-400"
-                }`}
+                      ? "rgba(0,212,170,0.08)"
+                      : "rgba(255,71,87,0.08)",
+                  color: status === undefined
+                    ? "#64748b"
+                    : isOnline
+                      ? "#00d4aa"
+                      : "#ff4757",
+                }}
               >
-                {status === undefined ? (
-                  <>
-                    <div className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-pulse" />
-                    Checking...
-                  </>
-                ) : isOnline ? (
-                  <>
-                    <Wifi className="h-3 w-3" />
-                    Online
-                  </>
-                ) : (
-                  <>
-                    <WifiOff className="h-3 w-3" />
-                    Offline
-                  </>
-                )}
+                <span
+                  className={`inline-block h-1.5 w-1.5 rounded-full ${
+                    status === undefined
+                      ? "bg-[#64748b] animate-pulse"
+                      : isOnline
+                        ? "bg-[#00d4aa] status-online"
+                        : "bg-[#ff4757]"
+                  }`}
+                />
+                {status === undefined ? "Checking" : isOnline ? "Online" : "Offline"}
               </span>
             </div>
-            <p className="text-sm text-slate-500 mt-1.5">
-              {server.host}:{server.port} &middot; RCON :{server.rcon_port}{" "}
-              &middot; {server.game_type}
-              {isOnline && playerCount !== null && playerCount !== undefined && (
-                <span className="text-slate-400">
-                  {" "}
-                  &middot; {playerCount} player
-                  {playerCount !== 1 ? "s" : ""} online
-                </span>
-              )}
-            </p>
+            <div className="flex items-center gap-2 text-sm text-[#64748b]">
+              <span className="font-mono text-[#94a3b8]">{server.host}:{server.port}</span>
+              <span className="text-[rgba(255,255,255,0.12)]">&middot;</span>
+              <span>RCON :{server.rcon_port}</span>
+              <span className="text-[rgba(255,255,255,0.12)]">&middot;</span>
+              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                style={{ background: "#1a1f2e" }}>
+                {server.game_type}
+              </span>
+            </div>
           </div>
 
-          {isOnline && playerCount !== null && playerCount !== undefined && (
-            <div className="flex items-center gap-2 bg-emerald-500/10 rounded-lg px-4 py-2 shrink-0">
-              <Users className="h-4 w-4 text-emerald-400" />
-              <span className="text-lg font-bold text-emerald-400">
-                {playerCount}
-              </span>
-              <span className="text-xs text-emerald-400/70">online</span>
+          {isOnline && playerCount != null && (
+            <div className="flex items-center gap-2.5 rounded-xl px-5 py-3 shrink-0"
+              style={{ background: "rgba(0,212,170,0.06)", border: "1px solid rgba(0,212,170,0.1)" }}>
+              <Users className="h-4 w-4 text-[#00d4aa]" />
+              <span className="text-2xl font-bold gradient-text">{playerCount}</span>
+              <span className="text-xs text-[#64748b] font-medium">online</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-4 border-b border-slate-700 pb-px overflow-x-auto">
+      {/* Tabs — underline style */}
+      <div className="flex gap-0 mb-5 overflow-x-auto" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         {visibleTabs.map((t) => {
           const Icon = t.icon;
+          const active = tab === t.key;
           return (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px whitespace-nowrap ${
-                tab === t.key
-                  ? "border-emerald-500 text-emerald-400"
-                  : "border-transparent text-slate-400 hover:text-slate-200"
+              className={`inline-flex items-center gap-1.5 px-4 py-3 text-[13px] font-semibold whitespace-nowrap transition-all duration-150 relative ${
+                active ? "text-[#00d4aa]" : "text-[#64748b] hover:text-[#e2e8f0]"
               }`}
+              style={{
+                background: "transparent",
+                borderRadius: 0,
+                borderBottom: active ? "2px solid #00d4aa" : "2px solid transparent",
+                marginBottom: "-1px",
+              }}
             >
               <Icon className="h-3.5 w-3.5" />
               {t.label}
@@ -166,36 +170,34 @@ export default function ServerDetailPage() {
       </div>
 
       {/* Tab content */}
-      {tab === "console" && (
-        <RconConsole serverId={serverId} gameType={server.game_type} />
-      )}
-      {tab === "players" && <PlayerList serverId={serverId} />}
-      {tab === "chat" && <ChatLog serverId={serverId} />}
-      {tab === "schedules" && (
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-          <ScheduleManager serverId={serverId} />
-        </div>
-      )}
-      {tab === "options" && (
-        <ServerOptions serverId={serverId} />
-      )}
-      {tab === "activity" && (
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-          <ActivityFeed serverId={serverId} limit={25} />
-        </div>
-      )}
-      {tab === "settings" && (
-        <SettingsPanel
-          serverId={serverId}
-          server={server}
-          onSaved={() =>
-            queryClient.invalidateQueries({ queryKey: ["server", serverId] })
-          }
-        />
-      )}
-      {tab === "permissions" && isAdmin && (
-        <ServerPermissions serverId={serverId} />
-      )}
+      <div className="animate-fade-in" key={tab}>
+        {tab === "console" && (
+          <RconConsole serverId={serverId} gameType={server.game_type} />
+        )}
+        {tab === "players" && <PlayerList serverId={serverId} />}
+        {tab === "chat" && <ChatLog serverId={serverId} />}
+        {tab === "schedules" && (
+          <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <ScheduleManager serverId={serverId} />
+          </div>
+        )}
+        {tab === "options" && <ServerOptions serverId={serverId} />}
+        {tab === "activity" && (
+          <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <ActivityFeed serverId={serverId} limit={25} />
+          </div>
+        )}
+        {tab === "settings" && (
+          <SettingsPanel
+            serverId={serverId}
+            server={server}
+            onSaved={() => queryClient.invalidateQueries({ queryKey: ["server", serverId] })}
+          />
+        )}
+        {tab === "permissions" && isAdmin && (
+          <ServerPermissions serverId={serverId} />
+        )}
+      </div>
     </div>
   );
 }
@@ -239,113 +241,69 @@ function SettingsPanel({ serverId, server, onSaved }: SettingsPanelProps) {
       rcon_port: parseInt(form.rcon_port),
       game_type: form.game_type,
     };
-    if (form.rcon_password) {
-      data.rcon_password = form.rcon_password;
-    }
+    if (form.rcon_password) data.rcon_password = form.rcon_password;
     updateMutation.mutate(data);
   };
 
-  const inputClass =
-    "w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500";
+  const inputCls = "w-full rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none transition-all duration-150";
+  const inputStyle = { background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" };
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-lg p-5">
-      <h3 className="text-sm font-semibold text-slate-200 mb-4">
+    <div className="rounded-xl p-6" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+      <h3 className="text-sm font-bold text-[#e2e8f0] uppercase tracking-wider mb-5">
         Server Settings
       </h3>
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {[
+            { label: "Name", value: form.name, key: "name" },
+            { label: "Host", value: form.host, key: "host" },
+            { label: "Game Port", value: form.port, key: "port", type: "number" },
+            { label: "RCON Port", value: form.rcon_port, key: "rcon_port", type: "number" },
+            { label: "RCON Password", value: form.rcon_password, key: "rcon_password", type: "password", placeholder: "Leave blank to keep current" },
+          ].map((field) => (
+            <div key={field.key}>
+              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1.5 uppercase tracking-wider">
+                {field.label}
+              </label>
+              <input
+                type={field.type || "text"}
+                value={field.value}
+                onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
+                required={field.key !== "rcon_password"}
+                placeholder={field.placeholder}
+                className={inputCls}
+                style={inputStyle}
+              />
+            </div>
+          ))}
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
-              Name
-            </label>
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
-              Host
-            </label>
-            <input
-              value={form.host}
-              onChange={(e) => setForm({ ...form, host: e.target.value })}
-              required
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
-              Game Port
-            </label>
-            <input
-              type="number"
-              value={form.port}
-              onChange={(e) => setForm({ ...form, port: e.target.value })}
-              required
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
-              RCON Port
-            </label>
-            <input
-              type="number"
-              value={form.rcon_port}
-              onChange={(e) => setForm({ ...form, rcon_port: e.target.value })}
-              required
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
-              RCON Password
-            </label>
-            <input
-              type="password"
-              value={form.rcon_password}
-              onChange={(e) =>
-                setForm({ ...form, rcon_password: e.target.value })
-              }
-              placeholder="Leave blank to keep current"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5">
+            <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1.5 uppercase tracking-wider">
               Game Type
             </label>
             <select
               value={form.game_type}
               onChange={(e) => setForm({ ...form, game_type: e.target.value })}
-              className={inputClass}
+              className={inputCls}
+              style={inputStyle}
             >
               <option value="zomboid">Project Zomboid</option>
             </select>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mt-5">
+        <div className="flex items-center gap-3 mt-6">
           <button
             type="submit"
             disabled={updateMutation.isPending}
-            className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-150"
+            style={{ background: "#00d4aa" }}
           >
             <Save className="h-3.5 w-3.5" />
             {updateMutation.isPending ? "Saving..." : "Save Changes"}
           </button>
-          {saved && (
-            <span className="text-sm text-emerald-400">Settings saved!</span>
-          )}
-          {updateMutation.isError && (
-            <span className="text-sm text-red-400">
-              Failed to save settings.
-            </span>
-          )}
+          {saved && <span className="text-sm text-[#00d4aa] font-medium animate-fade-in">Saved!</span>}
+          {updateMutation.isError && <span className="text-sm text-[#ff4757]">Failed to save.</span>}
         </div>
       </form>
     </div>

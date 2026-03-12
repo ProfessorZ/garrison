@@ -44,32 +44,32 @@ export default function ConfirmModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onCancel}
       />
-      <div className="relative bg-slate-800 border border-slate-700 rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+      <div className="relative rounded-xl shadow-2xl max-w-md w-full mx-4 p-6 animate-fade-in"
+        style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
         <button
           onClick={onCancel}
-          className="absolute top-4 right-4 text-slate-500 hover:text-slate-300 transition-colors"
+          className="absolute top-4 right-4 p-1 rounded-md text-[#64748b] hover:text-[#e2e8f0] transition-colors"
+          style={{ background: "transparent" }}
         >
           <X className="h-4 w-4" />
         </button>
 
         <div className="flex items-start gap-3">
           <div
-            className={`shrink-0 rounded-full p-2 ${
-              isDanger ? "bg-red-500/15" : "bg-amber-500/15"
-            }`}
+            className="shrink-0 rounded-full p-2.5"
+            style={{ background: isDanger ? "rgba(255,71,87,0.1)" : "rgba(255,165,2,0.1)" }}
           >
             <AlertTriangle
-              className={`h-5 w-5 ${
-                isDanger ? "text-red-400" : "text-amber-400"
-              }`}
+              className="h-5 w-5"
+              style={{ color: isDanger ? "#ff4757" : "#ffa502" }}
             />
           </div>
-          <div className="min-w-0">
-            <h3 className="text-base font-semibold text-slate-100">{title}</h3>
-            <p className="text-sm text-slate-400 mt-1">{message}</p>
+          <div className="min-w-0 pt-0.5">
+            <h3 className="text-base font-bold text-[#e2e8f0]">{title}</h3>
+            <p className="text-sm text-[#94a3b8] mt-1.5 leading-relaxed">{message}</p>
           </div>
         </div>
 
@@ -78,18 +78,16 @@ export default function ConfirmModal({
             ref={cancelRef}
             onClick={onCancel}
             disabled={loading}
-            className="rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-600 disabled:opacity-50 transition-colors"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-[#e2e8f0] disabled:opacity-50 transition-all duration-150"
+            style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className={`rounded-md px-4 py-2 text-sm font-medium text-white disabled:opacity-50 transition-colors ${
-              isDanger
-                ? "bg-red-600 hover:bg-red-500"
-                : "bg-amber-600 hover:bg-amber-500"
-            }`}
+            className="rounded-lg px-4 py-2 text-sm font-bold text-white disabled:opacity-50 transition-all duration-150"
+            style={{ background: isDanger ? "#ff4757" : "#ffa502" }}
           >
             {loading ? "..." : confirmLabel}
           </button>

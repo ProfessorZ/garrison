@@ -15,18 +15,9 @@ interface Props {
   serverId: number;
 }
 
-// Category ordering
 const CATEGORY_ORDER = [
-  "Gameplay",
-  "Server",
-  "Safehouse",
-  "Chat",
-  "Anti-Cheat",
-  "Vehicles",
-  "Map",
-  "Mods",
-  "Voice",
-  "Other",
+  "Gameplay", "Server", "Safehouse", "Chat", "Anti-Cheat",
+  "Vehicles", "Map", "Mods", "Voice", "Other",
 ];
 
 export default function ServerOptions({ serverId }: Props) {
@@ -35,9 +26,7 @@ export default function ServerOptions({ serverId }: Props) {
 
   const [search, setSearch] = useState("");
   const [changes, setChanges] = useState<Record<string, string>>({});
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
-    new Set()
-  );
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [_hoveredOption, setHoveredOption] = useState<string | null>(null);
   const [savingOption, setSavingOption] = useState<string | null>(null);
 
@@ -51,11 +40,7 @@ export default function ServerOptions({ serverId }: Props) {
       serverOptionsApi.update(serverId, name, value),
     onSuccess: (_, { name }) => {
       queryClient.invalidateQueries({ queryKey });
-      setChanges((prev) => {
-        const next = { ...prev };
-        delete next[name];
-        return next;
-      });
+      setChanges((prev) => { const next = { ...prev }; delete next[name]; return next; });
       setSavingOption(null);
     },
     onError: () => setSavingOption(null),
@@ -70,7 +55,6 @@ export default function ServerOptions({ serverId }: Props) {
     },
   });
 
-  // Group by category
   const grouped = useMemo(() => {
     const filtered = options.filter(
       (opt) =>
@@ -79,14 +63,11 @@ export default function ServerOptions({ serverId }: Props) {
         opt.description.toLowerCase().includes(search.toLowerCase()) ||
         opt.category.toLowerCase().includes(search.toLowerCase())
     );
-
     const groups: Record<string, ServerOption[]> = {};
     for (const opt of filtered) {
       if (!groups[opt.category]) groups[opt.category] = [];
       groups[opt.category].push(opt);
     }
-
-    // Sort categories by predefined order
     return Object.entries(groups).sort(([a], [b]) => {
       const ai = CATEGORY_ORDER.indexOf(a);
       const bi = CATEGORY_ORDER.indexOf(b);
@@ -97,23 +78,16 @@ export default function ServerOptions({ serverId }: Props) {
   const toggleCategory = (cat: string) => {
     setCollapsedCategories((prev) => {
       const next = new Set(prev);
-      if (next.has(cat)) next.delete(cat);
-      else next.add(cat);
+      if (next.has(cat)) next.delete(cat); else next.add(cat);
       return next;
     });
   };
 
-  const getDisplayValue = (opt: ServerOption): string => {
-    return changes[opt.name] ?? opt.value;
-  };
+  const getDisplayValue = (opt: ServerOption): string => changes[opt.name] ?? opt.value;
 
   const setOptionValue = (name: string, value: string, original: string) => {
     if (value === original) {
-      setChanges((prev) => {
-        const next = { ...prev };
-        delete next[name];
-        return next;
-      });
+      setChanges((prev) => { const next = { ...prev }; delete next[name]; return next; });
     } else {
       setChanges((prev) => ({ ...prev, [name]: value }));
     }
@@ -131,17 +105,15 @@ export default function ServerOptions({ serverId }: Props) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-32">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-r-transparent" />
+        <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-        <p className="text-sm text-red-400">
-          Failed to load server options. Make sure the server is online.
-        </p>
+      <div className="rounded-xl p-4" style={{ background: "rgba(255,71,87,0.06)", border: "1px solid rgba(255,71,87,0.12)" }}>
+        <p className="text-sm text-[#ff4757]">Failed to load server options. Make sure the server is online.</p>
       </div>
     );
   }
@@ -151,32 +123,27 @@ export default function ServerOptions({ serverId }: Props) {
       {/* Search + bulk actions */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#64748b]" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search options..."
-            className="w-full rounded-md bg-slate-800 border border-slate-700 pl-9 pr-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+            className="w-full rounded-lg pl-9 pr-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none transition-all duration-150"
+            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
           />
         </div>
         {changedCount > 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-amber-400">
-              {changedCount} unsaved
-            </span>
-            <button
-              onClick={() => setChanges({})}
-              className="inline-flex items-center gap-1 rounded-md bg-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-600 transition-colors"
-            >
+            <span className="text-xs text-[#ffa502] font-bold">{changedCount} unsaved</span>
+            <button onClick={() => setChanges({})}
+              className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-[#e2e8f0] transition-all duration-150"
+              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}>
               <RotateCcw className="h-3 w-3" /> Reset
             </button>
-            <button
-              onClick={() => bulkMutation.mutate(changes)}
-              disabled={bulkMutation.isPending}
-              className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
-            >
-              <Save className="h-3 w-3" />
-              {bulkMutation.isPending ? "Saving..." : "Save All"}
+            <button onClick={() => bulkMutation.mutate(changes)} disabled={bulkMutation.isPending}
+              className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-150"
+              style={{ background: "#00d4aa" }}>
+              <Save className="h-3 w-3" /> {bulkMutation.isPending ? "Saving..." : "Save All"}
             </button>
           </div>
         )}
@@ -188,36 +155,24 @@ export default function ServerOptions({ serverId }: Props) {
         const hasChanges = opts.some((o) => o.name in changes);
 
         return (
-          <div
-            key={category}
-            className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden"
-          >
-            {/* Category header */}
+          <div key={category} className="rounded-xl overflow-hidden" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
             <button
               onClick={() => toggleCategory(category)}
-              className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-700/30 transition-colors"
+              className="w-full flex items-center justify-between px-5 py-3.5 transition-colors"
+              style={{ background: "transparent" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
               <div className="flex items-center gap-2">
-                {isCollapsed ? (
-                  <ChevronRight className="h-3.5 w-3.5 text-slate-500" />
-                ) : (
-                  <ChevronDown className="h-3.5 w-3.5 text-slate-500" />
-                )}
-                <span className="text-sm font-semibold text-slate-200">
-                  {category}
-                </span>
-                <span className="text-xs text-slate-500">
-                  {opts.length} option{opts.length !== 1 ? "s" : ""}
-                </span>
+                {isCollapsed ? <ChevronRight className="h-3.5 w-3.5 text-[#64748b]" /> : <ChevronDown className="h-3.5 w-3.5 text-[#64748b]" />}
+                <span className="text-sm font-bold text-[#e2e8f0]">{category}</span>
+                <span className="text-xs text-[#64748b]">{opts.length} option{opts.length !== 1 ? "s" : ""}</span>
               </div>
-              {hasChanges && (
-                <span className="h-2 w-2 rounded-full bg-amber-400" />
-              )}
+              {hasChanges && <span className="h-2 w-2 rounded-full bg-[#ffa502]" />}
             </button>
 
-            {/* Options list */}
             {!isCollapsed && (
-              <div className="border-t border-slate-700 divide-y divide-slate-700/50">
+              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 {opts.map((opt) => {
                   const displayVal = getDisplayValue(opt);
                   const isChanged = opt.name in changes;
@@ -225,28 +180,24 @@ export default function ServerOptions({ serverId }: Props) {
                   return (
                     <div
                       key={opt.name}
-                      className={`px-4 py-2.5 flex items-center gap-4 ${
-                        isChanged ? "bg-amber-500/5" : ""
-                      }`}
+                      className="px-5 py-3 flex items-center gap-4 transition-colors"
+                      style={{
+                        background: isChanged ? "rgba(255,165,2,0.03)" : "transparent",
+                        borderBottom: "1px solid rgba(255,255,255,0.03)",
+                      }}
                       onMouseEnter={() => setHoveredOption(opt.name)}
                       onMouseLeave={() => setHoveredOption(null)}
                     >
-                      {/* Label */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <span
-                            className={`text-sm ${
-                              isChanged
-                                ? "text-amber-300 font-medium"
-                                : "text-slate-300"
-                            }`}
-                          >
+                          <span className={`text-sm ${isChanged ? "text-[#ffa502] font-bold" : "text-[#e2e8f0]"}`}>
                             {opt.name}
                           </span>
                           {opt.description && (
                             <div className="relative group">
-                              <Info className="h-3 w-3 text-slate-600 cursor-help" />
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-300 whitespace-nowrap z-20 shadow-lg">
+                              <Info className="h-3 w-3 text-[#64748b] cursor-help" />
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block rounded-lg px-3 py-2 text-xs text-[#e2e8f0] whitespace-nowrap z-20 shadow-2xl"
+                                style={{ background: "#0a0e1a", border: "1px solid rgba(255,255,255,0.06)" }}>
                                 {opt.description}
                               </div>
                             </div>
@@ -254,31 +205,12 @@ export default function ServerOptions({ serverId }: Props) {
                         </div>
                       </div>
 
-                      {/* Input */}
                       <div className="flex items-center gap-2 shrink-0">
                         {opt.type === "boolean" ? (
                           <button
-                            onClick={() =>
-                              setOptionValue(
-                                opt.name,
-                                displayVal === "true" ? "false" : "true",
-                                opt.value
-                              )
-                            }
-                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                              displayVal === "true"
-                                ? "bg-emerald-600"
-                                : "bg-slate-600"
-                            }`}
-                          >
-                            <span
-                              className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
-                                displayVal === "true"
-                                  ? "translate-x-4.5"
-                                  : "translate-x-0.5"
-                              }`}
-                            />
-                          </button>
+                            onClick={() => setOptionValue(opt.name, displayVal === "true" ? "false" : "true", opt.value)}
+                            className={`toggle-switch ${displayVal === "true" ? "active" : ""}`}
+                          />
                         ) : opt.type === "number" ? (
                           <div className="flex items-center gap-1">
                             <button
@@ -286,69 +218,45 @@ export default function ServerOptions({ serverId }: Props) {
                                 const n = parseFloat(displayVal) || 0;
                                 const step = n % 1 !== 0 ? 0.1 : 1;
                                 const newVal = Math.max(0, n - step);
-                                setOptionValue(
-                                  opt.name,
-                                  n % 1 !== 0
-                                    ? newVal.toFixed(1)
-                                    : String(newVal),
-                                  opt.value
-                                );
+                                setOptionValue(opt.name, n % 1 !== 0 ? newVal.toFixed(1) : String(newVal), opt.value);
                               }}
-                              className="rounded bg-slate-700 px-1.5 py-0.5 text-xs text-slate-300 hover:bg-slate-600 transition-colors"
-                            >
-                              -
-                            </button>
+                              className="rounded-md px-2 py-0.5 text-xs text-[#e2e8f0] transition-all duration-150"
+                              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                            >-</button>
                             <input
                               type="text"
                               value={displayVal}
-                              onChange={(e) =>
-                                setOptionValue(
-                                  opt.name,
-                                  e.target.value,
-                                  opt.value
-                                )
-                              }
-                              className="w-20 rounded bg-slate-700 border border-slate-600 px-2 py-1 text-xs text-center text-slate-100 font-mono focus:outline-none focus:border-emerald-500"
+                              onChange={(e) => setOptionValue(opt.name, e.target.value, opt.value)}
+                              className="w-20 rounded-md px-2 py-1 text-xs text-center text-[#e2e8f0] focus:outline-none"
+                              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)", fontFamily: "var(--font-mono)" }}
                             />
                             <button
                               onClick={() => {
                                 const n = parseFloat(displayVal) || 0;
                                 const step = n % 1 !== 0 ? 0.1 : 1;
                                 const newVal = n + step;
-                                setOptionValue(
-                                  opt.name,
-                                  n % 1 !== 0
-                                    ? newVal.toFixed(1)
-                                    : String(newVal),
-                                  opt.value
-                                );
+                                setOptionValue(opt.name, n % 1 !== 0 ? newVal.toFixed(1) : String(newVal), opt.value);
                               }}
-                              className="rounded bg-slate-700 px-1.5 py-0.5 text-xs text-slate-300 hover:bg-slate-600 transition-colors"
-                            >
-                              +
-                            </button>
+                              className="rounded-md px-2 py-0.5 text-xs text-[#e2e8f0] transition-all duration-150"
+                              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                            >+</button>
                           </div>
                         ) : (
                           <input
                             type="text"
                             value={displayVal}
-                            onChange={(e) =>
-                              setOptionValue(
-                                opt.name,
-                                e.target.value,
-                                opt.value
-                              )
-                            }
-                            className="w-48 rounded bg-slate-700 border border-slate-600 px-2 py-1 text-xs text-slate-100 font-mono focus:outline-none focus:border-emerald-500"
+                            onChange={(e) => setOptionValue(opt.name, e.target.value, opt.value)}
+                            className="w-48 rounded-md px-2 py-1 text-xs text-[#e2e8f0] focus:outline-none"
+                            style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)", fontFamily: "var(--font-mono)" }}
                           />
                         )}
 
-                        {/* Per-option save */}
                         {isChanged && (
                           <button
                             onClick={() => saveOne(opt.name)}
                             disabled={savingOption === opt.name}
-                            className="inline-flex items-center gap-1 rounded bg-emerald-600 px-2 py-1 text-xs text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
+                            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-150"
+                            style={{ background: "#00d4aa" }}
                           >
                             <Save className="h-3 w-3" />
                           </button>
@@ -364,11 +272,9 @@ export default function ServerOptions({ serverId }: Props) {
       })}
 
       {grouped.length === 0 && !isLoading && (
-        <div className="text-center py-12 bg-slate-800 border border-slate-700 rounded-lg">
-          <p className="text-sm text-slate-500">
-            {search
-              ? "No options match your search."
-              : "No server options available."}
+        <div className="text-center py-12 rounded-xl" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <p className="text-sm text-[#94a3b8]">
+            {search ? "No options match your search." : "No server options available."}
           </p>
         </div>
       )}

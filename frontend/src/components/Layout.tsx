@@ -6,7 +6,6 @@ import {
   Clock,
   LogOut,
   Shield,
-  Terminal,
   Activity,
   Server,
   Menu,
@@ -20,7 +19,7 @@ const ROLE_COLORS: Record<string, string> = {
   OWNER: "text-amber-400",
   ADMIN: "text-red-400",
   MODERATOR: "text-blue-400",
-  VIEWER: "text-slate-400",
+  VIEWER: "text-[#64748b]",
 };
 
 export default function Layout() {
@@ -55,50 +54,51 @@ export default function Layout() {
   const closeSidebar = () => setSidebarOpen(false);
 
   return (
-    <div className="flex min-h-screen bg-slate-900">
+    <div className="flex min-h-screen" style={{ background: "#0a0e1a" }}>
       {/* Mobile header */}
-      <div className="fixed top-0 left-0 right-0 z-40 flex items-center gap-3 bg-slate-800 border-b border-slate-700 px-4 py-3 md:hidden">
+      <div className="fixed top-0 left-0 right-0 z-40 flex items-center gap-3 px-4 py-3 md:hidden"
+        style={{ background: "#111827", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-700 transition-colors"
+          className="p-1.5 rounded-md text-[#94a3b8] hover:text-[#e2e8f0] transition-colors"
+          style={{ background: "transparent" }}
         >
-          {sidebarOpen ? (
-            <X className="h-5 w-5" />
-          ) : (
-            <Menu className="h-5 w-5" />
-          )}
+          {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
-        <div className="flex items-center gap-2">
-          <Terminal className="h-4 w-4 text-emerald-500" />
-          <span className="text-sm font-bold text-emerald-500">Garrison</span>
-        </div>
+        <span className="text-sm font-extrabold tracking-[0.15em] uppercase gradient-text">
+          Garrison
+        </span>
       </div>
 
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
           onClick={closeSidebar}
         />
       )}
 
       {/* Sidebar */}
       <nav
-        className={`fixed md:static inset-y-0 left-0 z-50 w-56 bg-slate-800 border-r border-slate-700 flex flex-col shrink-0 transition-transform md:translate-x-0 ${
+        className={`fixed md:static inset-y-0 left-0 z-50 w-60 flex flex-col shrink-0 transition-transform duration-200 md:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
+        style={{ background: "#111827", borderRight: "1px solid rgba(255,255,255,0.06)" }}
       >
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-slate-700">
-          <Link to="/" className="flex items-center gap-2" onClick={closeSidebar}>
-            <Terminal className="h-5 w-5 text-emerald-500" />
-            <h1 className="text-lg font-bold text-emerald-500">Garrison</h1>
+        <div className="px-5 py-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <Link to="/" className="block" onClick={closeSidebar}>
+            <h1 className="text-base font-extrabold tracking-[0.2em] uppercase gradient-text">
+              Garrison
+            </h1>
+            <p className="text-[11px] mt-1 text-[#64748b] font-medium">
+              Server Command Center
+            </p>
           </Link>
-          <p className="text-xs text-slate-500 mt-1">RCON Dashboard</p>
         </div>
 
         {/* Navigation */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-1">
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -107,11 +107,16 @@ export default function Layout() {
                 key={item.path}
                 to={item.path}
                 onClick={closeSidebar}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150 ${
                   active
-                    ? "bg-emerald-500/10 text-emerald-400"
-                    : "text-slate-400 hover:bg-slate-700 hover:text-slate-200"
+                    ? "text-[#00d4aa]"
+                    : "text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(255,255,255,0.04)]"
                 }`}
+                style={active ? {
+                  borderLeft: "2px solid #00d4aa",
+                  marginLeft: "-2px",
+                  paddingLeft: "calc(0.75rem + 2px)",
+                } : { borderLeft: "2px solid transparent", marginLeft: "-2px", paddingLeft: "calc(0.75rem + 2px)" }}
               >
                 <Icon className="h-4 w-4" />
                 {item.label}
@@ -119,11 +124,11 @@ export default function Layout() {
             );
           })}
 
-          {/* Separator + server list */}
+          {/* Server list */}
           {servers.length > 0 && (
             <>
-              <div className="my-3 border-t border-slate-700" />
-              <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+              <div className="my-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
+              <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#64748b]">
                 Servers
               </p>
               {servers.map((s) => {
@@ -133,13 +138,18 @@ export default function Layout() {
                     key={s.id}
                     to={`/server/${s.id}`}
                     onClick={closeSidebar}
-                    className={`flex items-center gap-2.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] transition-all duration-150 ${
                       active
-                        ? "bg-emerald-500/10 text-emerald-400"
-                        : "text-slate-400 hover:bg-slate-700 hover:text-slate-200"
+                        ? "text-[#00d4aa]"
+                        : "text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(255,255,255,0.04)]"
                     }`}
+                    style={active ? {
+                      borderLeft: "2px solid #00d4aa",
+                      marginLeft: "-2px",
+                      paddingLeft: "calc(0.75rem + 2px)",
+                    } : { borderLeft: "2px solid transparent", marginLeft: "-2px", paddingLeft: "calc(0.75rem + 2px)" }}
                   >
-                    <Server className="h-3.5 w-3.5" />
+                    <Server className="h-3.5 w-3.5 shrink-0" />
                     <span className="truncate">{s.name}</span>
                   </Link>
                 );
@@ -149,17 +159,18 @@ export default function Layout() {
         </div>
 
         {/* User section */}
-        <div className="p-4 border-t border-slate-700">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="h-7 w-7 rounded-full bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300">
+        <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-[#e2e8f0]"
+              style={{ background: "#1a1f2e" }}>
               {user?.username?.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-slate-300 truncate">
+              <p className="text-sm font-semibold text-[#e2e8f0] truncate">
                 {user?.username}
               </p>
               {user?.role && (
-                <p className={`flex items-center gap-1 text-xs ${ROLE_COLORS[user.role] || "text-slate-500"}`}>
+                <p className={`flex items-center gap-1 text-[11px] font-medium ${ROLE_COLORS[user.role] || "text-[#64748b]"}`}>
                   <Shield className="h-3 w-3" />
                   {user.role}
                 </p>
@@ -168,17 +179,20 @@ export default function Layout() {
           </div>
           <button
             onClick={logout}
-            className="flex items-center justify-center gap-2 w-full rounded-md bg-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-600 transition-colors"
+            className="flex items-center justify-center gap-2 w-full rounded-md px-3 py-1.5 text-xs font-medium text-[#94a3b8] hover:text-[#e2e8f0] transition-all duration-150"
+            style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
           >
             <LogOut className="h-3.5 w-3.5" />
-            Logout
+            Sign Out
           </button>
         </div>
       </nav>
 
       {/* Main content */}
-      <main className="flex-1 p-6 overflow-y-auto pt-16 md:pt-6">
-        <Outlet />
+      <main className="flex-1 overflow-y-auto pt-16 md:pt-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

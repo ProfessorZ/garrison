@@ -40,9 +40,7 @@ export default function PlayerList({ serverId }: PlayerListProps) {
   const kickMutation = useMutation({
     mutationFn: (name: string) => serversApi.kickPlayer(serverId, name),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["server-players", serverId],
-      });
+      queryClient.invalidateQueries({ queryKey: ["server-players", serverId] });
       setConfirmAction(null);
     },
   });
@@ -50,9 +48,7 @@ export default function PlayerList({ serverId }: PlayerListProps) {
   const banMutation = useMutation({
     mutationFn: (name: string) => serversApi.banPlayer(serverId, name),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["server-players", serverId],
-      });
+      queryClient.invalidateQueries({ queryKey: ["server-players", serverId] });
       setConfirmAction(null);
     },
   });
@@ -70,92 +66,81 @@ export default function PlayerList({ serverId }: PlayerListProps) {
   };
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-lg">
+    <div className="rounded-xl overflow-hidden" style={{
+      background: "#111827",
+      border: "1px solid rgba(255,255,255,0.06)",
+    }}>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-700">
-        <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-          <Users className="h-4 w-4 text-slate-400" />
-          Players ({players.length})
+      <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <h3 className="text-sm font-bold text-[#e2e8f0] flex items-center gap-2">
+          <Users className="h-4 w-4 text-[#64748b]" />
+          Players
+          <span className="text-[#64748b] font-normal">({players.length})</span>
         </h3>
         <button
           onClick={() => refetch()}
           disabled={isLoading}
-          className="inline-flex items-center gap-1.5 rounded-md bg-slate-700 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-600 disabled:opacity-50 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[#e2e8f0] disabled:opacity-50 transition-all duration-150"
+          style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
         >
-          <RefreshCw
-            className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`}
-          />
+          <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
           Refresh
         </button>
       </div>
 
-      {/* Player list */}
       {isLoading && players.length === 0 ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-r-transparent" />
+        <div className="flex items-center justify-center py-16">
+          <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
         </div>
       ) : players.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <Users className="h-8 w-8 text-slate-600 mb-2" />
-          <p className="text-sm text-slate-500">No players online</p>
-          <p className="text-xs text-slate-600 mt-1">
-            Players will appear here when they connect
-          </p>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <Users className="h-8 w-8 text-[#1a1f2e] mb-3" />
+          <p className="text-sm text-[#94a3b8]">No players online</p>
+          <p className="text-xs text-[#64748b] mt-1">Players will appear here when they connect</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-700">
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-slate-400">
-                  Player
-                </th>
-                <th className="text-left px-4 py-2.5 text-xs font-medium text-slate-400 hidden sm:table-cell">
-                  Connected
-                </th>
-                <th className="text-right px-4 py-2.5 text-xs font-medium text-slate-400">
-                  Actions
-                </th>
+              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">Player</th>
+                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider hidden sm:table-cell">Connected</th>
+                <th className="text-right px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {players.map((p) => (
                 <tr
                   key={p.name}
-                  className="border-b border-slate-700/50 last:border-0 hover:bg-slate-750/50"
+                  className="transition-colors hover:bg-[rgba(255,255,255,0.02)]"
+                  style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}
                 >
-                  <td className="px-4 py-2.5 text-sm text-slate-200 font-medium">
-                    {p.name}
-                  </td>
-                  <td className="px-4 py-2.5 text-xs text-slate-500 hidden sm:table-cell">
+                  <td className="px-5 py-3 text-sm text-[#e2e8f0] font-semibold">{p.name}</td>
+                  <td className="px-5 py-3 text-xs text-[#64748b] hidden sm:table-cell">
                     {p.connected_at ? (
                       <span className="inline-flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {formatConnectedTime(p.connected_at)}
                       </span>
                     ) : (
-                      <span className="text-slate-600">&mdash;</span>
+                      <span>&mdash;</span>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 text-right">
+                  <td className="px-5 py-3 text-right">
                     <div className="inline-flex items-center gap-2">
                       <button
-                        onClick={() =>
-                          setConfirmAction({ type: "kick", player: p })
-                        }
-                        className="inline-flex items-center gap-1 rounded bg-slate-700 px-2 py-1 text-xs text-slate-300 hover:bg-slate-600 transition-colors"
+                        onClick={() => setConfirmAction({ type: "kick", player: p })}
+                        className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium text-[#e2e8f0] transition-all duration-150"
+                        style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
                       >
-                        <UserX className="h-3 w-3" />
-                        Kick
+                        <UserX className="h-3 w-3" /> Kick
                       </button>
                       <button
-                        onClick={() =>
-                          setConfirmAction({ type: "ban", player: p })
-                        }
-                        className="inline-flex items-center gap-1 rounded bg-red-500/10 px-2 py-1 text-xs text-red-400 hover:bg-red-500/20 transition-colors"
+                        onClick={() => setConfirmAction({ type: "ban", player: p })}
+                        className="inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium text-[#ff4757] transition-all duration-150"
+                        style={{ background: "rgba(255,71,87,0.08)", border: "1px solid rgba(255,71,87,0.12)" }}
                       >
-                        <Ban className="h-3 w-3" />
-                        Ban
+                        <Ban className="h-3 w-3" /> Ban
                       </button>
                     </div>
                   </td>
@@ -166,7 +151,6 @@ export default function PlayerList({ serverId }: PlayerListProps) {
         </div>
       )}
 
-      {/* Confirm modal */}
       <ConfirmModal
         open={confirmAction !== null}
         title={

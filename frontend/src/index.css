@@ -1,5 +1,29 @@
 @import "tailwindcss";
 
+/* ── Design Tokens ─────────────────────────────────────────────────────────── */
+
+:root {
+  --bg-deepest: #0a0e1a;
+  --bg-card: #111827;
+  --bg-elevated: #1a1f2e;
+  --bg-hover: #1e2538;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-bright: rgba(255, 255, 255, 0.12);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #00d4aa;
+  --accent-hover: #00b894;
+  --accent-glow: rgba(0, 212, 170, 0.15);
+  --danger: #ff4757;
+  --danger-hover: #ff6b6b;
+  --warning: #ffa502;
+  --font-ui: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ── Reset & Base ──────────────────────────────────────────────────────────── */
+
 *,
 *::before,
 *::after {
@@ -8,42 +32,39 @@
   padding: 0;
 }
 
-:root {
-  --bg-primary: #0f1117;
-  --bg-secondary: #1a1d27;
-  --bg-tertiary: #242836;
-  --bg-hover: #2a2e3d;
-  --border: #2e3348;
-  --text-primary: #e4e6f0;
-  --text-secondary: #9ca3bf;
-  --text-muted: #6b7394;
-  --accent: #6366f1;
-  --accent-hover: #818cf8;
-  --success: #22c55e;
-  --danger: #ef4444;
-  --danger-hover: #f87171;
-  --warning: #f59e0b;
-}
-
 html {
   color-scheme: dark;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: var(--bg-primary);
+  font-family: var(--font-ui);
+  background: var(--bg-deepest);
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* ── Links ─────────────────────────────────────────────────────────────────── */
 
 a {
   color: var(--accent);
   text-decoration: none;
+  transition: color 150ms ease;
 }
 a:hover {
   color: var(--accent-hover);
 }
+
+/* ── Focus ─────────────────────────────────────────────────────────────────── */
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────────── */
 
 button {
   cursor: pointer;
@@ -52,44 +73,28 @@ button {
   padding: 8px 16px;
   font-size: 14px;
   font-weight: 500;
-  transition: background 0.15s;
+  font-family: var(--font-ui);
+  transition: all 150ms ease;
 }
 
-.btn-primary {
-  background: var(--accent);
-  color: white;
-}
-.btn-primary:hover {
-  background: var(--accent-hover);
+button:active {
+  transform: scale(0.98);
 }
 
-.btn-danger {
-  background: var(--danger);
-  color: white;
-}
-.btn-danger:hover {
-  background: var(--danger-hover);
-}
-
-.btn-secondary {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-}
-.btn-secondary:hover {
-  background: var(--bg-hover);
-}
+/* ── Inputs ────────────────────────────────────────────────────────────────── */
 
 input,
 select,
 textarea {
-  background: var(--bg-tertiary);
+  background: var(--bg-elevated);
   border: 1px solid var(--border);
   color: var(--text-primary);
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 14px;
+  font-family: var(--font-ui);
   width: 100%;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 input:focus,
@@ -97,32 +102,15 @@ select:focus,
 textarea:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-.card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 20px;
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
 }
 
-.badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.badge-online {
-  background: rgba(34, 197, 94, 0.15);
-  color: var(--success);
-}
-
-.badge-offline {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--danger);
-}
+/* ── Scrollbar ─────────────────────────────────────────────────────────────── */
 
 ::-webkit-scrollbar {
   width: 6px;
@@ -132,9 +120,105 @@ textarea:focus {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* ── Status Pulse Animation ────────────────────────────────────────────────── */
+
+@keyframes status-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(0, 212, 170, 0);
+  }
+}
+
+.status-online {
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+/* ── Fade-in Animation ─────────────────────────────────────────────────────── */
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in-up 300ms ease-out both;
+}
+
+.animate-fade-in-delay-1 { animation-delay: 50ms; }
+.animate-fade-in-delay-2 { animation-delay: 100ms; }
+.animate-fade-in-delay-3 { animation-delay: 150ms; }
+
+/* ── Gradient Text ─────────────────────────────────────────────────────────── */
+
+.gradient-text {
+  background: linear-gradient(135deg, #00d4aa, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Login Background ──────────────────────────────────────────────────────── */
+
+@keyframes mesh-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.login-bg {
+  background: linear-gradient(-45deg, #0a0e1a, #111827, #0f172a, #0a1628);
+  background-size: 400% 400%;
+  animation: mesh-shift 15s ease infinite;
+}
+
+/* ── Toggle Switch ─────────────────────────────────────────────────────────── */
+
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  height: 22px;
+  width: 40px;
+  align-items: center;
+  border-radius: 11px;
+  transition: background-color 200ms ease;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+.toggle-switch::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 200ms ease;
+}
+
+.toggle-switch.active {
+  background-color: var(--accent);
+}
+
+.toggle-switch.active::after {
+  transform: translateX(18px);
+}
+
+.toggle-switch:not(.active) {
+  background-color: #374151;
 }

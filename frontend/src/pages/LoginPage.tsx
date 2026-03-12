@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Terminal, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function LoginPage() {
@@ -28,25 +28,29 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-900 px-4">
-      <div className="w-full max-w-sm">
+    <div className="login-bg flex items-center justify-center min-h-screen px-4">
+      <div className="w-full max-w-sm animate-fade-in">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-emerald-500/10 mb-4">
-            <Terminal className="h-6 w-6 text-emerald-500" />
-          </div>
-          <h1 className="text-2xl font-bold text-emerald-500">Garrison</h1>
-          <p className="text-sm text-slate-500 mt-1">RCON Dashboard</p>
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-extrabold tracking-[0.2em] uppercase gradient-text">
+            Garrison
+          </h1>
+          <p className="text-sm text-[#64748b] mt-2 font-medium">
+            Server Command Center
+          </p>
         </div>
 
-        {/* Form */}
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-slate-100 mb-6">
+        {/* Form Card */}
+        <div className="rounded-xl p-8" style={{
+          background: "#111827",
+          border: "1px solid rgba(255,255,255,0.06)",
+        }}>
+          <h2 className="text-lg font-bold text-[#e2e8f0] mb-6">
             Sign in
           </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-2 uppercase tracking-wider">
                 Username
               </label>
               <input
@@ -54,12 +58,26 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 autoFocus
-                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                className="w-full px-0 py-2.5 text-sm text-[#e2e8f0] bg-transparent rounded-none"
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid rgba(255,255,255,0.1)",
+                  outline: "none",
+                  boxShadow: "none",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderBottomColor = "#00d4aa";
+                  e.target.style.boxShadow = "0 1px 0 0 #00d4aa";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderBottomColor = "rgba(255,255,255,0.1)";
+                  e.target.style.boxShadow = "none";
+                }}
                 placeholder="Enter username"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">
+              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-2 uppercase tracking-wider">
                 Password
               </label>
               <input
@@ -67,13 +85,28 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full rounded-md bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                className="w-full px-0 py-2.5 text-sm text-[#e2e8f0] bg-transparent rounded-none"
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid rgba(255,255,255,0.1)",
+                  outline: "none",
+                  boxShadow: "none",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderBottomColor = "#00d4aa";
+                  e.target.style.boxShadow = "0 1px 0 0 #00d4aa";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderBottomColor = "rgba(255,255,255,0.1)";
+                  e.target.style.boxShadow = "none";
+                }}
                 placeholder="Enter password"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-400 bg-red-500/10 rounded-md px-3 py-2">
+              <p className="text-sm text-[#ff4757] rounded-lg px-3 py-2.5 animate-fade-in"
+                style={{ background: "rgba(255,71,87,0.08)" }}>
                 {error}
               </p>
             )}
@@ -81,18 +114,19 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-bold text-[#0a0e1a] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 hover:shadow-[0_0_24px_rgba(0,212,170,0.25)]"
+              style={{ background: "#00d4aa" }}
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {loading ? "Signing in..." : "Sign in"}
             </button>
           </form>
 
-          <p className="mt-4 text-center text-xs text-slate-500">
+          <p className="mt-6 text-center text-xs text-[#64748b]">
             No account yet?{" "}
             <Link
               to="/register"
-              className="text-emerald-400 hover:text-emerald-300 font-medium"
+              className="text-[#00d4aa] hover:text-[#00b894] font-semibold"
             >
               Register
             </Link>

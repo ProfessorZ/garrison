@@ -21,16 +21,16 @@ const ACTION_CONFIG: Record<
   ActivityAction,
   { icon: typeof Terminal; color: string; label: string }
 > = {
-  rcon_command: { icon: Terminal, color: "text-blue-400", label: "RCON" },
-  kick: { icon: UserX, color: "text-amber-400", label: "Kick" },
-  ban: { icon: Ban, color: "text-red-400", label: "Ban" },
-  server_start: { icon: Power, color: "text-emerald-400", label: "Start" },
-  server_stop: { icon: PowerOff, color: "text-red-400", label: "Stop" },
-  server_add: { icon: Plus, color: "text-emerald-400", label: "Add" },
-  server_update: { icon: Pencil, color: "text-blue-400", label: "Update" },
-  server_delete: { icon: Trash2, color: "text-red-400", label: "Delete" },
-  scheduler_create: { icon: Clock, color: "text-purple-400", label: "Schedule" },
-  scheduler_update: { icon: Pencil, color: "text-purple-400", label: "Schedule" },
+  rcon_command: { icon: Terminal, color: "#3b82f6", label: "RCON" },
+  kick: { icon: UserX, color: "#ffa502", label: "Kick" },
+  ban: { icon: Ban, color: "#ff4757", label: "Ban" },
+  server_start: { icon: Power, color: "#00d4aa", label: "Start" },
+  server_stop: { icon: PowerOff, color: "#ff4757", label: "Stop" },
+  server_add: { icon: Plus, color: "#00d4aa", label: "Add" },
+  server_update: { icon: Pencil, color: "#3b82f6", label: "Update" },
+  server_delete: { icon: Trash2, color: "#ff4757", label: "Delete" },
+  scheduler_create: { icon: Clock, color: "#a855f7", label: "Schedule" },
+  scheduler_update: { icon: Pencil, color: "#a855f7", label: "Schedule" },
 };
 
 const ACTION_TYPES: { value: ActivityAction; label: string }[] = [
@@ -90,38 +90,33 @@ export default function ActivityFeed({
 
   return (
     <div>
-      {/* Header with filter */}
       {!compact && (
         <div className="flex items-center gap-3 mb-4">
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#64748b]" />
             <select
               value={filterAction}
-              onChange={(e) =>
-                setFilterAction(e.target.value as ActivityAction | "")
-              }
-              className="appearance-none rounded-md bg-slate-700 border border-slate-600 pl-9 pr-8 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-emerald-500"
+              onChange={(e) => setFilterAction(e.target.value as ActivityAction | "")}
+              className="appearance-none rounded-lg pl-9 pr-8 py-1.5 text-xs text-[#e2e8f0] focus:outline-none transition-all duration-150"
+              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
             >
               <option value="">All actions</option>
               {ACTION_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
+                <option key={t.value} value={t.value}>{t.label}</option>
               ))}
             </select>
           </div>
         </div>
       )}
 
-      {/* Entries */}
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-r-transparent" />
+          <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
         </div>
       ) : entries.length === 0 ? (
         <div className="text-center py-8">
-          <Activity className="h-8 w-8 text-slate-600 mx-auto mb-2" />
-          <p className="text-sm text-slate-500">No activity yet</p>
+          <Activity className="h-8 w-8 text-[#1a1f2e] mx-auto mb-2" />
+          <p className="text-sm text-[#94a3b8]">No activity yet</p>
         </div>
       ) : (
         <div className="space-y-px">
@@ -131,11 +126,11 @@ export default function ActivityFeed({
         </div>
       )}
 
-      {/* "View all" link for compact mode */}
       {compact && entries.length > 0 && (
         <Link
           to="/activity"
-          className="block text-center text-xs text-emerald-400 hover:text-emerald-300 mt-3 py-2 rounded-md hover:bg-slate-700/50 transition-colors"
+          className="block text-center text-xs text-[#00d4aa] hover:text-[#00b894] mt-4 py-2 rounded-lg transition-all duration-150 font-semibold"
+          style={{ background: "rgba(0,212,170,0.04)" }}
         >
           View all activity &rarr;
         </Link>
@@ -153,7 +148,7 @@ function ActivityRow({
 }) {
   const config = ACTION_CONFIG[entry.action] ?? {
     icon: Activity,
-    color: "text-slate-400",
+    color: "#64748b",
     label: entry.action,
   };
   const Icon = config.icon;
@@ -161,34 +156,39 @@ function ActivityRow({
   return (
     <div
       className={`flex items-start gap-3 ${
-        compact ? "py-2" : "py-2.5 px-3 rounded-md hover:bg-slate-800/50"
-      }`}
+        compact ? "py-2.5" : "py-3 px-3 rounded-lg"
+      } transition-colors`}
+      style={!compact ? { background: "transparent" } : {}}
+      onMouseEnter={(e) => { if (!compact) e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
+      onMouseLeave={(e) => { if (!compact) e.currentTarget.style.background = "transparent"; }}
     >
       <div
-        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-800 ${config.color}`}
+        className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+        style={{ background: "#1a1f2e", color: config.color }}
       >
         <Icon className="h-3.5 w-3.5" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-slate-200 leading-snug">
-          <span className="font-medium text-slate-100">{entry.user}</span>{" "}
-          {entry.description}
+        <p className="text-sm text-[#e2e8f0] leading-snug">
+          <span className="font-bold">{entry.user}</span>{" "}
+          <span className="text-[#94a3b8]">{entry.description}</span>
         </p>
         <div className="flex items-center gap-2 mt-0.5">
           {entry.server_name && (
             <>
-              <span className="text-xs text-slate-500">{entry.server_name}</span>
-              <span className="text-slate-700">&middot;</span>
+              <span className="text-xs text-[#64748b]">{entry.server_name}</span>
+              <span className="text-[rgba(255,255,255,0.08)]">&middot;</span>
             </>
           )}
-          <span className="text-xs text-slate-600">
+          <span className="text-xs text-[#64748b]" style={{ fontFamily: "var(--font-mono)" }}>
             {relativeTime(entry.created_at)}
           </span>
         </div>
       </div>
       {!compact && (
         <span
-          className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${config.color} bg-slate-800`}
+          className="shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+          style={{ background: "#1a1f2e", color: config.color }}
         >
           {config.label}
         </span>

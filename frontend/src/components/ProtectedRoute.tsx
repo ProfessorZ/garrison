@@ -11,10 +11,10 @@ export default function ProtectedRoute({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-slate-900">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-r-transparent" />
-          <p className="mt-3 text-sm text-slate-400">Loading...</p>
+      <div className="flex items-center justify-center h-screen" style={{ background: "#0a0e1a" }}>
+        <div className="text-center animate-fade-in">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
+          <p className="mt-4 text-sm text-[#64748b]">Initializing...</p>
         </div>
       </div>
     );

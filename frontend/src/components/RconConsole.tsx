@@ -8,7 +8,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Send, Loader2, RotateCcw } from "lucide-react";
+import { RotateCcw, Loader2 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { commandsApi } from "../api/commands";
 import type { ConsoleLine, GameCommand } from "../types";
@@ -57,7 +57,6 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
   const reconnectTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const autocompleteRef = useRef<HTMLDivElement>(null);
 
-  // Fetch command schema for autocomplete
   const { data: commandSchema } = useQuery({
     queryKey: ["game-commands", gameType],
     queryFn: () => commandsApi.getCommands(gameType),
@@ -66,7 +65,6 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
 
   const allCommands = useMemo(() => commandSchema?.commands ?? [], [commandSchema]);
 
-  // Filter commands based on current input
   const filteredCommands = useMemo(() => {
     const input = command.trim().toLowerCase();
     if (!input) return allCommands;
@@ -77,7 +75,6 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
     );
   }, [command, allCommands]);
 
-  // Group filtered commands by category
   const groupedCommands = useMemo(() => {
     const groups: Record<string, GameCommand[]> = {};
     for (const cmd of filteredCommands) {
@@ -88,7 +85,6 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
     return groups;
   }, [filteredCommands]);
 
-  // Flat list for keyboard navigation
   const flatList = useMemo(() => {
     const result: GameCommand[] = [];
     for (const cat of Object.keys(groupedCommands).sort()) {
@@ -128,23 +124,15 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
     ws.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
-        if (data.command) {
-          addLine("command", data.command);
-        }
-        if (data.output) {
-          addLine("output", data.output);
-        }
-        if (data.error) {
-          addLine("error", data.error);
-        }
+        if (data.command) addLine("command", data.command);
+        if (data.output) addLine("output", data.output);
+        if (data.error) addLine("error", data.error);
       } catch {
         addLine("output", e.data);
       }
     };
 
-    ws.onerror = () => {
-      addLine("error", "WebSocket connection error.");
-    };
+    ws.onerror = () => addLine("error", "WebSocket connection error.");
 
     ws.onclose = () => {
       setConnState("disconnected");
@@ -170,7 +158,6 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
     });
   }, [lines]);
 
-  // Show autocomplete when typing, hide when empty or has a space (already typing args)
   useEffect(() => {
     const input = command.trim();
     if (input && !input.includes(" ") && allCommands.length > 0 && filteredCommands.length > 0) {
@@ -208,9 +195,7 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
     if (showAutocomplete) {
       if (e.key === "Tab" || (e.key === "Enter" && flatList.length > 0)) {
         e.preventDefault();
-        if (flatList[selectedIndex]) {
-          selectCommand(flatList[selectedIndex]);
-        }
+        if (flatList[selectedIndex]) selectCommand(flatList[selectedIndex]);
         return;
       }
       if (e.key === "ArrowDown") {
@@ -228,11 +213,9 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
         setShowAutocomplete(false);
         return;
       }
-      // If Enter is pressed but no autocomplete match, fall through to send
       if (e.key === "Enter") return;
     }
 
-    // History navigation (only when autocomplete is hidden)
     if (e.key === "ArrowUp") {
       e.preventDefault();
       if (commandHistory.length === 0) return;
@@ -252,43 +235,41 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
     }
   };
 
-  // Scroll selected autocomplete item into view
   useEffect(() => {
     if (!showAutocomplete || !autocompleteRef.current) return;
     const items = autocompleteRef.current.querySelectorAll("[data-ac-item]");
     items[selectedIndex]?.scrollIntoView({ block: "nearest" });
   }, [selectedIndex, showAutocomplete]);
 
-  const statusColor: Record<ConnectionState, string> = {
-    connected: "text-emerald-400",
-    connecting: "text-amber-400",
-    disconnected: "text-red-400",
-  };
-
-  const statusBg: Record<ConnectionState, string> = {
-    connected: "bg-emerald-400",
-    connecting: "bg-amber-400",
-    disconnected: "bg-red-400",
-  };
-
   const lineColor: Record<ConsoleLine["type"], string> = {
-    command: "text-emerald-400",
-    output: "text-slate-300",
-    error: "text-red-400",
-    system: "text-amber-400/80",
+    command: "#e2e8f0",
+    output: "#00d4aa",
+    error: "#ff4757",
+    system: "rgba(255,165,2,0.7)",
   };
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden flex flex-col">
+    <div className="rounded-xl overflow-hidden flex flex-col" style={{
+      background: "#111827",
+      border: "1px solid rgba(255,255,255,0.06)",
+    }}>
       {/* Status bar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-slate-700 bg-slate-800/80">
+      <div className="flex items-center justify-between px-4 py-2.5" style={{
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        background: "#111827",
+      }}>
         <div className="flex items-center gap-2 text-xs">
           <span
-            className={`inline-block h-2 w-2 rounded-full ${statusBg[connState]} ${
-              connState === "connecting" ? "animate-pulse" : ""
+            className={`inline-block h-2 w-2 rounded-full ${
+              connState === "connecting" ? "bg-[#ffa502] animate-pulse" :
+              connState === "connected" ? "bg-[#00d4aa] status-online" :
+              "bg-[#ff4757]"
             }`}
           />
-          <span className={`font-medium ${statusColor[connState]}`}>
+          <span className="font-semibold" style={{
+            color: connState === "connected" ? "#00d4aa" :
+                   connState === "connecting" ? "#ffa502" : "#ff4757"
+          }}>
             {connState === "connected" && "Connected"}
             {connState === "connecting" && "Connecting..."}
             {connState === "disconnected" && "Disconnected"}
@@ -297,56 +278,59 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
         {connState === "disconnected" && (
           <button
             onClick={connect}
-            className="inline-flex items-center gap-1.5 rounded-md bg-slate-700 px-3 py-1 text-xs font-medium text-slate-300 hover:bg-slate-600 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium text-[#e2e8f0] transition-all duration-150"
+            style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
           >
             <RotateCcw className="h-3 w-3" />
             Reconnect
           </button>
         )}
         {connState === "connecting" && (
-          <Loader2 className="h-3.5 w-3.5 text-amber-400 animate-spin" />
+          <Loader2 className="h-3.5 w-3.5 text-[#ffa502] animate-spin" />
         )}
       </div>
 
-      {/* Console output */}
+      {/* Console output — TRUE black */}
       <div
         ref={scrollRef}
         onClick={() => inputRef.current?.focus()}
-        className="h-[28rem] overflow-y-auto p-4 font-mono text-sm bg-slate-950 cursor-text"
+        className="h-[28rem] overflow-y-auto p-4 cursor-text"
+        style={{ background: "#000", fontFamily: "var(--font-mono)" }}
       >
         {lines.length === 0 && (
-          <p className="text-slate-600 select-none">
-            Waiting for connection... Type a command below to get started.
+          <p className="text-[#64748b] select-none text-sm">
+            Waiting for connection...
           </p>
         )}
         {lines.map((line) => (
-          <div key={line.id} className="flex gap-2 leading-relaxed">
-            <span className="text-slate-600 select-none shrink-0 text-xs leading-relaxed">
+          <div key={line.id} className="flex gap-2.5 text-sm leading-relaxed">
+            <span className="text-[#64748b] select-none shrink-0 text-xs leading-relaxed tabular-nums">
               {formatTime(line.timestamp)}
             </span>
             {line.type === "command" && (
-              <span className="text-slate-600 select-none">&gt;</span>
+              <span className="text-[#64748b] select-none">&gt;</span>
             )}
-            <span className={`${lineColor[line.type]} whitespace-pre-wrap break-all`}>
+            <span className="whitespace-pre-wrap break-all" style={{ color: lineColor[line.type] }}>
               {line.text}
             </span>
           </div>
         ))}
       </div>
 
-      {/* Command input + autocomplete */}
+      {/* Autocomplete + input */}
       <div className="relative">
-        {/* Autocomplete dropdown */}
         {showAutocomplete && flatList.length > 0 && (
           <div
             ref={autocompleteRef}
-            className="absolute bottom-full left-0 right-0 max-h-64 overflow-y-auto bg-slate-800 border border-slate-600 rounded-t-lg shadow-xl z-10"
+            className="absolute bottom-full left-0 right-0 max-h-64 overflow-y-auto rounded-t-lg shadow-2xl z-10"
+            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", borderBottom: "none" }}
           >
             {Object.keys(groupedCommands)
               .sort()
               .map((category) => (
                 <div key={category}>
-                  <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 bg-slate-800/50 sticky top-0">
+                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#64748b] sticky top-0"
+                    style={{ background: "#111827" }}>
                     {CATEGORY_LABELS[category] || category}
                   </div>
                   {groupedCommands[category].map((cmd) => {
@@ -356,24 +340,20 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
                         key={cmd.name}
                         data-ac-item
                         onClick={() => selectCommand(cmd)}
-                        className={`flex items-center justify-between px-3 py-1.5 cursor-pointer text-sm transition-colors ${
-                          idx === selectedIndex
-                            ? "bg-emerald-500/15 text-emerald-300"
-                            : "text-slate-300 hover:bg-slate-700"
-                        }`}
+                        className="flex items-center justify-between px-3 py-1.5 cursor-pointer text-sm transition-colors"
+                        style={{
+                          background: idx === selectedIndex ? "rgba(0,212,170,0.08)" : "transparent",
+                          color: idx === selectedIndex ? "#00d4aa" : "#e2e8f0",
+                        }}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="font-mono font-medium text-emerald-400 shrink-0">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span style={{ fontFamily: "var(--font-mono)", color: "#00d4aa", fontWeight: 500, flexShrink: 0 }}>
                             {cmd.name}
                           </span>
-                          <span className="text-xs text-slate-500 truncate">
-                            {cmd.description}
-                          </span>
+                          <span className="text-xs text-[#64748b] truncate">{cmd.description}</span>
                         </div>
                         {idx === selectedIndex && (
-                          <span className="text-[10px] text-slate-500 shrink-0 ml-2">
-                            Tab to complete
-                          </span>
+                          <span className="text-[10px] text-[#64748b] shrink-0 ml-2">Tab</span>
                         )}
                       </div>
                     );
@@ -385,9 +365,15 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
 
         <form
           onSubmit={sendCommand}
-          className="flex items-center gap-2 p-3 border-t border-slate-700 bg-slate-800"
+          className="flex items-center gap-3 px-4 py-3"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "#0a0e1a" }}
         >
-          <span className="text-emerald-500 font-mono text-sm select-none">$</span>
+          <span
+            className={`inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
+              connState === "connected" ? "bg-[#00d4aa] status-online" : "bg-[#64748b]"
+            }`}
+          />
+          <span className="text-[#00d4aa] select-none text-sm" style={{ fontFamily: "var(--font-mono)" }}>&gt;</span>
           <input
             ref={inputRef}
             value={command}
@@ -400,16 +386,9 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
             }
             disabled={connState !== "connected"}
             autoComplete="off"
-            className="flex-1 bg-transparent border-none px-1 py-1.5 text-sm font-mono text-slate-100 placeholder-slate-600 focus:outline-none disabled:opacity-50"
+            className="flex-1 bg-transparent border-none px-0 py-1 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none focus:ring-0 focus:border-none disabled:opacity-40"
+            style={{ fontFamily: "var(--font-mono)", boxShadow: "none" }}
           />
-          <button
-            type="submit"
-            disabled={connState !== "connected" || !command.trim()}
-            className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-40 disabled:hover:bg-emerald-600 transition-colors"
-          >
-            <Send className="h-3.5 w-3.5" />
-            Send
-          </button>
         </form>
       </div>
     </div>
