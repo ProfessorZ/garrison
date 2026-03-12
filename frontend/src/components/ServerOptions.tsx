@@ -248,8 +248,8 @@ export default function ServerOptions({ serverId }: Props) {
                         )}
                       </div>
 
-                      {/* Control */}
-                      <div className="flex items-center gap-3 shrink-0">
+                      {/* Control — fixed width for alignment */}
+                      <div className="flex items-center justify-end gap-3 shrink-0 w-52">
                         {opt.type === "boolean" ? (
                           <button
                             onClick={() => setOptionValue(opt.name, displayVal === "true" ? "false" : "true", opt.value)}
