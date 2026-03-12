@@ -6,7 +6,17 @@ import {
   RotateCcw,
   ChevronDown,
   ChevronRight,
-  Info,
+
+  Shield,
+  Gamepad2,
+  MessageSquare,
+  Home,
+  Car,
+  Map,
+  Package,
+  Mic,
+  Settings,
+  Server,
 } from "lucide-react";
 import { serverOptionsApi } from "../api/serverOptions";
 import type { ServerOption } from "../types";
@@ -15,10 +25,20 @@ interface Props {
   serverId: number;
 }
 
-const CATEGORY_ORDER = [
-  "Gameplay", "Server", "Safehouse", "Chat", "Anti-Cheat",
-  "Vehicles", "Map", "Mods", "Voice", "Other",
-];
+const CATEGORY_CONFIG: Record<string, { icon: typeof Shield; accent: string; description: string }> = {
+  "Gameplay": { icon: Gamepad2, accent: "#00d4aa", description: "Core game mechanics and rules" },
+  "Server": { icon: Server, accent: "#818cf8", description: "Server performance and configuration" },
+  "Safehouse": { icon: Home, accent: "#fbbf24", description: "Player safehouse rules" },
+  "Chat": { icon: MessageSquare, accent: "#38bdf8", description: "In-game chat settings" },
+  "Anti-Cheat": { icon: Shield, accent: "#f472b6", description: "Anti-cheat protection levels" },
+  "Vehicles": { icon: Car, accent: "#fb923c", description: "Vehicle spawning and behavior" },
+  "Map": { icon: Map, accent: "#a78bfa", description: "World and map configuration" },
+  "Mods": { icon: Package, accent: "#34d399", description: "Mod management" },
+  "Voice": { icon: Mic, accent: "#f87171", description: "Voice chat settings" },
+  "Other": { icon: Settings, accent: "#94a3b8", description: "Miscellaneous settings" },
+};
+
+const CATEGORY_ORDER = Object.keys(CATEGORY_CONFIG);
 
 export default function ServerOptions({ serverId }: Props) {
   const queryClient = useQueryClient();
@@ -27,7 +47,6 @@ export default function ServerOptions({ serverId }: Props) {
   const [search, setSearch] = useState("");
   const [changes, setChanges] = useState<Record<string, string>>({});
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
-  const [_hoveredOption, setHoveredOption] = useState<string | null>(null);
   const [savingOption, setSavingOption] = useState<string | null>(null);
 
   const { data: options = [], isLoading, error } = useQuery({
@@ -104,141 +123,175 @@ export default function ServerOptions({ serverId }: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-32">
-        <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
+      <div className="flex flex-col items-center justify-center py-20 gap-3">
+        <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
+        <p className="text-sm text-[#64748b]">Loading server options...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-xl p-4" style={{ background: "rgba(255,71,87,0.06)", border: "1px solid rgba(255,71,87,0.12)" }}>
-        <p className="text-sm text-[#ff4757]">Failed to load server options. Make sure the server is online.</p>
+      <div className="rounded-2xl p-6 text-center" style={{ background: "rgba(255,71,87,0.04)", border: "1px solid rgba(255,71,87,0.12)" }}>
+        <p className="text-sm text-[#ff4757] font-semibold">Failed to load server options</p>
+        <p className="text-xs text-[#64748b] mt-1">Make sure the server is online and RCON is accessible.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Search + bulk actions */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#64748b]" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search options..."
-            className="w-full rounded-lg pl-9 pr-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none transition-all duration-150"
-            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
-          />
+    <div className="max-w-4xl space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-lg font-bold text-white">Server Configuration</h3>
+          <p className="text-sm text-[#64748b] mt-1">{options.length} options across {grouped.length} categories</p>
         </div>
         {changedCount > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-[#ffa502] font-bold">{changedCount} unsaved</span>
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2 rounded-full px-3 py-1.5" style={{ background: "rgba(255,165,2,0.08)" }}>
+              <span className="h-2 w-2 rounded-full bg-[#ffa502] animate-pulse" />
+              <span className="text-xs text-[#ffa502] font-bold">{changedCount} unsaved</span>
+            </div>
             <button onClick={() => setChanges({})}
-              className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-[#e2e8f0] transition-all duration-150"
-              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}>
+              className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-[#e2e8f0] transition-all duration-200 hover:bg-[rgba(255,255,255,0.06)]"
+              style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
               <RotateCcw className="h-3 w-3" /> Reset
             </button>
             <button onClick={() => bulkMutation.mutate(changes)} disabled={bulkMutation.isPending}
-              className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-150"
-              style={{ background: "#00d4aa" }}>
+              className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-200 hover:scale-[1.02]"
+              style={{ background: "linear-gradient(135deg, #00d4aa, #00b894)" }}>
               <Save className="h-3 w-3" /> {bulkMutation.isPending ? "Saving..." : "Save All"}
             </button>
           </div>
         )}
       </div>
 
-      {/* Options grouped by category */}
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748b]" />
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search options by name, description, or category..."
+          className="w-full rounded-2xl pl-11 pr-4 py-3.5 text-sm text-[#e2e8f0] placeholder-[#4a5568] focus:outline-none transition-all duration-200"
+          style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+          onFocus={(e) => (e.target.style.borderColor = "rgba(0,212,170,0.3)")}
+          onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.06)")}
+        />
+      </div>
+
+      {/* Categories */}
       {grouped.map(([category, opts]) => {
         const isCollapsed = collapsedCategories.has(category);
         const hasChanges = opts.some((o) => o.name in changes);
+        const config = CATEGORY_CONFIG[category] ?? CATEGORY_CONFIG["Other"];
+        const Icon = config.icon;
 
         return (
-          <div key={category} className="rounded-xl overflow-hidden" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <div key={category} className="rounded-2xl overflow-hidden transition-all duration-200"
+            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+            
+            {/* Category header */}
             <button
               onClick={() => toggleCategory(category)}
-              className="w-full flex items-center justify-between px-5 py-3.5 transition-colors"
-              style={{ background: "transparent" }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              className="w-full flex items-center gap-4 px-6 py-5 transition-colors hover:bg-[rgba(255,255,255,0.02)]"
             >
-              <div className="flex items-center gap-2">
-                {isCollapsed ? <ChevronRight className="h-3.5 w-3.5 text-[#64748b]" /> : <ChevronDown className="h-3.5 w-3.5 text-[#64748b]" />}
-                <span className="text-sm font-bold text-[#e2e8f0]">{category}</span>
-                <span className="text-xs text-[#64748b]">{opts.length} option{opts.length !== 1 ? "s" : ""}</span>
+              <div className="rounded-xl p-2.5" style={{ background: `${config.accent}12` }}>
+                <Icon className="h-4 w-4" style={{ color: config.accent }} />
               </div>
-              {hasChanges && <span className="h-2 w-2 rounded-full bg-[#ffa502]" />}
+              <div className="flex-1 text-left">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-white">{category}</span>
+                  <span className="text-[10px] font-semibold text-[#64748b] uppercase tracking-wider">{opts.length} options</span>
+                  {hasChanges && <span className="h-2 w-2 rounded-full bg-[#ffa502] animate-pulse" />}
+                </div>
+                <p className="text-xs text-[#4a5568] mt-0.5">{config.description}</p>
+              </div>
+              {isCollapsed
+                ? <ChevronRight className="h-4 w-4 text-[#374151]" />
+                : <ChevronDown className="h-4 w-4 text-[#374151]" />
+              }
             </button>
 
+            {/* Options */}
             {!isCollapsed && (
-              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                {opts.map((opt) => {
+              <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                {opts.map((opt, idx) => {
                   const displayVal = getDisplayValue(opt);
                   const isChanged = opt.name in changes;
 
                   return (
                     <div
                       key={opt.name}
-                      className="px-5 py-3 flex items-center gap-4 transition-colors"
+                      className="flex items-center justify-between gap-6 px-6 py-4 transition-colors hover:bg-[rgba(255,255,255,0.015)]"
                       style={{
-                        background: isChanged ? "rgba(255,165,2,0.03)" : "transparent",
-                        borderBottom: "1px solid rgba(255,255,255,0.03)",
+                        background: isChanged ? "rgba(255,165,2,0.02)" : "transparent",
+                        borderBottom: idx < opts.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none",
                       }}
-                      onMouseEnter={() => setHoveredOption(opt.name)}
-                      onMouseLeave={() => setHoveredOption(null)}
                     >
+                      {/* Label + description */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className={`text-sm ${isChanged ? "text-[#ffa502] font-bold" : "text-[#e2e8f0]"}`}>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-medium ${isChanged ? "text-[#ffa502]" : "text-[#e2e8f0]"}`}>
                             {opt.name}
                           </span>
-                          {opt.description && (
-                            <div className="relative group">
-                              <Info className="h-3 w-3 text-[#64748b] cursor-help" />
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block rounded-lg px-3 py-2 text-xs text-[#e2e8f0] whitespace-nowrap z-20 shadow-2xl"
-                                style={{ background: "#0a0e1a", border: "1px solid rgba(255,255,255,0.06)" }}>
-                                {opt.description}
-                              </div>
-                            </div>
+                          {isChanged && (
+                            <span className="text-[9px] font-bold text-[#ffa502] uppercase tracking-widest px-1.5 py-0.5 rounded-full"
+                              style={{ background: "rgba(255,165,2,0.08)" }}>
+                              modified
+                            </span>
                           )}
                         </div>
+                        {opt.description && (
+                          <p className="text-xs text-[#4a5568] mt-0.5 truncate max-w-md">{opt.description}</p>
+                        )}
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      {/* Control */}
+                      <div className="flex items-center gap-3 shrink-0">
                         {opt.type === "boolean" ? (
                           <button
                             onClick={() => setOptionValue(opt.name, displayVal === "true" ? "false" : "true", opt.value)}
-                            className={`toggle-switch ${displayVal === "true" ? "active" : ""}`}
-                          />
+                            className="relative w-12 h-6 rounded-full transition-all duration-300 focus:outline-none"
+                            style={{
+                              background: displayVal === "true"
+                                ? "linear-gradient(135deg, #00d4aa, #00b894)"
+                                : "#1a1f2e",
+                              boxShadow: displayVal === "true" ? "0 0 12px rgba(0,212,170,0.3)" : "none",
+                            }}
+                          >
+                            <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-md transition-all duration-300 ${
+                              displayVal === "true" ? "left-[26px]" : "left-0.5"
+                            }`} />
+                          </button>
                         ) : opt.type === "number" ? (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-0.5 rounded-xl overflow-hidden"
+                            style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
                             <button
                               onClick={() => {
                                 const n = parseFloat(displayVal) || 0;
                                 const step = n % 1 !== 0 ? 0.1 : 1;
-                                const newVal = Math.max(0, n - step);
-                                setOptionValue(opt.name, n % 1 !== 0 ? newVal.toFixed(1) : String(newVal), opt.value);
+                                setOptionValue(opt.name, n % 1 !== 0 ? Math.max(0, n - step).toFixed(1) : String(Math.max(0, n - step)), opt.value);
                               }}
-                              className="rounded-md px-2 py-0.5 text-xs text-[#e2e8f0] transition-all duration-150"
-                              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
-                            >-</button>
+                              className="px-3 py-1.5 text-sm font-bold text-[#94a3b8] hover:text-white hover:bg-[rgba(255,255,255,0.05)] transition-all"
+                              style={{ background: "#0f1420" }}
+                            >−</button>
                             <input
                               type="text"
                               value={displayVal}
                               onChange={(e) => setOptionValue(opt.name, e.target.value, opt.value)}
-                              className="w-20 rounded-md px-2 py-1 text-xs text-center text-[#e2e8f0] focus:outline-none"
-                              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)", fontFamily: "var(--font-mono)" }}
+                              className="w-16 py-1.5 text-sm text-center text-white focus:outline-none tabular-nums"
+                              style={{ background: "#0f1420", fontFamily: "var(--font-mono)" }}
                             />
                             <button
                               onClick={() => {
                                 const n = parseFloat(displayVal) || 0;
                                 const step = n % 1 !== 0 ? 0.1 : 1;
-                                const newVal = n + step;
-                                setOptionValue(opt.name, n % 1 !== 0 ? newVal.toFixed(1) : String(newVal), opt.value);
+                                setOptionValue(opt.name, n % 1 !== 0 ? (n + step).toFixed(1) : String(n + step), opt.value);
                               }}
-                              className="rounded-md px-2 py-0.5 text-xs text-[#e2e8f0] transition-all duration-150"
-                              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                              className="px-3 py-1.5 text-sm font-bold text-[#94a3b8] hover:text-white hover:bg-[rgba(255,255,255,0.05)] transition-all"
+                              style={{ background: "#0f1420" }}
                             >+</button>
                           </div>
                         ) : (
@@ -246,8 +299,14 @@ export default function ServerOptions({ serverId }: Props) {
                             type="text"
                             value={displayVal}
                             onChange={(e) => setOptionValue(opt.name, e.target.value, opt.value)}
-                            className="w-48 rounded-md px-2 py-1 text-xs text-[#e2e8f0] focus:outline-none"
-                            style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)", fontFamily: "var(--font-mono)" }}
+                            className="w-52 rounded-xl px-3 py-2 text-sm text-white focus:outline-none transition-all duration-200"
+                            style={{
+                              background: "#0f1420",
+                              border: "1px solid rgba(255,255,255,0.08)",
+                              fontFamily: "var(--font-mono)",
+                            }}
+                            onFocus={(e) => (e.target.style.borderColor = "rgba(0,212,170,0.3)")}
+                            onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                           />
                         )}
 
@@ -255,10 +314,14 @@ export default function ServerOptions({ serverId }: Props) {
                           <button
                             onClick={() => saveOne(opt.name)}
                             disabled={savingOption === opt.name}
-                            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-150"
+                            className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-200 hover:scale-105"
                             style={{ background: "#00d4aa" }}
                           >
-                            <Save className="h-3 w-3" />
+                            {savingOption === opt.name ? (
+                              <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#0a0e1a] border-r-transparent" />
+                            ) : (
+                              <Save className="h-3 w-3" />
+                            )}
                           </button>
                         )}
                       </div>
@@ -272,9 +335,10 @@ export default function ServerOptions({ serverId }: Props) {
       })}
 
       {grouped.length === 0 && !isLoading && (
-        <div className="text-center py-12 rounded-xl" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="text-center py-16 rounded-2xl" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <Search className="h-6 w-6 text-[#374151] mx-auto mb-3" />
           <p className="text-sm text-[#94a3b8]">
-            {search ? "No options match your search." : "No server options available."}
+            {search ? `No options match "${search}"` : "No server options available."}
           </p>
         </div>
       )}

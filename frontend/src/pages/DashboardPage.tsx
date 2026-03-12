@@ -1,22 +1,25 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import {
   Server,
   Wifi,
+  WifiOff,
   Users,
   Plus,
-  Activity,
   Terminal,
+  ChevronRight,
+  Gamepad2,
+  Clock,
 } from "lucide-react";
 import { serversApi } from "../api/servers";
 import { dashboardApi } from "../api/dashboard";
-import ServerCard from "../components/ServerCard";
 import AddServerModal from "../components/AddServerModal";
 import ActivityFeed from "../components/ActivityFeed";
 import type { ServerStatus } from "../types";
 
 export default function DashboardPage() {
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [showAddModal, setShowAddModal] = useState(false);
 
   const { data: servers = [] } = useQuery({
@@ -49,14 +52,6 @@ export default function DashboardPage() {
     refetchInterval: 30000,
   });
 
-  const deleteServer = useMutation({
-    mutationFn: serversApi.delete,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["servers"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-    },
-  });
-
   const statuses = statusQueries.data ?? {};
   const computedOnline = Object.values(statuses).filter((s) => s?.online).length;
   const computedPlayers = Object.values(statuses).reduce(
@@ -69,109 +64,186 @@ export default function DashboardPage() {
   const totalPlayers = stats?.total_players ?? computedPlayers;
 
   const statCards = [
-    { label: "Total Servers", value: totalServers, icon: Server },
-    { label: "Online", value: onlineServers, icon: Wifi },
-    { label: "Players Online", value: totalPlayers, icon: Users },
-    { label: "Commands Today", value: "—", icon: Terminal },
+    { label: "Total Servers", value: totalServers, icon: Server, accent: "#00d4aa" },
+    { label: "Online", value: onlineServers, icon: Wifi, accent: "#00d4aa" },
+    { label: "Players", value: totalPlayers, icon: Users, accent: "#818cf8" },
+    { label: "Commands", value: "—", icon: Terminal, accent: "#fbbf24" },
   ];
 
   return (
-    <div>
+    <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8 animate-fade-in">
+      <div className="flex items-end justify-between mb-10 animate-fade-in">
         <div>
-          <h2 className="text-2xl font-bold text-[#e2e8f0]">Dashboard</h2>
-          <p className="text-sm text-[#64748b] mt-1">
-            Overview of your game servers
-          </p>
+          <h2 className="text-3xl font-extrabold text-white tracking-tight">Dashboard</h2>
+          <p className="text-[#64748b] mt-2">Manage and monitor your game servers</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold text-[#0a0e1a] transition-all duration-150 hover:shadow-[0_0_20px_rgba(0,212,170,0.2)]"
-          style={{ background: "#00d4aa" }}
+          className="inline-flex items-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold text-[#0a0e1a] transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(0,212,170,0.25)] active:scale-[0.98]"
+          style={{ background: "linear-gradient(135deg, #00d4aa, #00b894)" }}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4" strokeWidth={3} />
           Add Server
         </button>
       </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {statCards.map((card, i) => {
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-12">
+        {statCards.map((card) => {
           const Icon = card.icon;
           return (
             <div
               key={card.label}
-              className={`rounded-xl p-5 transition-all duration-150 hover:-translate-y-px animate-fade-in animate-fade-in-delay-${i}`}
+              className="relative overflow-hidden rounded-2xl p-6 transition-all duration-200 hover:-translate-y-0.5 group"
               style={{
-                background: "#111827",
+                background: "linear-gradient(135deg, #111827 0%, #0f1420 100%)",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             >
-              <Icon className="h-4 w-4 text-[#64748b] mb-3" />
-              <p className="text-3xl font-bold gradient-text tabular-nums">
-                {card.value}
-              </p>
-              <p className="text-xs text-[#64748b] mt-1 font-medium">
-                {card.label}
-              </p>
+              {/* Glow accent */}
+              <div className="absolute -top-8 -right-8 h-24 w-24 rounded-full opacity-[0.07] group-hover:opacity-[0.12] transition-opacity duration-300"
+                style={{ background: card.accent }} />
+              
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="rounded-lg p-2" style={{ background: `${card.accent}15` }}>
+                    <Icon className="h-4 w-4" style={{ color: card.accent }} />
+                  </div>
+                  <span className="text-xs font-semibold text-[#64748b] uppercase tracking-wider">{card.label}</span>
+                </div>
+                <p className="text-4xl font-black text-white tabular-nums tracking-tight">
+                  {card.value}
+                </p>
+              </div>
             </div>
           );
         })}
       </div>
 
-      {/* Server list */}
-      <div className="mb-10 animate-fade-in animate-fade-in-delay-2">
-        <div className="flex items-center gap-2 mb-4">
-          <Server className="h-4 w-4 text-[#64748b]" />
-          <h3 className="text-sm font-bold text-[#e2e8f0] uppercase tracking-wider">
-            Servers
-          </h3>
+      {/* Servers */}
+      <div className="mb-12 animate-fade-in">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-bold text-white">Servers</h3>
+          <span className="text-xs text-[#64748b]">{servers.length} configured</span>
         </div>
+
         {servers.length === 0 ? (
-          <div className="text-center py-20 rounded-xl" style={{
-            background: "#111827",
-            border: "1px solid rgba(255,255,255,0.06)",
-          }}>
-            <Server className="h-10 w-10 text-[#1a1f2e] mx-auto mb-3" />
-            <p className="text-[#94a3b8] text-sm mb-4">
-              No servers configured yet
-            </p>
+          <div className="text-center py-24 rounded-2xl"
+            style={{ background: "#111827", border: "1px dashed rgba(255,255,255,0.08)" }}>
+            <div className="rounded-2xl p-4 inline-block mb-4" style={{ background: "rgba(0,212,170,0.06)" }}>
+              <Server className="h-8 w-8 text-[#00d4aa]" />
+            </div>
+            <p className="text-[#94a3b8] mb-6">No servers configured yet</p>
             <button
               onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold text-[#0a0e1a] transition-all duration-150"
-              style={{ background: "#00d4aa" }}
+              className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-[#0a0e1a] transition-all duration-200 hover:scale-[1.02]"
+              style={{ background: "linear-gradient(135deg, #00d4aa, #00b894)" }}
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="h-4 w-4" />
               Add your first server
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {servers.map((s) => (
-              <ServerCard
-                key={s.id}
-                server={s}
-                status={statusQueries.data?.[s.id]}
-                onDelete={(id) => deleteServer.mutate(id)}
-              />
-            ))}
+          <div className="space-y-3">
+            {servers.map((s) => {
+              const status = statuses[s.id];
+              const isOnline = status?.online ?? false;
+              const isLoading = status === undefined;
+
+              return (
+                <div
+                  key={s.id}
+                  onClick={() => navigate(`/server/${s.id}`)}
+                  className="group relative overflow-hidden rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
+                  style={{
+                    background: "linear-gradient(135deg, #111827 0%, #0f1420 100%)",
+                    border: `1px solid ${isOnline ? "rgba(0,212,170,0.15)" : "rgba(255,255,255,0.06)"}`,
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = isOnline ? "rgba(0,212,170,0.3)" : "rgba(255,255,255,0.12)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = isOnline ? "rgba(0,212,170,0.15)" : "rgba(255,255,255,0.06)")}
+                >
+                  {/* Online glow */}
+                  {isOnline && (
+                    <div className="absolute top-0 left-0 h-full w-1 rounded-l-2xl" style={{ background: "#00d4aa" }} />
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-5 min-w-0">
+                      {/* Status indicator */}
+                      <div className={`relative flex items-center justify-center h-12 w-12 rounded-xl shrink-0 ${
+                        isOnline ? "bg-[rgba(0,212,170,0.08)]" : "bg-[rgba(255,71,87,0.06)]"
+                      }`}>
+                        {isLoading ? (
+                          <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#64748b] border-t-transparent" />
+                        ) : isOnline ? (
+                          <Wifi className="h-5 w-5 text-[#00d4aa]" />
+                        ) : (
+                          <WifiOff className="h-5 w-5 text-[#ff4757]" />
+                        )}
+                      </div>
+
+                      {/* Server info */}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-3 mb-1.5">
+                          <h4 className="text-base font-bold text-white group-hover:text-[#00d4aa] transition-colors truncate">
+                            {s.name}
+                          </h4>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
+                            isOnline
+                              ? "text-[#00d4aa] bg-[rgba(0,212,170,0.1)]"
+                              : "text-[#ff4757] bg-[rgba(255,71,87,0.08)]"
+                          }`}>
+                            {isLoading ? "checking" : isOnline ? "online" : "offline"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-[#64748b]">
+                          <span className="font-mono text-[#94a3b8]">{s.host}:{s.port}</span>
+                          <span className="inline-flex items-center gap-1">
+                            <Gamepad2 className="h-3 w-3" />
+                            {s.game_type}
+                          </span>
+                          {s.last_checked && (
+                            <span className="inline-flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {new Date(s.last_checked).toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right side */}
+                    <div className="flex items-center gap-6 shrink-0">
+                      {isOnline && status?.player_count != null && (
+                        <div className="text-right">
+                          <p className="text-2xl font-black text-white tabular-nums">{status.player_count}</p>
+                          <p className="text-[10px] text-[#64748b] uppercase tracking-wider font-semibold">players</p>
+                        </div>
+                      )}
+                      <ChevronRight className="h-5 w-5 text-[#374151] group-hover:text-[#00d4aa] transition-colors" />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Recent activity */}
-      <div className="animate-fade-in animate-fade-in-delay-3">
-        <div className="flex items-center gap-2 mb-4">
-          <Activity className="h-4 w-4 text-[#64748b]" />
-          <h3 className="text-sm font-bold text-[#e2e8f0] uppercase tracking-wider">
-            Recent Activity
-          </h3>
+      {/* Activity */}
+      <div className="animate-fade-in">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-bold text-white">Recent Activity</h3>
+          <button
+            onClick={() => navigate("/activity")}
+            className="text-xs text-[#00d4aa] hover:text-[#00b894] font-semibold transition-colors"
+          >
+            View all →
+          </button>
         </div>
-        <div className="rounded-xl p-5" style={{
-          background: "#111827",
-          border: "1px solid rgba(255,255,255,0.06)",
-        }}>
+        <div className="rounded-2xl p-6"
+          style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
           <ActivityFeed compact limit={10} />
         </div>
       </div>

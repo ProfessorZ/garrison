@@ -15,6 +15,9 @@ export interface Server {
   port: number;
   rcon_port: number;
   game_type: string;
+  last_status?: string | null;
+  last_checked?: string | null;
+  player_count?: number | null;
 }
 
 export interface ServerStatus {
