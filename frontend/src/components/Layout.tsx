@@ -15,6 +15,7 @@ import {
   Bell,
   List,
   Zap,
+  Puzzle,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { serversApi } from "../api/servers";
@@ -49,6 +50,7 @@ export default function Layout() {
         ? [
             { path: "/triggers", label: "Triggers", icon: Zap },
             { path: "/discord", label: "Discord", icon: Bell },
+            { path: "/plugins", label: "Plugins", icon: Puzzle },
             { path: "/users", label: "Users", icon: Users },
           ]
         : []),
