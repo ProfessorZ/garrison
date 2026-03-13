@@ -56,6 +56,16 @@ class GamePlugin(ABC):
 
     PLUGIN_API_VERSION = 1
 
+    # Set to True in plugins that use a custom protocol (not Source RCON).
+    # When True, the bridge will call connect_custom / send_command_custom
+    # instead of the shared RCON manager.
+    custom_connection: bool = False
+
+    # Set to True in plugins that use a custom protocol (not Source RCON).
+    # When True, the bridge will call connect_custom / send_command_custom
+    # instead of the shared RCON manager.
+    custom_connection: bool = False
+
     @property
     @abstractmethod
     def game_type(self) -> str: ...
@@ -92,4 +102,18 @@ class GamePlugin(ABC):
         raise NotImplementedError
 
     async def unban_player(self, send_command, name: str) -> str:
+        raise NotImplementedError
+
+    # ── Custom connection hooks (for non-Source-RCON protocols) ────
+
+    async def connect_custom(self, host: str, port: int, password: str) -> None:
+        """Override to establish a custom protocol connection."""
+        raise NotImplementedError
+
+    async def disconnect_custom(self) -> None:
+        """Override to close a custom protocol connection."""
+        raise NotImplementedError
+
+    async def send_command_custom(self, command: str) -> str:
+        """Override to send a command via custom protocol."""
         raise NotImplementedError

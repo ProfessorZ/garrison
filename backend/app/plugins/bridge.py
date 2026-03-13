@@ -29,8 +29,19 @@ class ConnectedPlugin:
         self.plugin = plugin
         self.server_id = server_id
 
+    @property
+    def _uses_custom(self) -> bool:
+        return getattr(self.plugin, "custom_connection", False)
+
     async def send_command(self, command: str) -> str:
-        """Send a command through the RCON manager, applying plugin formatting."""
+        """Send a command, routing through the plugin's custom protocol or
+        the shared RCON manager depending on the plugin type."""
+        if self._uses_custom:
+            try:
+                return await self.plugin.send_command_custom(command)
+            except Exception as e:
+                logger.error("Custom command failed: %s", e)
+                return f"Error: {e}"
         formatted = self.plugin.format_command(command)
         try:
             return await rcon_manager.send_command(self.server_id, formatted)
@@ -40,7 +51,9 @@ class ConnectedPlugin:
 
     async def get_players(self) -> list[dict]:
         """Get players list as dicts (backward-compatible with old API)."""
-        raw = await self.send_command("players" if self.plugin.game_type != "factorio" else "/players online")
+        _player_commands = {"factorio": "/players online", "hll": "GetPlayerIds"}
+        cmd = _player_commands.get(self.plugin.game_type, "players")
+        raw = await self.send_command(cmd)
         players = await self.plugin.parse_players(raw)
         return [{"name": p.name, **({"steam_id": p.steam_id} if p.steam_id else {})} for p in players]
 
@@ -68,10 +81,16 @@ class ConnectedPlugin:
 
     async def connect(self, host: str, port: int, password: str, *, server_id: int = 0) -> None:
         self.server_id = server_id
-        await rcon_manager.connect(server_id, host, port, password)
+        if self._uses_custom:
+            await self.plugin.connect_custom(host, port, password)
+        else:
+            await rcon_manager.connect(server_id, host, port, password)
 
     async def disconnect(self) -> None:
-        await rcon_manager.disconnect(self.server_id)
+        if self._uses_custom:
+            await self.plugin.disconnect_custom()
+        else:
+            await rcon_manager.disconnect(self.server_id)
 
     def get_commands(self, version: str | None = None):
         """Return commands via legacy schema registry (for backward compat)."""
