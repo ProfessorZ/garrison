@@ -16,6 +16,7 @@ import DiscordPage from "./pages/DiscordPage";
 import BanListsPage from "./pages/BanListsPage";
 import BanListDetailPage from "./pages/BanListDetailPage";
 import TriggersPage from "./pages/TriggersPage";
+import PluginsPage from "./pages/PluginsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,6 +53,7 @@ export default function App() {
               <Route path="scheduler" element={<SchedulerPage />} />
               <Route path="activity" element={<ActivityPage />} />
               <Route path="discord" element={<DiscordPage />} />
+              <Route path="plugins" element={<PluginsPage />} />
               <Route path="users" element={<UsersPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,8 +1,12 @@
+import io
 import json
 import shutil
 import subprocess
 import tempfile
+import zipfile
 from pathlib import Path
+
+MAX_ZIP_SIZE = 50 * 1024 * 1024  # 50MB
 
 
 class PluginInstaller:
@@ -43,6 +47,71 @@ class PluginInstaller:
                     shutil.copytree(item, dest / item.name)
 
             return manifest
+
+    def install_from_zip(self, zip_content: bytes) -> dict:
+        """Install a plugin from a ZIP file upload."""
+        if len(zip_content) > MAX_ZIP_SIZE:
+            raise ValueError(
+                f"ZIP file exceeds maximum size of "
+                f"{MAX_ZIP_SIZE // (1024 * 1024)}MB"
+            )
+
+        try:
+            zf = zipfile.ZipFile(io.BytesIO(zip_content))
+        except zipfile.BadZipFile:
+            raise ValueError("Uploaded file is not a valid ZIP archive")
+
+        with zf:
+            names = zf.namelist()
+
+            # Check if files are nested in a single subdirectory
+            prefix = ""
+            if names and all(
+                n.startswith(names[0].split("/")[0] + "/")
+                for n in names
+                if n
+            ):
+                prefix = names[0].split("/")[0] + "/"
+
+            manifest_name = prefix + "manifest.json"
+            plugin_name = prefix + "plugin.py"
+
+            if manifest_name not in names:
+                raise ValueError(
+                    "ZIP must contain manifest.json at the root level"
+                )
+            if plugin_name not in names:
+                raise ValueError(
+                    "ZIP must contain plugin.py at the root level"
+                )
+
+            manifest = json.loads(zf.read(manifest_name))
+            plugin_id = manifest.get("id")
+            if not plugin_id:
+                raise ValueError(
+                    "manifest.json must contain an 'id' field"
+                )
+
+            with tempfile.TemporaryDirectory() as tmpdir:
+                zf.extractall(tmpdir)
+
+                source = (
+                    Path(tmpdir) / prefix if prefix else Path(tmpdir)
+                )
+                dest = self.plugins_dir / f"garrison-plugin-{plugin_id}"
+                if dest.exists():
+                    shutil.rmtree(dest)
+
+                dest.mkdir(parents=True)
+                for item in source.iterdir():
+                    if item.name.startswith("."):
+                        continue
+                    if item.is_file():
+                        shutil.copy2(item, dest)
+                    elif item.is_dir():
+                        shutil.copytree(item, dest / item.name)
+
+        return manifest
 
     def uninstall(self, plugin_id: str) -> bool:
         """Remove an installed plugin."""
