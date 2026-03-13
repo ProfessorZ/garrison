@@ -25,4 +25,14 @@ export const authApi = {
     const res = await client.delete<User>("/auth/discord-link");
     return res.data;
   },
+
+  getDiscordOAuthEnabled: async (): Promise<{ enabled: boolean }> => {
+    const res = await client.get<{ enabled: boolean }>("/auth/discord/enabled");
+    return res.data;
+  },
+
+  getDiscordAuthorizeUrl: async (): Promise<{ url: string }> => {
+    const res = await client.get<{ url: string }>("/auth/discord/authorize");
+    return res.data;
+  },
 };

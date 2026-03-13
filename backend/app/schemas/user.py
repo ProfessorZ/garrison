@@ -15,6 +15,8 @@ class UserOut(BaseModel):
     is_admin: bool
     role: str = "VIEWER"
     discord_id: Optional[str] = None
+    discord_username: Optional[str] = None
+    discord_avatar: Optional[str] = None
     created_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}

@@ -14,6 +14,11 @@ class Settings(BaseSettings):
     DISCORD_GUILD_ID: str = ""
     DISCORD_WEBHOOK_URL: str = ""
 
+    # Discord OAuth2 (optional — enables "Link with Discord" button)
+    DISCORD_CLIENT_ID: str = ""
+    DISCORD_CLIENT_SECRET: str = ""
+    DISCORD_REDIRECT_URI: str = "http://localhost/api/auth/discord/callback"
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 

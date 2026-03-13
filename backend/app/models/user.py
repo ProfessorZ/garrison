@@ -29,4 +29,6 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     role = Column(String(20), nullable=False, default=UserRole.VIEWER.value)
     discord_id = Column(String(30), unique=True, nullable=True, index=True)
+    discord_username = Column(String(100), nullable=True)
+    discord_avatar = Column(String(100), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

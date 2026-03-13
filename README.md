@@ -236,11 +236,33 @@ To find your Guild ID: Enable Developer Mode in Discord (Settings > Advanced), r
 
 #### Account Linking
 
-The bot uses **Garrison roles** for permissions instead of Discord roles. Users must link their Discord account in Garrison:
+The bot uses **Garrison roles** for permissions instead of Discord roles. Users must link their Discord account in Garrison.
+
+**Method 1: OAuth2 (Recommended)**
+
+Set up OAuth2 so users can link with one click:
+
+1. In the [Discord Developer Portal](https://discord.com/developers/applications), open your Garrison application
+2. Go to **OAuth2 > General**
+3. Add a redirect URI: `http://your-domain/api/auth/discord/callback`
+4. Copy the **Client ID** and **Client Secret**
+5. Add to your `.env`:
+   ```
+   DISCORD_CLIENT_ID=your_client_id
+   DISCORD_CLIENT_SECRET=your_client_secret
+   DISCORD_REDIRECT_URI=http://your-domain/api/auth/discord/callback
+   ```
+6. Users click **"Link with Discord"** in Garrison settings — no manual ID copying needed
+
+**Method 2: Manual ID (Fallback)**
+
+If OAuth2 is not configured, users can link manually:
 
 1. In Garrison, go to **Discord** page
 2. Enter your Discord User ID (Enable Developer Mode, right-click your name, Copy User ID)
 3. Click **Link**
+
+Both methods are available when OAuth2 is configured. If `DISCORD_CLIENT_ID` is not set, only manual linking is shown.
 
 Once linked, your Garrison role (OWNER, ADMIN, MODERATOR, VIEWER) determines which bot commands you can use.
 
