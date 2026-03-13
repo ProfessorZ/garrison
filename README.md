@@ -80,6 +80,7 @@ make up
 ## Plugin System
 
 Garrison uses a modular plugin architecture. Each game is an external plugin with its own directory.
+https://github.com/search?q=owner%3AProfessorZ++garrison-plugin&type=repositories
 
 ### Plugin Directory
 
