@@ -178,6 +178,13 @@ async def poll_all_servers():
                             await notify_server_offline(server.id, server.name, server.game_type)
                     except Exception:
                         pass
+                    # Fire trigger events for status transitions
+                    try:
+                        from app.services.trigger_engine import fire_event
+                        event = "server_online" if new_status else "server_offline"
+                        await fire_event(event, server.id, {"server": server})
+                    except Exception:
+                        pass
             except Exception as e:
                 logger.warning("Status poll failed for server %s (%s): %s", server.id, server.name, e)
                 if previous_status is True:
@@ -187,6 +194,11 @@ async def poll_all_servers():
                         pass
                     try:
                         await notify_server_error(server.id, server.name, server.game_type, str(e))
+                    except Exception:
+                        pass
+                    try:
+                        from app.services.trigger_engine import fire_event
+                        await fire_event("server_offline", server.id, {"server": server})
                     except Exception:
                         pass
                 server.last_status = False

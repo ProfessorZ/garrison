@@ -13,6 +13,9 @@ import UsersPage from "./pages/UsersPage";
 import PlayersPage from "./pages/PlayersPage";
 import PlayerProfilePage from "./pages/PlayerProfilePage";
 import DiscordPage from "./pages/DiscordPage";
+import BanListsPage from "./pages/BanListsPage";
+import BanListDetailPage from "./pages/BanListDetailPage";
+import TriggersPage from "./pages/TriggersPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,6 +46,9 @@ export default function App() {
               <Route path="server/:id" element={<ServerDetailPage />} />
               <Route path="players" element={<PlayersPage />} />
               <Route path="players/:playerId" element={<PlayerProfilePage />} />
+              <Route path="ban-lists" element={<BanListsPage />} />
+              <Route path="ban-lists/:id" element={<BanListDetailPage />} />
+              <Route path="triggers" element={<TriggersPage />} />
               <Route path="scheduler" element={<SchedulerPage />} />
               <Route path="activity" element={<ActivityPage />} />
               <Route path="discord" element={<DiscordPage />} />

@@ -70,6 +70,31 @@ async def _ensure_known_player(db: AsyncSession, name: str, now: datetime) -> Kn
     return player
 
 
+async def _check_ban_list_enforcement(db: AsyncSession, name: str, server_id: int, server: Server) -> None:
+    """Check if player is on an auto-enforced ban list and kick/ban them if so."""
+    from app.services.ban_list_service import ban_list_service
+    try:
+        entry = await ban_list_service.check_player(db, name, server_id)
+        if entry:
+            logger.info("Ban list enforcement: %s is on ban list, kicking from server %s", name, server_id)
+            plugin = get_plugin(server.game_type)
+            password = decrypt_rcon_password(server.rcon_password_encrypted)
+            try:
+                await plugin.connect(server.host, server.rcon_port, password, server_id=server_id)
+                await plugin.ban_player(
+                    lambda cmd: None,
+                    name,
+                    entry.reason or "Banned via ban list",
+                )
+            finally:
+                try:
+                    await plugin.disconnect()
+                except Exception:
+                    pass
+    except Exception as e:
+        logger.warning("Ban list check failed for %s on server %s: %s", name, server_id, e)
+
+
 async def _handle_player_join(db: AsyncSession, name: str, server_id: int, now: datetime) -> None:
     """Player detected online — create/update KnownPlayer, open session."""
     player = await _ensure_known_player(db, name, now)
@@ -130,6 +155,7 @@ async def poll_players() -> None:
 
                 for name in joined:
                     await _handle_player_join(db, name, server.id, now)
+                    await _check_ban_list_enforcement(db, name, server.id, server)
 
                 for name in left:
                     await _handle_player_leave(db, name, server.id, now)
@@ -137,15 +163,34 @@ async def poll_players() -> None:
                 # Send Discord webhook notifications for joins/leaves
                 if joined or left:
                     from app.services.discord_webhooks import notify_player_join, notify_player_leave
+                    from app.services.trigger_engine import fire_event
                     player_count = len(current_names)
                     for name in joined:
                         try:
                             await notify_player_join(server.id, server.name, server.game_type, name, player_count)
                         except Exception:
                             pass
+                        try:
+                            await fire_event("player_join", server.id, {"player_name": name, "server": server, "player_count": player_count})
+                        except Exception:
+                            pass
+                        # Check player_count_above threshold on join
+                        try:
+                            await fire_event("player_count_above", server.id, {"player_count": player_count, "server": server})
+                        except Exception:
+                            pass
                     for name in left:
                         try:
                             await notify_player_leave(server.id, server.name, server.game_type, name, player_count)
+                        except Exception:
+                            pass
+                        try:
+                            await fire_event("player_leave", server.id, {"player_name": name, "server": server, "player_count": player_count})
+                        except Exception:
+                            pass
+                        # Check player_count_below threshold on leave
+                        try:
+                            await fire_event("player_count_below", server.id, {"player_count": player_count, "server": server})
                         except Exception:
                             pass
 

@@ -16,3 +16,4 @@ croniter>=2.0,<3
 
 discord.py>=2.3,<3
 aiohttp>=3.9,<4
+python-multipart>=0.0.6

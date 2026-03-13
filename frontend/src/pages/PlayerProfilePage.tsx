@@ -8,7 +8,7 @@ import {
   Ban,
   FileText,
   Wifi,
-
+  List,
   ChevronLeft,
   ChevronRight,
   Server,
@@ -16,8 +16,10 @@ import {
   Hash,
   AlertTriangle,
   History,
+  X,
 } from "lucide-react";
 import { knownPlayersApi } from "../api/knownPlayers";
+import { banListsApi } from "../api/banLists";
 
 function formatPlaytime(seconds: number): string {
   if (seconds < 60) return "<1m";
@@ -90,6 +92,8 @@ export default function PlayerProfilePage() {
   const [notesSaved, setNotesSaved] = useState(false);
   const [banReason, setBanReason] = useState("");
   const [showBanForm, setShowBanForm] = useState(false);
+  const [showBanListModal, setShowBanListModal] = useState(false);
+  const [selectedBanListId, setSelectedBanListId] = useState<number | "">("");
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["player-profile", id],
@@ -138,6 +142,24 @@ export default function PlayerProfilePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["player-profile", id] });
       queryClient.invalidateQueries({ queryKey: ["player-bans", id] });
+    },
+  });
+
+  const { data: banLists = [] } = useQuery({
+    queryKey: ["ban-lists"],
+    queryFn: banListsApi.list,
+  });
+
+  const addToBanListMutation = useMutation({
+    mutationFn: () =>
+      banListsApi.addEntry(Number(selectedBanListId), {
+        player_name: profile?.player?.name ?? "",
+        player_id: id,
+        reason: "Added from player profile",
+      }),
+    onSuccess: () => {
+      setShowBanListModal(false);
+      setSelectedBanListId("");
     },
   });
 
@@ -461,6 +483,58 @@ export default function PlayerProfilePage() {
         )}
 
         {tab === "bans" && (
+          <div>
+            {/* Add to ban list button */}
+            <div className="flex justify-end mb-3">
+              <button
+                onClick={() => setShowBanListModal(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-[#e2e8f0] transition-all duration-150"
+                style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+              >
+                <List className="h-3.5 w-3.5" />
+                Add to Ban List
+              </button>
+            </div>
+
+            {/* Ban list modal */}
+            {showBanListModal && (
+              <div
+                className="rounded-xl p-4 mb-4"
+                style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-bold text-[#e2e8f0]">Add to Ban List</h4>
+                  <button onClick={() => setShowBanListModal(false)} className="text-[#64748b] hover:text-[#e2e8f0]">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="flex items-center gap-3">
+                  <select
+                    value={selectedBanListId}
+                    onChange={(e) => setSelectedBanListId(e.target.value ? Number(e.target.value) : "")}
+                    className="flex-1 rounded-lg px-3 py-2 text-sm text-[#e2e8f0] focus:outline-none"
+                    style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                  >
+                    <option value="">Select a ban list...</option>
+                    {banLists.map((bl) => (
+                      <option key={bl.id} value={bl.id}>{bl.name}{bl.is_global ? " (Global)" : ""}</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => addToBanListMutation.mutate()}
+                    disabled={!selectedBanListId || addToBanListMutation.isPending}
+                    className="rounded-lg px-4 py-2 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 shrink-0"
+                    style={{ background: "#00d4aa" }}
+                  >
+                    {addToBanListMutation.isPending ? "Adding..." : "Add"}
+                  </button>
+                </div>
+                {addToBanListMutation.isSuccess && (
+                  <p className="text-xs text-[#00d4aa] mt-2">Added to ban list</p>
+                )}
+              </div>
+            )}
+
           <div
             className="rounded-xl overflow-hidden"
             style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
@@ -522,6 +596,7 @@ export default function PlayerProfilePage() {
                 ))}
               </div>
             )}
+          </div>
           </div>
         )}
 

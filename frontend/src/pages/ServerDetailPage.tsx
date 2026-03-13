@@ -13,6 +13,7 @@ import {
   Clock,
   SlidersHorizontal,
   Bell,
+  Zap,
 } from "lucide-react";
 import { serversApi } from "../api/servers";
 import { useAuth } from "../contexts/AuthContext";
@@ -24,8 +25,9 @@ import ServerPermissions from "../components/ServerPermissions";
 import ScheduleManager from "../components/ScheduleManager";
 import ServerOptions from "../components/ServerOptions";
 import DiscordSettings from "../components/DiscordSettings";
+import TriggerManager from "../components/TriggerManager";
 
-type Tab = "console" | "players" | "chat" | "schedules" | "options" | "activity" | "discord" | "settings" | "permissions";
+type Tab = "console" | "players" | "chat" | "schedules" | "options" | "activity" | "triggers" | "discord" | "settings" | "permissions";
 
 export default function ServerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -67,6 +69,7 @@ export default function ServerDetailPage() {
     { key: "schedules", label: "Schedules", icon: Clock },
     { key: "options", label: "Options", icon: SlidersHorizontal },
     { key: "activity", label: "Activity", icon: Activity },
+    { key: "triggers", label: "Triggers", icon: Zap, adminOnly: true },
     { key: "discord", label: "Discord", icon: Bell, adminOnly: true },
     { key: "settings", label: "Settings", icon: Settings, adminOnly: true },
     { key: "permissions", label: "Access", icon: Shield, adminOnly: true },
@@ -188,6 +191,11 @@ export default function ServerDetailPage() {
         {tab === "activity" && (
           <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
             <ActivityFeed serverId={serverId} limit={25} />
+          </div>
+        )}
+        {tab === "triggers" && isAdmin && (
+          <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <TriggerManager serverId={serverId} />
           </div>
         )}
         {tab === "discord" && isAdmin && (

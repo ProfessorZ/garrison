@@ -13,6 +13,8 @@ import {
   Users,
   Database,
   Bell,
+  List,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { serversApi } from "../api/servers";
@@ -40,10 +42,12 @@ export default function Layout() {
     () => [
       { path: "/", label: "Dashboard", icon: LayoutDashboard },
       { path: "/players", label: "Players", icon: Database },
+      { path: "/ban-lists", label: "Ban Lists", icon: List },
       { path: "/activity", label: "Activity", icon: Activity },
       { path: "/scheduler", label: "Scheduler", icon: Clock },
       ...(isAdmin
         ? [
+            { path: "/triggers", label: "Triggers", icon: Zap },
             { path: "/discord", label: "Discord", icon: Bell },
             { path: "/users", label: "Users", icon: Users },
           ]

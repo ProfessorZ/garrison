@@ -281,3 +281,88 @@ export interface GameCommandSchema {
   schema_version: string;
   commands: GameCommand[];
 }
+
+// Ban Lists
+export interface BanList {
+  id: number;
+  name: string;
+  description?: string;
+  is_global: boolean;
+  created_by_user_id?: number;
+  created_by_username?: string;
+  entry_count: number;
+  server_count: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface BanListDetail extends BanList {
+  servers: ServerBanList[];
+}
+
+export interface BanListEntry {
+  id: number;
+  ban_list_id: number;
+  player_id?: number;
+  player_name: string;
+  reason?: string;
+  added_by_user_id?: number;
+  added_by_username?: string;
+  expires_at?: string;
+  is_active: boolean;
+  added_at?: string;
+  updated_at?: string;
+}
+
+export interface BanListEntryList {
+  items: BanListEntry[];
+  total: number;
+  page: number;
+  per_page: number;
+  pages: number;
+}
+
+export interface ServerBanList {
+  server_id: number;
+  server_name?: string;
+  ban_list_id: number;
+  auto_enforce: boolean;
+  added_at?: string;
+}
+
+// Triggers
+export type TriggerEventType =
+  | "player_join"
+  | "player_leave"
+  | "player_count_above"
+  | "player_count_below"
+  | "server_online"
+  | "server_offline"
+  | "chat_message";
+
+export type TriggerActionType =
+  | "rcon_command"
+  | "discord_webhook"
+  | "kick_player"
+  | "ban_player";
+
+export interface Trigger {
+  id: number;
+  server_id?: number | null;
+  server_name?: string | null;
+  name: string;
+  description?: string | null;
+  is_active: boolean;
+  event_type: TriggerEventType;
+  event_config?: Record<string, unknown> | null;
+  action_type: TriggerActionType;
+  action_config?: Record<string, unknown> | null;
+  condition?: Record<string, unknown> | null;
+  cooldown_seconds: number;
+  last_fired_at?: string | null;
+  fire_count: number;
+  created_by_user_id?: number | null;
+  created_by_username?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}

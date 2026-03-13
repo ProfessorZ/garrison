@@ -76,6 +76,16 @@ async def poll_server_chat(server_id: int):
                 timestamp=datetime.now(timezone.utc),
             )
             db.add(chat_msg)
+            # Fire chat_message trigger
+            try:
+                from app.services.trigger_engine import fire_event
+                await fire_event("chat_message", server_id, {
+                    "player_name": player,
+                    "message": text,
+                    "server": server,
+                })
+            except Exception:
+                pass
         await db.commit()
 
 
