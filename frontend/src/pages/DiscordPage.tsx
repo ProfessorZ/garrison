@@ -1,5 +1,6 @@
 import DiscordSettings from "../components/DiscordSettings";
 import DiscordBotStatus from "../components/DiscordBotStatus";
+import DiscordLinkCard from "../components/DiscordLinkCard";
 
 export default function DiscordPage() {
   return (
@@ -10,7 +11,8 @@ export default function DiscordPage() {
         <div className="lg:col-span-2">
           <DiscordSettings />
         </div>
-        <div>
+        <div className="space-y-6">
+          <DiscordLinkCard />
           <DiscordBotStatus />
         </div>
       </div>

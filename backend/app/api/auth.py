@@ -7,7 +7,7 @@ from app.auth.security import hash_password, verify_password, create_access_toke
 from app.database import get_db
 from app.models.user import User, UserRole
 from app.models.activity_log import ActionType
-from app.schemas.user import UserCreate, UserOut, Token
+from app.schemas.user import UserCreate, UserOut, Token, DiscordLinkRequest
 from app.api.activity import log_activity
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -46,4 +46,36 @@ async def login(data: UserCreate, db: AsyncSession = Depends(get_db)):
 
 @router.get("/me", response_model=UserOut)
 async def me(user: User = Depends(get_current_user)):
+    return user
+
+
+@router.put("/discord-link", response_model=UserOut)
+async def link_discord(
+    data: DiscordLinkRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    discord_id = data.discord_id.strip()
+    if not discord_id.isdigit() or len(discord_id) < 17 or len(discord_id) > 20:
+        raise HTTPException(status_code=400, detail="Invalid Discord ID — must be a 17-20 digit snowflake")
+    # Check if already taken by another user
+    existing = await db.execute(select(User).where(User.discord_id == discord_id, User.id != user.id))
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="This Discord ID is already linked to another account")
+    user.discord_id = discord_id
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+@router.delete("/discord-link", response_model=UserOut)
+async def unlink_discord(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    user.discord_id = None
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
     return user

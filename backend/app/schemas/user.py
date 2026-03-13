@@ -14,9 +14,14 @@ class UserOut(BaseModel):
     username: str
     is_admin: bool
     role: str = "VIEWER"
+    discord_id: Optional[str] = None
     created_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+
+class DiscordLinkRequest(BaseModel):
+    discord_id: str
 
 
 class Token(BaseModel):

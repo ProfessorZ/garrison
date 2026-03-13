@@ -5,6 +5,7 @@ export interface User {
   username: string;
   is_admin: boolean;
   role: UserRole;
+  discord_id?: string | null;
   created_at?: string;
 }
 

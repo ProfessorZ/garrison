@@ -133,12 +133,10 @@ async def lifespan(app: FastAPI):
     # Start Discord bot if configured
     if settings.DISCORD_BOT_TOKEN and settings.DISCORD_GUILD_ID:
         from app.services.discord_bot import start_bot
-        admin_role_id = int(settings.DISCORD_ADMIN_ROLE_ID) if settings.DISCORD_ADMIN_ROLE_ID else None
         try:
             await start_bot(
                 token=settings.DISCORD_BOT_TOKEN,
                 guild_id=int(settings.DISCORD_GUILD_ID),
-                admin_role_id=admin_role_id,
             )
             logger.info("Discord bot started")
         except Exception as e:

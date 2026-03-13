@@ -12,7 +12,6 @@ class Settings(BaseSettings):
     # Discord integration (optional)
     DISCORD_BOT_TOKEN: str = ""
     DISCORD_GUILD_ID: str = ""
-    DISCORD_ADMIN_ROLE_ID: str = ""
     DISCORD_WEBHOOK_URL: str = ""
 
     model_config = {"env_file": ".env", "extra": "ignore"}

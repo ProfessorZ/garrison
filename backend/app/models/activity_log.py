@@ -21,6 +21,7 @@ class ActionType(str, enum.Enum):
     PERMISSION_REVOKE = "PERMISSION_REVOKE"
     ACCESS_DENIED = "ACCESS_DENIED"
     SCHEDULED_RUN = "SCHEDULED_RUN"
+    DISCORD_COMMAND = "DISCORD_COMMAND"
 
 
 class ActivityLog(Base):

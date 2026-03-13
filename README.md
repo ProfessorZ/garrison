@@ -230,23 +230,32 @@ Add to your `.env` file:
 ```
 DISCORD_BOT_TOKEN=your_bot_token_here
 DISCORD_GUILD_ID=your_discord_server_id
-DISCORD_ADMIN_ROLE_ID=role_id_for_rcon_access
 ```
 
 To find your Guild ID: Enable Developer Mode in Discord (Settings > Advanced), right-click your server > Copy Server ID.
 
-To find a Role ID: Server Settings > Roles > right-click the role > Copy Role ID.
+#### Account Linking
+
+The bot uses **Garrison roles** for permissions instead of Discord roles. Users must link their Discord account in Garrison:
+
+1. In Garrison, go to **Discord** page
+2. Enter your Discord User ID (Enable Developer Mode, right-click your name, Copy User ID)
+3. Click **Link**
+
+Once linked, your Garrison role (OWNER, ADMIN, MODERATOR, VIEWER) determines which bot commands you can use.
 
 #### Available Commands
 
-| Command | Description | Permission |
-|---------|-------------|------------|
-| `/status` | Show all servers | Everyone |
-| `/servers` | List configured servers | Everyone |
-| `/players <server>` | List online players | Everyone |
-| `/rcon <server> <command>` | Execute RCON command | Admin role |
-| `/kick <server> <player> [reason]` | Kick a player | Admin role |
-| `/ban <server> <player> [reason]` | Ban a player | Admin role |
+| Command | Description | Required Garrison Role |
+|---------|-------------|----------------------|
+| `/status` | Show all servers | None (public) |
+| `/servers` | List configured servers | None (public) |
+| `/players <server>` | List online players | VIEWER+ (linked account) |
+| `/kick <server> <player> [reason]` | Kick a player | MODERATOR+ |
+| `/ban <server> <player> [reason]` | Ban a player | ADMIN+ |
+| `/rcon <server> <command>` | Execute RCON command | ADMIN+ |
+
+All bot actions from linked accounts are logged to the Garrison activity log.
 
 ## Development
 
