@@ -12,6 +12,7 @@ import logging
 import sys
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
+from hllrcon.rcon import Rcon
 
 from app.plugins.base import GamePlugin
 from app.plugins.loader import PluginLoader
@@ -79,6 +80,58 @@ class ConnectedPlugin:
         return get_schema(self.plugin.game_type, version)
 
 
+class HLLConnectedPlugin(ConnectedPlugin):
+    """Connected plugin implementation for Hell Let Loose (custom RCON protocol)."""
+
+    def __init__(self, plugin: GamePlugin, server_id: int):
+        super().__init__(plugin, server_id)
+        self._client: Rcon | None = None
+
+    async def send_command(self, command: str) -> str:
+        """Send a command using the HLL RCON protocol (defaults to version 2)."""
+        if not self._client:
+            raise ConnectionError("HLL RCON connection not established")
+        cmd = command.strip()
+        if not cmd:
+            return ""
+        parts = cmd.split(" ", 1)
+        name = parts[0]
+        body = parts[1] if len(parts) > 1 else ""
+        try:
+            result = await self._client.execute(name, 2, body)
+            return result if isinstance(result, str) else str(result)
+        except Exception as e:
+            logger.error("HLL RCON command failed: %s", e)
+            return f"Error: {e}"
+
+    async def get_players(self) -> list[dict]:
+        """Use the native HLL client to fetch players with IDs."""
+        if not self._client:
+            return []
+        try:
+            resp = await self._client.get_players()
+            return [{"name": p.name, "steam_id": p.id} for p in resp.players]
+        except Exception as e:
+            logger.error("Failed to fetch HLL players: %s", e)
+            return []
+
+    async def connect(self, host: str, port: int, password: str, *, server_id: int = 0) -> None:
+        self.server_id = server_id
+        self._client = Rcon(host, port, password, logger=logger.getChild("hll"))
+        # Attach client to the plugin so it can use high-level helpers
+        setattr(self.plugin, "_client", self._client)
+        await self._client.wait_until_connected()
+
+    async def disconnect(self) -> None:
+        if self._client:
+            try:
+                self._client.disconnect()
+            except Exception:
+                pass
+        setattr(self.plugin, "_client", None)
+        self._client = None
+
+
 def get_plugin(game_type: str, loader: PluginLoader | None = None) -> ConnectedPlugin:
     """Get a ConnectedPlugin for the given game type.
 
@@ -91,6 +144,9 @@ def get_plugin(game_type: str, loader: PluginLoader | None = None) -> ConnectedP
     if plugin is None:
         available = [p["id"] for p in loader.list_plugins()]
         raise ValueError(f"Unknown game type: {game_type}. Available: {available}")
+
+    if getattr(plugin, "rcon_protocol", "") == "hll":
+        return HLLConnectedPlugin(plugin, server_id=0)
 
     return ConnectedPlugin(plugin, server_id=0)
 

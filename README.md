@@ -102,6 +102,10 @@ plugins/
     plugin.py
     schema.py
     options.py
+  garrison-plugin-hll/
+    manifest.json
+    plugin.py
+    schema.py
 ```
 
 ### manifest.json

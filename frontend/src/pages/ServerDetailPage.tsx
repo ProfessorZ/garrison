@@ -301,6 +301,7 @@ function SettingsPanel({ serverId, server, onSaved }: SettingsPanelProps) {
               className={inputCls}
               style={inputStyle}
             >
+              <option value="hll">Hell Let Loose</option>
               <option value="zomboid">Project Zomboid</option>
               <option value="factorio">Factorio</option>
               <option value="minecraft">Minecraft</option>
