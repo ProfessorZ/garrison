@@ -7,7 +7,9 @@ import {
   WifiOff,
   Users,
   Plus,
-
+  TrendingUp,
+  TrendingDown,
+  Minus,
   ChevronRight,
   Gamepad2,
   Clock,
@@ -15,9 +17,11 @@ import {
 } from "lucide-react";
 import { serversApi } from "../api/servers";
 import { dashboardApi } from "../api/dashboard";
+import { metricsApi } from "../api/metrics";
 import AddServerModal from "../components/AddServerModal";
 import ActivityFeed from "../components/ActivityFeed";
-import type { ServerStatus } from "../types";
+import DashboardChart from "../components/DashboardChart";
+import type { ServerStatus, ServerHeuristics } from "../types";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -52,6 +56,26 @@ export default function DashboardPage() {
     enabled: servers.length > 0,
     refetchInterval: 30000,
   });
+
+  // Fetch heuristics for all servers
+  const heuristicsQueries = useQuery({
+    queryKey: ["server-heuristics-all", servers.map((s) => s.id)],
+    queryFn: async () => {
+      const result: Record<number, ServerHeuristics> = {};
+      await Promise.allSettled(
+        servers.map(async (s) => {
+          try {
+            result[s.id] = await metricsApi.getHeuristics(s.id);
+          } catch { /* no data yet */ }
+        })
+      );
+      return result;
+    },
+    enabled: servers.length > 0,
+    refetchInterval: 120000,
+  });
+
+  const heuristics = heuristicsQueries.data ?? {};
 
   const statuses = statusQueries.data ?? {};
   const computedOnline = Object.values(statuses).filter((s) => s?.online).length;
@@ -123,6 +147,13 @@ export default function DashboardPage() {
           );
         })}
       </div>
+
+      {/* Dashboard Chart */}
+      {servers.length > 0 && (
+        <div className="mb-12 animate-fade-in">
+          <DashboardChart />
+        </div>
+      )}
 
       {/* Servers */}
       <div className="mb-12 animate-fade-in">
@@ -218,6 +249,33 @@ export default function DashboardPage() {
 
                     {/* Right side */}
                     <div className="flex items-center gap-6 shrink-0">
+                      {/* Trend + Uptime indicators */}
+                      {heuristics[s.id] && (
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-1">
+                            {heuristics[s.id].trend === "growing" ? (
+                              <TrendingUp className="h-3.5 w-3.5 text-[#00d4aa]" />
+                            ) : heuristics[s.id].trend === "declining" ? (
+                              <TrendingDown className="h-3.5 w-3.5 text-[#ff4757]" />
+                            ) : (
+                              <Minus className="h-3.5 w-3.5 text-[#64748b]" />
+                            )}
+                            <span className="text-[10px] font-bold" style={{
+                              color: heuristics[s.id].trend === "growing" ? "#00d4aa" : heuristics[s.id].trend === "declining" ? "#ff4757" : "#64748b",
+                            }}>
+                              {heuristics[s.id].trend_percent > 0 ? "+" : ""}{heuristics[s.id].trend_percent}%
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs font-bold tabular-nums" style={{
+                              color: heuristics[s.id].uptime_7d >= 0.9 ? "#00d4aa" : heuristics[s.id].uptime_7d >= 0.7 ? "#fbbf24" : "#ff4757",
+                            }}>
+                              {(heuristics[s.id].uptime_7d * 100).toFixed(0)}%
+                            </p>
+                            <p className="text-[9px] text-[#64748b] uppercase tracking-wider">uptime</p>
+                          </div>
+                        </div>
+                      )}
                       {isOnline && status?.player_count != null && (
                         <div className="text-right">
                           <p className="text-2xl font-black text-white tabular-nums">{status.player_count}</p>

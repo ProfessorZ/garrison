@@ -12,10 +12,11 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from app.config import settings
-from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat, commands, users, server_options, known_players, plugins, webhooks, ban_lists, triggers
+from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat, commands, users, server_options, known_players, plugins, webhooks, ban_lists, triggers, metrics
 from app.database import engine
 from app.rcon.manager import rcon_manager
 from app.services.player_tracker import poll_players
+from app.services.metrics_collector import collect_metrics
 from app.plugins.loader import PluginLoader
 from app.plugins.installer import PluginInstaller
 
@@ -125,6 +126,8 @@ async def lifespan(app: FastAPI):
     # Start player tracker (every 15 seconds)
     from apscheduler.triggers.interval import IntervalTrigger
     scheduler.scheduler.add_job(poll_players, IntervalTrigger(seconds=15), id="player_tracker", replace_existing=True)
+    # Start metrics collector (every 5 minutes)
+    scheduler.scheduler.add_job(collect_metrics, IntervalTrigger(minutes=5), id="metrics_collector", replace_existing=True)
     # Initial poll to seed state
     try:
         await poll_players()
@@ -195,6 +198,7 @@ app.include_router(plugins.router)
 app.include_router(webhooks.router)
 app.include_router(ban_lists.router)
 app.include_router(triggers.router)
+app.include_router(metrics.router)
 
 
 @app.get("/api/health")

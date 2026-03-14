@@ -26,8 +26,10 @@ import ScheduleManager from "../components/ScheduleManager";
 import ServerOptions from "../components/ServerOptions";
 import DiscordSettings from "../components/DiscordSettings";
 import TriggerManager from "../components/TriggerManager";
+import ServerMetrics from "../components/ServerMetrics";
+import { BarChart3 } from "lucide-react";
 
-type Tab = "console" | "players" | "chat" | "schedules" | "options" | "activity" | "triggers" | "discord" | "settings" | "permissions";
+type Tab = "console" | "players" | "chat" | "metrics" | "schedules" | "options" | "activity" | "triggers" | "discord" | "settings" | "permissions";
 
 export default function ServerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -66,6 +68,7 @@ export default function ServerDetailPage() {
     { key: "console", label: "Console", icon: Terminal },
     { key: "players", label: "Players", icon: Users },
     { key: "chat", label: "Chat", icon: MessageSquare },
+    { key: "metrics", label: "Metrics", icon: BarChart3 },
     { key: "schedules", label: "Schedules", icon: Clock },
     { key: "options", label: "Options", icon: SlidersHorizontal },
     { key: "activity", label: "Activity", icon: Activity },
@@ -182,6 +185,7 @@ export default function ServerDetailPage() {
         )}
         {tab === "players" && <PlayerList serverId={serverId} />}
         {tab === "chat" && <ChatLog serverId={serverId} />}
+        {tab === "metrics" && <ServerMetrics serverId={serverId} />}
         {tab === "schedules" && (
           <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
             <ScheduleManager serverId={serverId} />

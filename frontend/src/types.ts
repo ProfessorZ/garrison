@@ -330,6 +330,41 @@ export interface ServerBanList {
   added_at?: string;
 }
 
+// Metrics
+export interface MetricPoint {
+  timestamp: string;
+  player_count: number;
+  is_online: boolean;
+  response_time_ms?: number | null;
+}
+
+export interface MetricsSummary {
+  uptime_24h: number;
+  uptime_7d: number;
+  uptime_30d: number;
+  peak_players_24h: number;
+  peak_players_7d: number;
+  peak_players_30d: number;
+  avg_players_24h: number;
+  avg_players_7d: number;
+  avg_players_30d: number;
+  current_streak_hours: number;
+}
+
+export interface DashboardMetrics {
+  total_player_hours_24h: number;
+  combined_uptime_percent: number;
+}
+
+export interface ServerHeuristics {
+  peak_hours: number[];
+  trend: "growing" | "declining" | "stable";
+  trend_percent: number;
+  uptime_7d: number;
+  median_players: number;
+  is_healthy: boolean;
+}
+
 // Triggers
 export type TriggerEventType =
   | "player_join"

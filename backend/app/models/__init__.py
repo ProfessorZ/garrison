@@ -7,5 +7,6 @@ from app.models.server_permission import ServerPermission
 from app.models.server_webhook import ServerWebhook
 from app.models.ban_list import BanList, BanListEntry, ServerBanList
 from app.models.trigger import Trigger
+from app.models.server_metric import ServerMetric
 
-__all__ = ["User", "Server", "ScheduledCommand", "ActivityLog", "ChatMessage", "ServerPermission", "ServerWebhook", "BanList", "BanListEntry", "ServerBanList", "Trigger"]
+__all__ = ["User", "Server", "ScheduledCommand", "ActivityLog", "ChatMessage", "ServerPermission", "ServerWebhook", "BanList", "BanListEntry", "ServerBanList", "Trigger", "ServerMetric"]
