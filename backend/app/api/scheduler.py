@@ -1,9 +1,6 @@
 import logging
 from datetime import datetime, timezone
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
-from apscheduler.triggers.interval import IntervalTrigger
 from croniter import croniter
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -29,8 +26,6 @@ from app.schemas.scheduler import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/servers", tags=["scheduler"])
-
-scheduler = AsyncIOScheduler()
 
 # ── Presets ──────────────────────────────────────────────────────────────────
 
@@ -112,20 +107,6 @@ def _compute_next_run(cron_expression: str) -> datetime | None:
         return None
 
 
-def _register_job(sc: ScheduledCommand):
-    job_id = f"scheduled_{sc.id}"
-    if scheduler.get_job(job_id):
-        scheduler.remove_job(job_id)
-    if sc.is_active:
-        cron_kwargs = _parse_cron(sc.cron_expression)
-        scheduler.add_job(
-            _run_scheduled_command,
-            CronTrigger(**cron_kwargs),
-            args=[sc.id],
-            id=job_id,
-        )
-
-
 async def _run_scheduled_command(scheduled_id: int):
     async with async_session() as db:
         result = await db.execute(select(ScheduledCommand).where(ScheduledCommand.id == scheduled_id))
@@ -175,42 +156,38 @@ async def _run_scheduled_command(scheduled_id: int):
         await db.commit()
 
 
-# ── Startup ──────────────────────────────────────────────────────────────────
+# ── ARQ cron job: poll DB for due scheduled commands ─────────────────────────
 
-async def load_scheduled_jobs():
+async def run_due_scheduled_commands(ctx: dict = None):
+    """Called by ARQ every minute.  Finds all active scheduled commands
+    whose next_run <= now and executes them, then advances next_run."""
+    now = datetime.now(timezone.utc)
     async with async_session() as db:
-        result = await db.execute(select(ScheduledCommand).where(ScheduledCommand.is_active.is_(True)))
+        result = await db.execute(
+            select(ScheduledCommand).where(
+                ScheduledCommand.is_active.is_(True),
+                ScheduledCommand.next_run <= now,
+            )
+        )
+        due_commands = result.scalars().all()
+
+    for sc in due_commands:
+        try:
+            await _run_scheduled_command(sc.id)
+        except Exception as e:
+            logger.error("run_due_scheduled_commands: command %s failed: %s", sc.id, e)
+
+    # Backfill next_run for any active commands missing it
+    async with async_session() as db:
+        result = await db.execute(
+            select(ScheduledCommand).where(
+                ScheduledCommand.is_active.is_(True),
+                ScheduledCommand.next_run.is_(None),
+            )
+        )
         for sc in result.scalars().all():
-            try:
-                _register_job(sc)
-                if not sc.next_run:
-                    sc.next_run = _compute_next_run(sc.cron_expression)
-            except Exception as e:
-                logger.error("Failed to register job %s: %s", sc.id, e)
+            sc.next_run = _compute_next_run(sc.cron_expression)
         await db.commit()
-
-    # Register background status polling (every 30 seconds)
-    from app.api.servers import poll_all_servers
-    if not scheduler.get_job("status_poll"):
-        scheduler.add_job(
-            poll_all_servers,
-            IntervalTrigger(seconds=30),
-            id="status_poll",
-            replace_existing=True,
-        )
-
-    # Register background chat polling (every 60 seconds)
-    from app.api.chat import poll_all_chat
-    if not scheduler.get_job("chat_poll"):
-        scheduler.add_job(
-            poll_all_chat,
-            IntervalTrigger(seconds=60),
-            id="chat_poll",
-            replace_existing=True,
-        )
-
-    if not scheduler.running:
-        scheduler.start()
 
 
 # ── API Routes (server-scoped) ───────────────────────────────────────────────
@@ -256,7 +233,6 @@ async def create_schedule(
     db.add(sc)
     await db.commit()
     await db.refresh(sc)
-    _register_job(sc)
     return sc
 
 
@@ -293,7 +269,6 @@ async def update_schedule(
 
     await db.commit()
     await db.refresh(sc)
-    _register_job(sc)
     return sc
 
 
@@ -313,9 +288,6 @@ async def delete_schedule(
     sc = result.scalar_one_or_none()
     if not sc:
         raise HTTPException(status_code=404, detail="Scheduled command not found")
-    job_id = f"scheduled_{sc.id}"
-    if scheduler.get_job(job_id):
-        scheduler.remove_job(job_id)
     await db.delete(sc)
     await db.commit()
 
@@ -359,7 +331,6 @@ async def apply_preset(
         )
         db.add(sc)
         await db.flush()
-        _register_job(sc)
         created.append(sc)
 
     await db.commit()

@@ -114,8 +114,21 @@ def get_plugin(game_type: str, loader: PluginLoader | None = None) -> ConnectedP
     return ConnectedPlugin(plugin, server_id=0)
 
 
+# Module-level loader — set by the ARQ worker startup so background jobs
+# can resolve plugins without a FastAPI app instance.
+_standalone_loader: PluginLoader | None = None
+
+
+def set_standalone_loader(loader: PluginLoader) -> None:
+    """Register a plugin loader for use outside FastAPI (e.g. ARQ worker)."""
+    global _standalone_loader
+    _standalone_loader = loader
+
+
 def _get_loader_from_app() -> PluginLoader:
-    """Try to get the plugin loader from the FastAPI app state."""
+    """Try to get the plugin loader from the FastAPI app state or the standalone loader."""
+    if _standalone_loader is not None:
+        return _standalone_loader
     # Import here to avoid circular imports
     try:
         from app.main import app

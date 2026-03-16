@@ -8,5 +8,13 @@ from app.models.server_webhook import ServerWebhook
 from app.models.ban_list import BanList, BanListEntry, ServerBanList
 from app.models.trigger import Trigger
 from app.models.server_metric import ServerMetric
+from app.models.known_player import KnownPlayer
+from app.models.player_session import PlayerSession
+from app.models.player_name import PlayerNameHistory
+from app.models.player_ban import PlayerBan
 
-__all__ = ["User", "Server", "ScheduledCommand", "ActivityLog", "ChatMessage", "ServerPermission", "ServerWebhook", "BanList", "BanListEntry", "ServerBanList", "Trigger", "ServerMetric"]
+__all__ = [
+    "User", "Server", "ScheduledCommand", "ActivityLog", "ChatMessage",
+    "ServerPermission", "ServerWebhook", "BanList", "BanListEntry", "ServerBanList",
+    "Trigger", "ServerMetric", "KnownPlayer", "PlayerSession", "PlayerNameHistory", "PlayerBan",
+]

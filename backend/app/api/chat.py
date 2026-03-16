@@ -89,8 +89,8 @@ async def poll_server_chat(server_id: int):
         await db.commit()
 
 
-async def poll_all_chat():
-    """Background task: poll chat for all servers."""
+async def poll_all_chat(ctx: dict = None):
+    """Background task: poll chat for all servers. Called by ARQ cron."""
     async with async_session() as db:
         result = await db.execute(select(Server.id))
         server_ids = [row[0] for row in result.all()]

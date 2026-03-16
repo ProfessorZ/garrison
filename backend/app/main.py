@@ -15,8 +15,6 @@ from app.config import settings
 from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat, commands, users, server_options, known_players, plugins, webhooks, ban_lists, triggers, metrics
 from app.database import engine
 from app.rcon.manager import rcon_manager
-from app.services.player_tracker import poll_players
-from app.services.metrics_collector import collect_metrics
 from app.plugins.loader import PluginLoader
 from app.plugins.installer import PluginInstaller
 
@@ -122,17 +120,6 @@ async def lifespan(app: FastAPI):
         len(loader.plugins), PLUGINS_DIR,
     )
 
-    await scheduler.load_scheduled_jobs()
-    # Start player tracker (every 15 seconds)
-    from apscheduler.triggers.interval import IntervalTrigger
-    scheduler.scheduler.add_job(poll_players, IntervalTrigger(seconds=15), id="player_tracker", replace_existing=True)
-    # Start metrics collector (every 5 minutes)
-    scheduler.scheduler.add_job(collect_metrics, IntervalTrigger(minutes=5), id="metrics_collector", replace_existing=True)
-    # Initial poll to seed state
-    try:
-        await poll_players()
-    except Exception as e:
-        logger.warning("Initial player poll failed: %s", e)
     # Start Discord bot if configured
     if settings.DISCORD_BOT_TOKEN and settings.DISCORD_GUILD_ID:
         from app.services.discord_bot import start_bot
@@ -158,8 +145,6 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning("Error stopping Discord bot: %s", e)
 
-    if scheduler.scheduler.running:
-        scheduler.scheduler.shutdown(wait=False)
     await rcon_manager.close_all()
     await engine.dispose()
     logger.info("Garrison backend stopped")

@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 RETENTION_DAYS = 30
 
 
-async def collect_metrics() -> None:
-    """Collect server metrics every 5 minutes. Called by APScheduler."""
+async def collect_metrics(ctx: dict = None) -> None:
+    """Collect server metrics every 5 minutes. Called by ARQ cron."""
     async with async_session() as db:
         try:
             result = await db.execute(select(Server))

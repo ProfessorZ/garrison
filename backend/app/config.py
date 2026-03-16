@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "http://localhost:5173"
     RATE_LIMIT: str = "60/minute"
 
+    # Redis (ARQ worker broker)
+    REDIS_URL: str = "redis://redis:6379"
+
     # Discord integration (optional)
     DISCORD_BOT_TOKEN: str = ""
     DISCORD_GUILD_ID: str = ""

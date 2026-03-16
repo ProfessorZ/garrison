@@ -148,8 +148,8 @@ async def server_status(
     )
 
 
-async def poll_all_servers():
-    """Background task: poll every server's RCON status and persist results."""
+async def poll_all_servers(ctx: dict = None):
+    """Background task: poll every server's RCON status and persist results. Called by ARQ cron."""
     from app.services.discord_webhooks import notify_server_online, notify_server_offline, notify_server_error
 
     async with async_session() as db:

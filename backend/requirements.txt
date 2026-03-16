@@ -11,8 +11,8 @@ pydantic-settings>=2.2,<3
 pydantic[email]>=2.0,<3
 
 slowapi>=0.1,<1
-apscheduler>=3.10,<4
 croniter>=2.0,<3
+arq>=0.25,<1
 
 discord.py>=2.3,<3
 aiohttp>=3.9,<4

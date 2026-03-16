@@ -15,6 +15,19 @@ services:
     networks:
       - garrison
 
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - garrison
+
   backend:
     build:
       context: .
@@ -26,6 +39,7 @@ services:
       DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
       DISCORD_GUILD_ID: ${DISCORD_GUILD_ID:-}
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+      REDIS_URL: redis://redis:6379
     volumes:
       - ./plugins:/data/plugins
     depends_on:
@@ -33,6 +47,27 @@ services:
         condition: service_healthy
     command: >
       sh -c "cd /app && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    networks:
+      - garrison
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://garrison:garrison@db:5432/garrison
+      GARRISON_PLUGINS_DIR: /data/plugins
+      REDIS_URL: redis://redis:6379
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+    volumes:
+      - ./plugins:/data/plugins
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
     networks:
       - garrison
 
@@ -59,6 +94,7 @@ services:
 
 volumes:
   pgdata:
+  redis_data:
 
 networks:
   garrison:
