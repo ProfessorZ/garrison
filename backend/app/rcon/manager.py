@@ -152,28 +152,36 @@ class RconManager:
 
     def __init__(self):
         self._connections: dict[int, RconConnection] = {}
+        self._refcounts: dict[int, int] = {}
         self._lock = asyncio.Lock()
 
     async def connect(
         self, server_id: int, host: str, port: int, password: str
     ) -> None:
-        """Create or reconnect RCON for a server."""
+        """Create or reconnect RCON for a server. Reference-counted so multiple
+        callers can share a connection without tearing it down prematurely."""
         async with self._lock:
             existing = self._connections.get(server_id)
             if existing and existing.connected:
-                # Already connected to same host:port
                 if existing.host == host and existing.port == port:
+                    self._refcounts[server_id] = self._refcounts.get(server_id, 0) + 1
                     return
-                # Different target — disconnect old one
+                # Different target — close old connection
                 await existing.close()
 
             conn = RconConnection(host, port, password)
             await conn.connect()
             self._connections[server_id] = conn
+            self._refcounts[server_id] = 1
 
     async def disconnect(self, server_id: int) -> None:
-        """Close and remove a server connection."""
+        """Decrement ref count; only close when count reaches zero."""
         async with self._lock:
+            count = self._refcounts.get(server_id, 1) - 1
+            if count > 0:
+                self._refcounts[server_id] = count
+                return
+            self._refcounts.pop(server_id, None)
             conn = self._connections.pop(server_id, None)
         if conn:
             await conn.close()
@@ -208,6 +216,7 @@ class RconManager:
         async with self._lock:
             conns = list(self._connections.values())
             self._connections.clear()
+            self._refcounts.clear()
         for conn in conns:
             await conn.close()
 
