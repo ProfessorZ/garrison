@@ -124,9 +124,28 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
     ws.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
-        if (data.command) addLine("command", data.command);
-        if (data.output) addLine("output", data.output);
-        if (data.error) addLine("error", data.error);
+        if (data.type === "response") {
+          // Command echo + output from server
+          if (data.command) addLine("command", data.command);
+          if (data.output) addLine("output", data.output);
+        } else if (data.type === "history") {
+          // Replay history on connect
+          for (const entry of data.entries ?? []) {
+            if (entry.command) addLine("command", entry.command);
+            if (entry.output) addLine("output", entry.output);
+          }
+        } else if (data.type === "error") {
+          addLine("error", data.message ?? data.error ?? "Unknown error");
+        } else if (data.type === "connected") {
+          // already handled by ws.onopen
+        } else if (data.type === "ping") {
+          // no-op
+        } else {
+          // Fallback for older/unknown formats
+          if (data.command) addLine("command", data.command);
+          if (data.output) addLine("output", data.output);
+          if (data.error) addLine("error", data.error);
+        }
       } catch {
         addLine("output", e.data);
       }
@@ -180,7 +199,6 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
     if (!cmd || !wsRef.current || connState !== "connected") return;
 
     wsRef.current.send(JSON.stringify({ command: cmd }));
-    addLine("command", cmd);
 
     setCommandHistory((prev) => {
       const filtered = prev.filter((c) => c !== cmd);

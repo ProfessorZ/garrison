@@ -193,22 +193,26 @@ export interface CreateServerRequest {
 
 // Activity
 export type ActivityAction =
-  | "rcon_command"
-  | "kick"
-  | "ban"
-  | "server_start"
-  | "server_stop"
-  | "server_add"
-  | "server_update"
-  | "server_delete"
-  | "scheduler_create"
-  | "scheduler_update";
+  | "COMMAND"
+  | "KICK"
+  | "BAN"
+  | "UNBAN"
+  | "SERVER_CREATE"
+  | "SERVER_UPDATE"
+  | "SERVER_DELETE"
+  | "LOGIN"
+  | "SCHEDULER_CREATE"
+  | "SCHEDULER_UPDATE"
+  | "SCHEDULER_DELETE"
+  | "DISCORD_COMMAND"
+  | string;
 
 export interface ActivityEntry {
   id: number;
-  user: string;
+  user_id?: number;
+  username?: string;
   action: ActivityAction;
-  description: string;
+  detail: string;
   server_name?: string;
   server_id?: number;
   created_at: string;
@@ -227,9 +231,9 @@ export interface ActivityFilters {
 export interface PaginatedActivity {
   items: ActivityEntry[];
   total: number;
-  page: number;
-  per_page: number;
-  pages: number;
+  page?: number;
+  per_page?: number;
+  pages?: number;
 }
 
 // Chat

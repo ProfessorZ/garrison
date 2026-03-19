@@ -243,8 +243,8 @@ function ActivityRow({ entry }: { entry: ActivityEntry }) {
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-sm text-[#e2e8f0] leading-snug">
-          <span className="font-bold">{entry.user}</span>{" "}
-          <span className="text-[#94a3b8]">{entry.description}</span>
+          <span className="font-bold">{(entry.username ?? "System")}</span>{" "}
+          <span className="text-[#94a3b8]">{entry.detail}</span>
         </p>
         <div className="flex items-center gap-2 mt-0.5">
           {entry.server_name && (

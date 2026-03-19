@@ -60,9 +60,9 @@ async def list_activity(
 ):
     q = select(ActivityLog)
 
-    # Non-ADMIN users can only see activity for servers they have MODERATOR+ access to
+    # OWNER/ADMIN can see all activity; others restricted to servers they moderate
     user_level = ROLE_HIERARCHY.get(UserRole(_user.role), 0)
-    if user_level < ROLE_HIERARCHY[UserRole.ADMIN]:
+    if user_level < ROLE_HIERARCHY[UserRole.ADMIN]:  # OWNER > ADMIN, so OWNER passes
         perm_result = await db.execute(
             select(ServerPermission.server_id).where(
                 ServerPermission.user_id == _user.id,

@@ -17,33 +17,30 @@ import {
 import { activityApi } from "../api/activity";
 import type { ActivityAction, ActivityEntry } from "../types";
 
-const ACTION_CONFIG: Record<
-  ActivityAction,
-  { icon: typeof Terminal; color: string; label: string }
-> = {
-  rcon_command: { icon: Terminal, color: "#3b82f6", label: "RCON" },
-  kick: { icon: UserX, color: "#ffa502", label: "Kick" },
-  ban: { icon: Ban, color: "#ff4757", label: "Ban" },
-  server_start: { icon: Power, color: "#00d4aa", label: "Start" },
-  server_stop: { icon: PowerOff, color: "#ff4757", label: "Stop" },
-  server_add: { icon: Plus, color: "#00d4aa", label: "Add" },
-  server_update: { icon: Pencil, color: "#3b82f6", label: "Update" },
-  server_delete: { icon: Trash2, color: "#ff4757", label: "Delete" },
-  scheduler_create: { icon: Clock, color: "#a855f7", label: "Schedule" },
-  scheduler_update: { icon: Pencil, color: "#a855f7", label: "Schedule" },
+const ACTION_CONFIG: Record<string, { icon: typeof Terminal; color: string; label: string }> = {
+  COMMAND: { icon: Terminal, color: "#3b82f6", label: "RCON" },
+  KICK: { icon: UserX, color: "#ffa502", label: "Kick" },
+  BAN: { icon: Ban, color: "#ff4757", label: "Ban" },
+  SERVER_START: { icon: Power, color: "#00d4aa", label: "Start" },
+  SERVER_STOP: { icon: PowerOff, color: "#ff4757", label: "Stop" },
+  SERVER_CREATE: { icon: Plus, color: "#00d4aa", label: "Add" },
+  SERVER_UPDATE: { icon: Pencil, color: "#3b82f6", label: "Update" },
+  SERVER_DELETE: { icon: Trash2, color: "#ff4757", label: "Delete" },
+  SCHEDULER_CREATE: { icon: Clock, color: "#a855f7", label: "Schedule" },
+  SCHEDULER_UPDATE: { icon: Pencil, color: "#a855f7", label: "Schedule" },
 };
 
 const ACTION_TYPES: { value: ActivityAction; label: string }[] = [
-  { value: "rcon_command", label: "RCON Command" },
-  { value: "kick", label: "Kick" },
-  { value: "ban", label: "Ban" },
-  { value: "server_start", label: "Server Start" },
-  { value: "server_stop", label: "Server Stop" },
-  { value: "server_add", label: "Server Added" },
-  { value: "server_update", label: "Server Updated" },
-  { value: "server_delete", label: "Server Deleted" },
-  { value: "scheduler_create", label: "Scheduler Created" },
-  { value: "scheduler_update", label: "Scheduler Updated" },
+  { value: "COMMAND", label: "RCON Command" },
+  { value: "KICK", label: "Kick" },
+  { value: "BAN", label: "Ban" },
+  { value: "SERVER_START", label: "Server Start" },
+  { value: "SERVER_STOP", label: "Server Stop" },
+  { value: "SERVER_CREATE", label: "Server Added" },
+  { value: "SERVER_UPDATE", label: "Server Updated" },
+  { value: "SERVER_DELETE", label: "Server Deleted" },
+  { value: "SCHEDULER_CREATE", label: "Scheduler Created" },
+  { value: "SCHEDULER_UPDATE", label: "Scheduler Updated" },
 ];
 
 function relativeTime(dateStr: string): string {
@@ -170,8 +167,8 @@ function ActivityRow({
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-sm text-[#e2e8f0] leading-snug">
-          <span className="font-bold">{entry.user}</span>{" "}
-          <span className="text-[#94a3b8]">{entry.description}</span>
+          <span className="font-bold">{entry.username ?? "System"}</span>{" "}
+          <span className="text-[#94a3b8]">{entry.detail}</span>
         </p>
         <div className="flex items-center gap-2 mt-0.5">
           {entry.server_name && (
