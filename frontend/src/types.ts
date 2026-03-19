@@ -63,6 +63,17 @@ export interface KnownPlayer {
   current_server_name?: string;
   created_at?: string;
   updated_at?: string;
+  // Steam fields
+  steam_id?: string | null;
+  vac_banned?: boolean;
+  vac_ban_count?: number;
+  days_since_last_ban?: number;
+  game_banned?: boolean;
+  steam_profile_visibility?: number;
+  steam_avatar_url?: string | null;
+  steam_persona_name?: string | null;
+  alt_account_ids?: number[];
+  steam_checked_at?: string | null;
 }
 
 export interface KnownPlayerList {
@@ -332,6 +343,38 @@ export interface ServerBanList {
   ban_list_id: number;
   auto_enforce: boolean;
   added_at?: string;
+}
+
+// Player Notes
+export interface PlayerNote {
+  id: number;
+  player_id: number;
+  author_id?: number;
+  author_username?: string;
+  text: string;
+  created_at?: string;
+}
+
+// Alt Accounts
+export interface AltAccount {
+  id: number;
+  name: string;
+  first_seen?: string;
+  last_seen?: string;
+  is_banned: boolean;
+  session_count: number;
+  shared_ips: string[];
+}
+
+// Ban Templates
+export interface BanTemplate {
+  id: number;
+  name: string;
+  reason_template: string;
+  duration_hours?: number | null;
+  created_by_user_id?: number;
+  created_by_username?: string;
+  created_at?: string;
 }
 
 // Metrics

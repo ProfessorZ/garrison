@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     DISCORD_CLIENT_SECRET: str = ""
     DISCORD_REDIRECT_URI: str = "http://localhost/api/auth/discord/callback"
 
+    # Steam API (optional — enables VAC ban checks and player enrichment)
+    STEAM_API_KEY: str = ""
+
     model_config = {"env_file": ".env", "extra": "ignore"}
 
 

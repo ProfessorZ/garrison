@@ -92,14 +92,14 @@ export default function ServerDetailPage() {
       </Link>
 
       {/* Server header */}
-      <div className="rounded-xl p-6 mb-6" style={{
+      <div className="rounded-xl p-4 sm:p-6 mb-6" style={{
         background: "#111827",
         border: "1px solid rgba(255,255,255,0.06)",
       }}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="min-w-0">
-            <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-2xl font-bold text-[#e2e8f0] truncate">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#e2e8f0] truncate">
                 {server.name}
               </h2>
               <span
@@ -129,12 +129,12 @@ export default function ServerDetailPage() {
                 {status === undefined ? "Checking" : isOnline ? "Online" : "Offline"}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-[#64748b]">
+            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-[#64748b]">
               <span className="font-mono text-[#94a3b8]">{server.host}:{server.port}</span>
               <span className="text-[rgba(255,255,255,0.12)]">&middot;</span>
               <span>RCON :{server.rcon_port}</span>
-              <span className="text-[rgba(255,255,255,0.12)]">&middot;</span>
-              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+              <span className="hidden sm:inline text-[rgba(255,255,255,0.12)]">&middot;</span>
+              <span className="hidden sm:inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
                 style={{ background: "#1a1f2e" }}>
                 {server.game_type}
               </span>
@@ -254,7 +254,7 @@ function TabBar({
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`inline-flex items-center gap-1.5 px-4 py-3 text-[13px] font-semibold whitespace-nowrap transition-all duration-150 relative ${
+              className={`inline-flex items-center gap-1.5 px-3 sm:px-4 py-3 sm:py-3 text-xs sm:text-[13px] font-semibold whitespace-nowrap transition-all duration-150 relative ${
                 active ? "text-[#00d4aa]" : "text-[#64748b] hover:text-[#e2e8f0]"
               }`}
               style={{

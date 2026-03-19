@@ -70,6 +70,13 @@ async def list_players(
             entry["total_time_on_server"] = row[1]
             entry["first_seen_on_server"] = row[2].isoformat() if row[2] else None
 
+            # Steam fields
+            entry["steam_id"] = kp.steam_id
+            entry["vac_banned"] = kp.vac_banned
+            entry["game_banned"] = kp.game_banned
+            entry["steam_avatar_url"] = kp.steam_avatar_url
+            entry["steam_persona_name"] = kp.steam_persona_name
+
         enriched.append(entry)
 
     return {"players": enriched}

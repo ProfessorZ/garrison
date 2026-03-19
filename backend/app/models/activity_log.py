@@ -22,6 +22,7 @@ class ActionType(str, enum.Enum):
     ACCESS_DENIED = "ACCESS_DENIED"
     SCHEDULED_RUN = "SCHEDULED_RUN"
     DISCORD_COMMAND = "DISCORD_COMMAND"
+    VAC_BAN_DETECTED = "VAC_BAN_DETECTED"
 
 
 class ActivityLog(Base):

@@ -312,8 +312,8 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
       <div
         ref={scrollRef}
         onClick={() => inputRef.current?.focus()}
-        className="overflow-y-auto p-4 cursor-text"
-        style={{ background: "#000", fontFamily: "var(--font-mono)", minHeight: 400, height: "28rem" }}
+        className="overflow-y-auto p-4 cursor-text h-[300px] sm:h-[28rem]"
+        style={{ background: "#000", fontFamily: "var(--font-mono)" }}
       >
         {lines.length === 0 && (
           <p className="text-[#64748b] select-none text-sm">

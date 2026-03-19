@@ -20,6 +20,18 @@ class KnownPlayerOut(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
+    # Steam fields
+    steam_id: Optional[str] = None
+    vac_banned: bool = False
+    vac_ban_count: int = 0
+    days_since_last_ban: int = 0
+    game_banned: bool = False
+    steam_profile_visibility: int = 3
+    steam_avatar_url: Optional[str] = None
+    steam_persona_name: Optional[str] = None
+    alt_account_ids: list[int] = []
+    steam_checked_at: Optional[datetime] = None
+
     model_config = {"from_attributes": True}
 
 
@@ -90,6 +102,33 @@ class UpdateNotesRequest(BaseModel):
     notes: str
 
 
+class PlayerNoteCreate(BaseModel):
+    text: str
+
+
+class PlayerNoteOut(BaseModel):
+    id: int
+    player_id: int
+    author_id: Optional[int] = None
+    author_username: Optional[str] = None
+    text: str
+    created_at: Optional[datetime] = None
+
+    model_config = {"from_attributes": True}
+
+
+class AltAccountOut(BaseModel):
+    id: int
+    name: str
+    first_seen: Optional[datetime] = None
+    last_seen: Optional[datetime] = None
+    is_banned: bool = False
+    session_count: int = 0
+    shared_ips: list[str] = []
+
+    model_config = {"from_attributes": True}
+
+
 class CreateBanRequest(BaseModel):
     reason: Optional[str] = None
     expires_at: Optional[datetime] = None
@@ -108,3 +147,10 @@ class EnrichedPlayer(BaseModel):
     first_seen_on_server: Optional[datetime] = None
     total_time_on_server: int = 0
     sessions_on_server: int = 0
+
+    # Steam fields
+    steam_id: Optional[str] = None
+    vac_banned: bool = False
+    game_banned: bool = False
+    steam_avatar_url: Optional[str] = None
+    steam_persona_name: Optional[str] = None

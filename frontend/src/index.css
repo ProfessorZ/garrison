@@ -222,3 +222,35 @@ textarea::placeholder {
 .toggle-switch:not(.active) {
   background-color: #374151;
 }
+
+/* ── Mobile Responsive ────────────────────────────────────────────────────── */
+
+/* Prevent iOS zoom on input focus */
+@media (max-width: 767px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Full-screen modals on mobile */
+  .modal-mobile-full > .absolute + div {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    height: 100%;
+  }
+}
+
+/* Minimum touch targets */
+@media (max-width: 1023px) {
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Exclude icon-only small buttons */
+  button.touch-compact {
+    min-height: unset;
+    min-width: unset;
+  }
+}

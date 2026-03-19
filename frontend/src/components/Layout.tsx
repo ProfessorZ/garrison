@@ -119,7 +119,7 @@ export default function Layout() {
                 key={item.path}
                 to={item.path}
                 onClick={closeSidebar}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150 ${
+                className={`flex items-center gap-2.5 px-3 py-2.5 md:py-2 rounded-md text-sm md:text-[13px] font-medium transition-all duration-150 ${
                   active
                     ? "text-[#00d4aa]"
                     : "text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(255,255,255,0.04)]"
@@ -150,7 +150,7 @@ export default function Layout() {
                     key={s.id}
                     to={`/server/${s.id}`}
                     onClick={closeSidebar}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[13px] transition-all duration-150 ${
+                    className={`flex items-center gap-2 px-3 py-2.5 md:py-1.5 rounded-md text-sm md:text-[13px] transition-all duration-150 ${
                       active
                         ? "text-[#00d4aa]"
                         : "text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(255,255,255,0.04)]"

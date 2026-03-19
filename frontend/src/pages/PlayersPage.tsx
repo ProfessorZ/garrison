@@ -11,6 +11,8 @@ import {
   Ban,
   Clock,
   ChevronDown,
+  ShieldAlert,
+  EyeOff,
 } from "lucide-react";
 import { knownPlayersApi } from "../api/knownPlayers";
 import { serversApi } from "../api/servers";
@@ -279,18 +281,42 @@ export default function PlayersPage() {
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2.5">
-                          <div
-                            className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold text-[#e2e8f0] shrink-0"
-                            style={{ background: "#1a1f2e" }}
-                          >
-                            {p.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
+                          {p.steam_avatar_url ? (
+                            <img
+                              src={p.steam_avatar_url}
+                              alt={p.name}
+                              className="h-7 w-7 rounded-full shrink-0 object-cover"
+                            />
+                          ) : (
+                            <div
+                              className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold text-[#e2e8f0] shrink-0"
+                              style={{ background: "#1a1f2e" }}
+                            >
+                              {p.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="text-sm font-semibold text-[#e2e8f0]">{p.name}</span>
                             {p.is_banned && (
-                              <span className="ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-[#ff4757] bg-[rgba(255,71,87,0.08)]">
+                              <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-[#ff4757] bg-[rgba(255,71,87,0.08)]">
                                 <Ban className="h-2.5 w-2.5" />
                                 BANNED
+                              </span>
+                            )}
+                            {p.vac_banned && (
+                              <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold text-[#ff4757] bg-[rgba(255,71,87,0.08)]" title="VAC Banned">
+                                <ShieldAlert className="h-2.5 w-2.5" />
+                              </span>
+                            )}
+                            {p.steam_profile_visibility != null && p.steam_profile_visibility !== 3 && (
+                              <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] text-[#64748b] bg-[rgba(255,255,255,0.04)]" title="Private Profile">
+                                <EyeOff className="h-2.5 w-2.5" />
+                              </span>
+                            )}
+                            {(p.alt_account_ids?.length ?? 0) > 0 && (
+                              <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold text-[#fbbf24] bg-[rgba(251,191,36,0.08)]" title="Alt accounts detected">
+                                <Users className="h-2.5 w-2.5" />
+                                {p.alt_account_ids!.length}
                               </span>
                             )}
                           </div>

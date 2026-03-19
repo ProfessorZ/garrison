@@ -47,7 +47,7 @@ export default function ConfirmModal({
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onCancel}
       />
-      <div className="relative rounded-xl shadow-2xl max-w-md w-full mx-4 p-6 animate-fade-in"
+      <div className="relative shadow-2xl w-full p-6 animate-fade-in max-w-md mx-0 sm:mx-4 rounded-none sm:rounded-xl h-full sm:h-auto flex flex-col justify-center"
         style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
         <button
           onClick={onCancel}

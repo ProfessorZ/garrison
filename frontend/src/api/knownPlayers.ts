@@ -4,6 +4,8 @@ import type {
   PlayerProfile,
   PlayerSessionList,
   PlayerBan,
+  PlayerNote,
+  AltAccount,
 } from "../types";
 
 export const knownPlayersApi = {
@@ -61,5 +63,26 @@ export const knownPlayersApi = {
 
   unban: async (playerId: number): Promise<void> => {
     await client.post(`/players/${playerId}/unban`);
+  },
+
+  // Notes (individual entries)
+  listNotes: async (playerId: number): Promise<PlayerNote[]> => {
+    const res = await client.get<PlayerNote[]>(`/players/${playerId}/notes`);
+    return res.data;
+  },
+
+  createNote: async (playerId: number, text: string): Promise<PlayerNote> => {
+    const res = await client.post<PlayerNote>(`/players/${playerId}/notes`, { text });
+    return res.data;
+  },
+
+  deleteNote: async (playerId: number, noteId: number): Promise<void> => {
+    await client.delete(`/players/${playerId}/notes/${noteId}`);
+  },
+
+  // Alt accounts
+  getAlts: async (playerId: number): Promise<AltAccount[]> => {
+    const res = await client.get<AltAccount[]>(`/players/${playerId}/alts`);
+    return res.data;
   },
 };

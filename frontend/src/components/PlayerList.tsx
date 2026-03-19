@@ -104,13 +104,15 @@ export default function PlayerList({ serverId }: PlayerListProps) {
           <p className="text-xs text-[#64748b] mt-1">Players will appear here when they connect</p>
         </div>
       ) : (
-        <div className="overflow-x-auto" style={{ paddingRight: 16 }}>
+        <>
+        {/* Desktop table */}
+        <div className="hidden sm:block overflow-x-auto" style={{ paddingRight: 16 }}>
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                 <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider" style={{ width: "100%" }}>Player</th>
                 <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider hidden md:table-cell whitespace-nowrap" style={{ width: 120 }}>First Seen</th>
-                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider hidden sm:table-cell whitespace-nowrap" style={{ width: 140 }}>Playtime (Server)</th>
+                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider whitespace-nowrap" style={{ width: 140 }}>Playtime</th>
                 <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider hidden lg:table-cell whitespace-nowrap" style={{ width: 80 }}>Sessions</th>
                 <th className="text-right px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider whitespace-nowrap" style={{ width: 140 }}>Actions</th>
               </tr>
@@ -136,7 +138,7 @@ export default function PlayerList({ serverId }: PlayerListProps) {
                       {p.known_player_id && (
                         <button
                           onClick={(e) => { e.stopPropagation(); navigate(`/players/${p.known_player_id}`); }}
-                          className="text-[#64748b] hover:text-[#00d4aa] transition-colors"
+                          className="text-[#64748b] hover:text-[#00d4aa] transition-colors touch-compact"
                           title="View player profile"
                         >
                           <ExternalLink className="h-3 w-3" />
@@ -147,7 +149,7 @@ export default function PlayerList({ serverId }: PlayerListProps) {
                   <td className="px-5 py-3 text-xs text-[#64748b] hidden md:table-cell">
                     {p.first_seen_on_server ? formatDate(p.first_seen_on_server) : formatDate(p.first_seen)}
                   </td>
-                  <td className="px-5 py-3 text-xs text-[#64748b] hidden sm:table-cell">
+                  <td className="px-5 py-3 text-xs text-[#64748b]">
                     <span className="inline-flex items-center gap-1 font-mono text-[#94a3b8]">
                       <Clock className="h-3 w-3" />
                       {formatPlaytime(p.total_time_on_server ?? 0)}
@@ -179,6 +181,58 @@ export default function PlayerList({ serverId }: PlayerListProps) {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile card layout */}
+        <div className="sm:hidden divide-y divide-[rgba(255,255,255,0.03)]">
+          {players.map((p) => (
+            <div key={p.name} className="px-4 py-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-sm text-[#e2e8f0] font-semibold truncate">{p.name}</span>
+                  {p.is_banned && (
+                    <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-[#ff4757] bg-[rgba(255,71,87,0.08)]">
+                      <Ban className="h-2 w-2" /> BAN
+                    </span>
+                  )}
+                  {p.known_player_id && (
+                    <button
+                      onClick={() => navigate(`/players/${p.known_player_id}`)}
+                      className="text-[#64748b] hover:text-[#00d4aa] transition-colors touch-compact"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-[#64748b] mb-3">
+                <span className="inline-flex items-center gap-1 font-mono text-[#94a3b8]">
+                  <Clock className="h-3 w-3" />
+                  {formatPlaytime(p.total_time_on_server ?? 0)}
+                </span>
+                {p.first_seen_on_server && (
+                  <span>{formatDate(p.first_seen_on_server)}</span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setConfirmAction({ type: "kick", player: p })}
+                  className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-xs font-medium text-[#e2e8f0] transition-all duration-150"
+                  style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                >
+                  <UserX className="h-3 w-3" /> Kick
+                </button>
+                <button
+                  onClick={() => setConfirmAction({ type: "ban", player: p })}
+                  className="inline-flex items-center gap-1 rounded-md px-3 py-2 text-xs font-medium text-[#ff4757] transition-all duration-150"
+                  style={{ background: "rgba(255,71,87,0.08)", border: "1px solid rgba(255,71,87,0.12)" }}
+                >
+                  <Ban className="h-3 w-3" /> Ban
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        </>
       )}
 
       <ConfirmModal

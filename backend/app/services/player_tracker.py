@@ -1,10 +1,12 @@
 import logging
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.security import decrypt_rcon_password
+from app.config import settings
 from app.database import async_session
 from app.plugins.bridge import get_plugin
 from app.models.known_player import KnownPlayer
@@ -18,14 +20,14 @@ logger = logging.getLogger(__name__)
 _server_players: dict[int, set[str]] = {}
 
 
-async def _get_online_players(server: Server) -> list[str]:
-    """Query RCON for connected player names."""
+async def _get_online_players(server: Server) -> list[dict]:
+    """Query RCON for connected players. Returns list of dicts with name and optional steam_id."""
     plugin = get_plugin(server.game_type)
     password = decrypt_rcon_password(server.rcon_password_encrypted)
     try:
         await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
         players = await plugin.get_players()
-        return [p["name"] for p in players if p.get("name")]
+        return [p for p in players if p.get("name")]
     except Exception as e:
         logger.debug("Failed to get players for server %s: %s", server.id, e)
         return []
@@ -36,12 +38,14 @@ async def _get_online_players(server: Server) -> list[str]:
             pass
 
 
-async def _ensure_known_player(db: AsyncSession, name: str, now: datetime) -> KnownPlayer:
+async def _ensure_known_player(
+    db: AsyncSession, name: str, now: datetime, steam_id: Optional[str] = None,
+) -> KnownPlayer:
     """Get or create a KnownPlayer record."""
     result = await db.execute(select(KnownPlayer).where(KnownPlayer.name == name))
     player = result.scalar_one_or_none()
     if player is None:
-        player = KnownPlayer(name=name, first_seen=now, last_seen=now)
+        player = KnownPlayer(name=name, first_seen=now, last_seen=now, steam_id=steam_id)
         db.add(player)
         await db.flush()
         # Add initial name history
@@ -52,6 +56,9 @@ async def _ensure_known_player(db: AsyncSession, name: str, now: datetime) -> Kn
         db.add(name_entry)
     else:
         player.last_seen = now
+        # Update steam_id if we now have one and didn't before
+        if steam_id and not player.steam_id:
+            player.steam_id = steam_id
         # Update name history
         nh_result = await db.execute(
             select(PlayerNameHistory).where(
@@ -95,9 +102,104 @@ async def _check_ban_list_enforcement(db: AsyncSession, name: str, server_id: in
         logger.warning("Ban list check failed for %s on server %s: %s", name, server_id, e)
 
 
-async def _handle_player_join(db: AsyncSession, name: str, server_id: int, now: datetime) -> None:
+async def _check_steam_vac(db: AsyncSession, player: KnownPlayer, server_id: int) -> None:
+    """Check Steam VAC/ban status for a player. No-op if no API key or no steam_id."""
+    if not settings.STEAM_API_KEY or not player.steam_id:
+        return
+
+    from app.services.steam import get_player_summary
+    try:
+        info = await get_player_summary(player.steam_id, settings.STEAM_API_KEY)
+        if not info:
+            return
+
+        now = datetime.now(timezone.utc)
+        player.vac_banned = info.vac_banned
+        player.vac_ban_count = info.number_of_vac_bans
+        player.days_since_last_ban = info.days_since_last_ban
+        player.game_banned = info.game_banned
+        player.steam_profile_visibility = info.profile_visibility
+        player.steam_avatar_url = info.avatar_url
+        player.steam_persona_name = info.persona_name
+        player.steam_checked_at = now
+
+        if info.vac_banned or info.game_banned:
+            logger.warning(
+                "VAC/game ban detected for %s (steam:%s): %d VAC bans, game_banned=%s",
+                player.name, player.steam_id, info.number_of_vac_bans, info.game_banned,
+            )
+            # Log to activity log
+            from app.models.activity_log import ActivityLog
+            db.add(ActivityLog(
+                server_id=server_id,
+                action="VAC_BAN_DETECTED",
+                detail=f"Player {player.name} (Steam: {player.steam_id}) — "
+                       f"{info.number_of_vac_bans} VAC ban(s), "
+                       f"game banned: {info.game_banned}, "
+                       f"days since last ban: {info.days_since_last_ban}",
+            ))
+
+            # Fire trigger event
+            from app.services.trigger_engine import fire_event
+            try:
+                await fire_event("vac_ban_detected", server_id, {
+                    "player_name": player.name,
+                    "steam_id": player.steam_id,
+                    "vac_ban_count": info.number_of_vac_bans,
+                    "game_banned": info.game_banned,
+                    "days_since_last_ban": info.days_since_last_ban,
+                })
+            except Exception:
+                pass
+    except Exception as e:
+        logger.warning("Steam VAC check failed for %s: %s", player.name, e)
+
+
+async def _check_shared_ip(db: AsyncSession, player: KnownPlayer) -> None:
+    """Detect alt accounts sharing the same IP address."""
+    # Get the player's most recent session IP
+    sess_result = await db.execute(
+        select(PlayerSession).where(
+            PlayerSession.player_id == player.id,
+            PlayerSession.ip_address.isnot(None),
+        ).order_by(PlayerSession.joined_at.desc()).limit(1)
+    )
+    session = sess_result.scalar_one_or_none()
+    if not session or not session.ip_address:
+        return
+
+    # Find other players with sessions from the same IP
+    alt_result = await db.execute(
+        select(PlayerSession.player_id).where(
+            PlayerSession.ip_address == session.ip_address,
+            PlayerSession.player_id != player.id,
+        ).distinct()
+    )
+    alt_player_ids = [row[0] for row in alt_result.all()]
+
+    if alt_player_ids:
+        player.alt_account_ids = alt_player_ids
+        logger.info(
+            "Shared IP detected for %s: %d other account(s) from %s",
+            player.name, len(alt_player_ids), session.ip_address,
+        )
+
+        # Update the other players' alt lists to include this player too
+        other_result = await db.execute(
+            select(KnownPlayer).where(KnownPlayer.id.in_(alt_player_ids))
+        )
+        for other in other_result.scalars():
+            existing = other.alt_account_ids or []
+            if player.id not in existing:
+                other.alt_account_ids = existing + [player.id]
+
+
+async def _handle_player_join(
+    db: AsyncSession, name: str, server_id: int, now: datetime,
+    steam_id: Optional[str] = None,
+) -> None:
     """Player detected online — create/update KnownPlayer, open session."""
-    player = await _ensure_known_player(db, name, now)
+    player = await _ensure_known_player(db, name, now, steam_id=steam_id)
     player.session_count += 1
 
     session = PlayerSession(
@@ -106,6 +208,12 @@ async def _handle_player_join(db: AsyncSession, name: str, server_id: int, now: 
         joined_at=now,
     )
     db.add(session)
+
+    # Steam VAC check on join (non-blocking — failures are logged and swallowed)
+    await _check_steam_vac(db, player, server_id)
+
+    # Shared IP detection
+    await _check_shared_ip(db, player)
 
 
 async def _handle_player_leave(db: AsyncSession, name: str, server_id: int, now: datetime) -> None:
@@ -147,14 +255,22 @@ async def poll_players(ctx: dict = None) -> None:
 
         for server in servers:
             try:
-                current_names = set(await _get_online_players(server))
+                current_players = await _get_online_players(server)
+                # Build name->steam_id map from RCON data
+                steam_id_map: dict[str, Optional[str]] = {
+                    p["name"]: p.get("steam_id") for p in current_players
+                }
+                current_names = set(steam_id_map.keys())
                 previous_names = _server_players.get(server.id, set())
 
                 joined = current_names - previous_names
                 left = previous_names - current_names
 
                 for name in joined:
-                    await _handle_player_join(db, name, server.id, now)
+                    await _handle_player_join(
+                        db, name, server.id, now,
+                        steam_id=steam_id_map.get(name),
+                    )
                     await _check_ban_list_enforcement(db, name, server.id, server)
 
                 for name in left:

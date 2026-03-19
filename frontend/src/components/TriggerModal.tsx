@@ -116,7 +116,7 @@ export default function TriggerModal({ open, onClose, onSave, saving, trigger, s
     <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl p-6"
+        className="relative w-full max-w-2xl overflow-y-auto shadow-2xl p-4 sm:p-6 mx-0 sm:mx-4 rounded-none sm:rounded-2xl h-full sm:h-auto sm:max-h-[90vh]"
         style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
         onClick={(e) => e.stopPropagation()}
       >

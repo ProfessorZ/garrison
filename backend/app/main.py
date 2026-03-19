@@ -12,7 +12,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from app.config import settings
-from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat, commands, users, server_options, known_players, plugins, webhooks, ban_lists, triggers, metrics
+from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat, commands, users, server_options, known_players, plugins, webhooks, ban_lists, triggers, metrics, ban_templates
 from app.database import engine
 from app.rcon.manager import rcon_manager
 from app.plugins.loader import PluginLoader
@@ -184,6 +184,7 @@ app.include_router(webhooks.router)
 app.include_router(ban_lists.router)
 app.include_router(triggers.router)
 app.include_router(metrics.router)
+app.include_router(ban_templates.router)
 
 
 @app.get("/api/health")

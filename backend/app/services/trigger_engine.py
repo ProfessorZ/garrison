@@ -17,6 +17,7 @@ VALID_EVENT_TYPES = {
     "player_count_above", "player_count_below",
     "server_online", "server_offline",
     "chat_message",
+    "vac_ban_detected",
 }
 
 VALID_ACTION_TYPES = {

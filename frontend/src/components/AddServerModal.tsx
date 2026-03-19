@@ -135,7 +135,7 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={handleClose}
       />
-      <div className="relative rounded-xl shadow-2xl w-full max-w-lg mx-4 animate-fade-in"
+      <div className="relative shadow-2xl w-full max-w-lg animate-fade-in mx-0 sm:mx-4 rounded-none sm:rounded-xl h-full sm:h-auto overflow-y-auto sm:overflow-visible"
         style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>

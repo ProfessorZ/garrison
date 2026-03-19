@@ -12,6 +12,7 @@ from app.models.known_player import KnownPlayer
 from app.models.player_session import PlayerSession
 from app.models.player_ban import PlayerBan
 from app.models.player_name import PlayerNameHistory
+from app.models.player_note import PlayerNote
 from app.models.server import Server
 from app.models.user import User, UserRole
 from app.schemas.known_player import (
@@ -24,7 +25,11 @@ from app.schemas.known_player import (
     PlayerProfileOut,
     UpdateNotesRequest,
     CreateBanRequest,
+    PlayerNoteCreate,
+    PlayerNoteOut,
+    AltAccountOut,
 )
+from app.config import settings
 from app.services.player_tracker import is_player_online, _server_players
 
 router = APIRouter(prefix="/api/players", tags=["known-players"])
@@ -46,6 +51,16 @@ def _player_to_out(player: KnownPlayer) -> KnownPlayerOut:
         current_server_id=server_id,
         created_at=player.created_at,
         updated_at=player.updated_at,
+        steam_id=player.steam_id,
+        vac_banned=player.vac_banned,
+        vac_ban_count=player.vac_ban_count,
+        days_since_last_ban=player.days_since_last_ban,
+        game_banned=player.game_banned,
+        steam_profile_visibility=player.steam_profile_visibility,
+        steam_avatar_url=player.steam_avatar_url,
+        steam_persona_name=player.steam_persona_name,
+        alt_account_ids=player.alt_account_ids or [],
+        steam_checked_at=player.steam_checked_at,
     )
 
 
@@ -403,3 +418,204 @@ async def unban_player(
     player.is_banned = False
     await db.commit()
     return {"status": "ok"}
+
+
+# ── Steam Integration ─────────────────────────────────────────────
+
+
+@router.get("/{player_id}/steam", response_model=KnownPlayerOut)
+async def get_player_steam(
+    player_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
+    """Return current Steam data for a player (does not re-fetch from Steam)."""
+    result = await db.execute(select(KnownPlayer).where(KnownPlayer.id == player_id))
+    player = result.scalar_one_or_none()
+    if not player:
+        raise HTTPException(status_code=404, detail="Player not found")
+    return _player_to_out(player)
+
+
+@router.post("/{player_id}/steam/refresh", response_model=KnownPlayerOut)
+async def refresh_player_steam(
+    player_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_role(UserRole.MODERATOR)),
+):
+    """Force re-check Steam data for a player."""
+    result = await db.execute(select(KnownPlayer).where(KnownPlayer.id == player_id))
+    player = result.scalar_one_or_none()
+    if not player:
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    if not settings.STEAM_API_KEY:
+        raise HTTPException(status_code=400, detail="STEAM_API_KEY not configured")
+    if not player.steam_id:
+        raise HTTPException(status_code=400, detail="Player has no Steam ID")
+
+    from app.services.steam import get_player_summary
+    info = await get_player_summary(player.steam_id, settings.STEAM_API_KEY)
+    if not info:
+        raise HTTPException(status_code=502, detail="Failed to fetch Steam data")
+
+    now = datetime.now(timezone.utc)
+    player.vac_banned = info.vac_banned
+    player.vac_ban_count = info.number_of_vac_bans
+    player.days_since_last_ban = info.days_since_last_ban
+    player.game_banned = info.game_banned
+    player.steam_profile_visibility = info.profile_visibility
+    player.steam_avatar_url = info.avatar_url
+    player.steam_persona_name = info.persona_name
+    player.steam_checked_at = now
+    await db.commit()
+
+    return _player_to_out(player)
+
+
+# ── Player Notes (individual entries) ──────────────────────────────
+
+
+@router.get("/{player_id}/notes", response_model=list[PlayerNoteOut])
+async def list_notes(
+    player_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(KnownPlayer).where(KnownPlayer.id == player_id))
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    notes_result = await db.execute(
+        select(PlayerNote).where(PlayerNote.player_id == player_id)
+        .order_by(PlayerNote.created_at.desc())
+    )
+    notes = notes_result.scalars().all()
+
+    author_ids = {n.author_id for n in notes if n.author_id}
+    author_names: dict[int, str] = {}
+    if author_ids:
+        usr_result = await db.execute(select(User).where(User.id.in_(author_ids)))
+        for u in usr_result.scalars():
+            author_names[u.id] = u.username
+
+    return [
+        PlayerNoteOut(
+            id=n.id,
+            player_id=n.player_id,
+            author_id=n.author_id,
+            author_username=author_names.get(n.author_id) if n.author_id else None,
+            text=n.text,
+            created_at=n.created_at,
+        )
+        for n in notes
+    ]
+
+
+@router.post("/{player_id}/notes", response_model=PlayerNoteOut)
+async def create_note(
+    player_id: int,
+    body: PlayerNoteCreate,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_role(UserRole.MODERATOR)),
+):
+    result = await db.execute(select(KnownPlayer).where(KnownPlayer.id == player_id))
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    note = PlayerNote(
+        player_id=player_id,
+        author_id=_user.id,
+        text=body.text,
+    )
+    db.add(note)
+    await db.commit()
+    await db.refresh(note)
+
+    return PlayerNoteOut(
+        id=note.id,
+        player_id=note.player_id,
+        author_id=note.author_id,
+        author_username=_user.username,
+        text=note.text,
+        created_at=note.created_at,
+    )
+
+
+@router.delete("/{player_id}/notes/{note_id}")
+async def delete_note(
+    player_id: int,
+    note_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_role(UserRole.MODERATOR)),
+):
+    result = await db.execute(
+        select(PlayerNote).where(PlayerNote.id == note_id, PlayerNote.player_id == player_id)
+    )
+    note = result.scalar_one_or_none()
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+
+    await db.delete(note)
+    await db.commit()
+    return {"status": "ok"}
+
+
+# ── Alt Accounts (shared IP) ──────────────────────────────────────
+
+
+@router.get("/{player_id}/alts", response_model=list[AltAccountOut])
+async def get_alt_accounts(
+    player_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(KnownPlayer).where(KnownPlayer.id == player_id))
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    # Get all IPs used by this player
+    ip_result = await db.execute(
+        select(PlayerSession.ip_address).where(
+            PlayerSession.player_id == player_id,
+            PlayerSession.ip_address.isnot(None),
+        ).distinct()
+    )
+    player_ips = {row[0] for row in ip_result.all()}
+
+    if not player_ips:
+        return []
+
+    # Find other players that share any of these IPs
+    shared_result = await db.execute(
+        select(PlayerSession.player_id, PlayerSession.ip_address).where(
+            PlayerSession.ip_address.in_(player_ips),
+            PlayerSession.player_id != player_id,
+        ).distinct()
+    )
+    alt_map: dict[int, set[str]] = {}
+    for row in shared_result.all():
+        alt_map.setdefault(row[0], set()).add(row[1])
+
+    if not alt_map:
+        return []
+
+    # Fetch the KnownPlayer records
+    alt_ids = list(alt_map.keys())
+    players_result = await db.execute(
+        select(KnownPlayer).where(KnownPlayer.id.in_(alt_ids))
+    )
+    alts = players_result.scalars().all()
+
+    return [
+        AltAccountOut(
+            id=a.id,
+            name=a.name,
+            first_seen=a.first_seen,
+            last_seen=a.last_seen,
+            is_banned=a.is_banned,
+            session_count=a.session_count,
+            shared_ips=sorted(alt_map.get(a.id, set())),
+        )
+        for a in alts
+    ]

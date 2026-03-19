@@ -100,14 +100,14 @@ export default function DashboardPage() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-end justify-between mb-10 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 animate-fade-in">
         <div>
-          <h2 className="text-3xl font-extrabold text-white tracking-tight">Dashboard</h2>
-          <p className="text-[#64748b] mt-2">Manage and monitor your game servers</p>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Dashboard</h2>
+          <p className="text-[#64748b] mt-2 text-sm sm:text-base">Manage and monitor your game servers</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold text-[#0a0e1a] transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(0,212,170,0.25)] active:scale-[0.98]"
+          className="inline-flex items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-sm font-bold text-[#0a0e1a] transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(0,212,170,0.25)] active:scale-[0.98] w-full sm:w-auto shrink-0"
           style={{ background: "linear-gradient(135deg, #00d4aa, #00b894)" }}
         >
           <Plus className="h-4 w-4" strokeWidth={3} />
@@ -116,7 +116,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-12">
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -202,10 +202,10 @@ export default function DashboardPage() {
                     <div className="absolute top-0 left-0 h-full w-1 rounded-l-2xl" style={{ background: "#00d4aa" }} />
                   )}
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-5 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+                    <div className="flex items-center gap-3 sm:gap-5 min-w-0">
                       {/* Status indicator */}
-                      <div className={`relative flex items-center justify-center h-12 w-12 rounded-xl shrink-0 ${
+                      <div className={`relative flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12 rounded-xl shrink-0 ${
                         isOnline ? "bg-[rgba(0,212,170,0.08)]" : "bg-[rgba(255,71,87,0.06)]"
                       }`}>
                         {isLoading ? (
@@ -219,11 +219,11 @@ export default function DashboardPage() {
 
                       {/* Server info */}
                       <div className="min-w-0">
-                        <div className="flex items-center gap-3 mb-1.5">
-                          <h4 className="text-base font-bold text-white group-hover:text-[#00d4aa] transition-colors truncate">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-1.5">
+                          <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-[#00d4aa] transition-colors truncate">
                             {s.name}
                           </h4>
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
+                          <span className={`inline-flex items-center rounded-full px-2 sm:px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
                             isOnline
                               ? "text-[#00d4aa] bg-[rgba(0,212,170,0.1)]"
                               : "text-[#ff4757] bg-[rgba(255,71,87,0.08)]"
@@ -231,14 +231,14 @@ export default function DashboardPage() {
                             {isLoading ? "checking" : isOnline ? "online" : "offline"}
                           </span>
                         </div>
-                        <div className="flex items-center gap-4 text-xs text-[#64748b]">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-[#64748b]">
                           <span className="font-mono text-[#94a3b8]">{s.host}:{s.port}</span>
                           <span className="inline-flex items-center gap-1">
                             <Gamepad2 className="h-3 w-3" />
                             {s.game_type}
                           </span>
                           {s.last_checked && (
-                            <span className="inline-flex items-center gap-1">
+                            <span className="hidden sm:inline-flex items-center gap-1">
                               <Clock className="h-3 w-3" />
                               {new Date(s.last_checked).toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })}
                             </span>
@@ -248,10 +248,10 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Right side */}
-                    <div className="flex items-center gap-6 shrink-0">
+                    <div className="flex items-center gap-4 sm:gap-6 shrink-0 pl-13 sm:pl-0">
                       {/* Trend + Uptime indicators */}
                       {heuristics[s.id] && (
-                        <div className="flex items-center gap-4">
+                        <div className="hidden md:flex items-center gap-4">
                           <div className="flex items-center gap-1">
                             {heuristics[s.id].trend === "growing" ? (
                               <TrendingUp className="h-3.5 w-3.5 text-[#00d4aa]" />
@@ -278,7 +278,7 @@ export default function DashboardPage() {
                       )}
                       {isOnline && status?.player_count != null && (
                         <div className="text-right">
-                          <p className="text-2xl font-black text-white tabular-nums">{status.player_count}</p>
+                          <p className="text-xl sm:text-2xl font-black text-white tabular-nums">{status.player_count}</p>
                           <p className="text-[10px] text-[#64748b] uppercase tracking-wider font-semibold">players</p>
                         </div>
                       )}
