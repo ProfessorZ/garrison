@@ -104,15 +104,15 @@ export default function PlayerList({ serverId }: PlayerListProps) {
           <p className="text-xs text-[#64748b] mt-1">Players will appear here when they connect</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" style={{ paddingRight: 16 }}>
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">Player</th>
-                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider hidden md:table-cell">First Seen</th>
-                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider hidden sm:table-cell">Playtime (Server)</th>
-                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider hidden lg:table-cell">Sessions</th>
-                <th className="text-right px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">Actions</th>
+                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider" style={{ width: "100%" }}>Player</th>
+                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider hidden md:table-cell whitespace-nowrap" style={{ width: 120 }}>First Seen</th>
+                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider hidden sm:table-cell whitespace-nowrap" style={{ width: 140 }}>Playtime (Server)</th>
+                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider hidden lg:table-cell whitespace-nowrap" style={{ width: 80 }}>Sessions</th>
+                <th className="text-right px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider whitespace-nowrap" style={{ width: 140 }}>Actions</th>
               </tr>
             </thead>
             <tbody>

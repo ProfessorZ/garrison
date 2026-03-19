@@ -88,7 +88,7 @@ export default function ActivityFeed({
   return (
     <div>
       {!compact && (
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-4" style={{ paddingTop: 16 }}>
           <div className="relative">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#64748b]" />
             <select
@@ -111,9 +111,12 @@ export default function ActivityFeed({
           <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
         </div>
       ) : entries.length === 0 ? (
-        <div className="text-center py-8">
-          <Activity className="h-8 w-8 text-[#1a1f2e] mx-auto mb-2" />
-          <p className="text-sm text-[#94a3b8]">No activity yet</p>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full mb-4" style={{ background: "#1a1f2e" }}>
+            <Activity className="h-6 w-6 text-[#64748b]" />
+          </div>
+          <h4 className="text-sm font-semibold text-[#e2e8f0] mb-1">No activity yet</h4>
+          <p className="text-xs text-[#64748b]">Actions like commands, kicks, and bans will show up here</p>
         </div>
       ) : (
         <div className="space-y-px">

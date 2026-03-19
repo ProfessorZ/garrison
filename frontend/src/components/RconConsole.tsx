@@ -312,8 +312,8 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
       <div
         ref={scrollRef}
         onClick={() => inputRef.current?.focus()}
-        className="h-[28rem] overflow-y-auto p-4 cursor-text"
-        style={{ background: "#000", fontFamily: "var(--font-mono)" }}
+        className="overflow-y-auto p-4 cursor-text"
+        style={{ background: "#000", fontFamily: "var(--font-mono)", minHeight: 400, height: "28rem" }}
       >
         {lines.length === 0 && (
           <p className="text-[#64748b] select-none text-sm">
@@ -340,8 +340,8 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
         {showAutocomplete && flatList.length > 0 && (
           <div
             ref={autocompleteRef}
-            className="absolute bottom-full left-0 right-0 max-h-64 overflow-y-auto rounded-t-lg shadow-2xl z-10"
-            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", borderBottom: "none" }}
+            className="absolute bottom-full left-0 right-0 overflow-y-auto rounded-t-lg shadow-2xl z-10"
+            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", borderBottom: "none", maxHeight: 200 }}
           >
             {Object.keys(groupedCommands)
               .sort()

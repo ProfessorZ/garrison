@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useRef, useEffect, useCallback, type FormEvent } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -152,8 +152,101 @@ export default function ServerDetailPage() {
         </div>
       </div>
 
-      {/* Tabs — underline style */}
-      <div className="flex gap-0 mb-5 overflow-x-auto" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+      {/* Tabs — underline style, horizontally scrollable */}
+      <TabBar visibleTabs={visibleTabs} tab={tab} setTab={setTab} />
+
+      {/* Tab content */}
+      <div className="animate-fade-in pt-5" key={tab}>
+        {tab === "console" && (
+          <RconConsole serverId={serverId} gameType={server.game_type} />
+        )}
+        {tab === "players" && <PlayerList serverId={serverId} />}
+        {tab === "chat" && <ChatLog serverId={serverId} />}
+        {tab === "metrics" && <ServerMetrics serverId={serverId} />}
+        {tab === "schedules" && (
+          <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <ScheduleManager serverId={serverId} />
+          </div>
+        )}
+        {tab === "options" && <ServerOptions serverId={serverId} />}
+        {tab === "activity" && (
+          <div className="rounded-xl" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", padding: 20 }}>
+            <ActivityFeed serverId={serverId} limit={25} />
+          </div>
+        )}
+        {tab === "triggers" && isAdmin && (
+          <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <TriggerManager serverId={serverId} />
+          </div>
+        )}
+        {tab === "discord" && isAdmin && (
+          <DiscordSettings serverId={serverId} />
+        )}
+        {tab === "settings" && (
+          <SettingsPanel
+            serverId={serverId}
+            server={server}
+            onSaved={() => queryClient.invalidateQueries({ queryKey: ["server", serverId] })}
+          />
+        )}
+        {tab === "permissions" && isAdmin && (
+          <ServerPermissions serverId={serverId} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------- Tab Bar (scrollable with shadows) ----------
+
+function TabBar({
+  visibleTabs,
+  tab,
+  setTab,
+}: {
+  visibleTabs: { key: Tab; label: string; icon: typeof Terminal }[];
+  tab: Tab;
+  setTab: (t: Tab) => void;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showLeft, setShowLeft] = useState(false);
+  const [showRight, setShowRight] = useState(false);
+
+  const updateShadows = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setShowLeft(el.scrollLeft > 4);
+    setShowRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateShadows();
+    el.addEventListener("scroll", updateShadows, { passive: true });
+    window.addEventListener("resize", updateShadows);
+    return () => {
+      el.removeEventListener("scroll", updateShadows);
+      window.removeEventListener("resize", updateShadows);
+    };
+  }, [updateShadows]);
+
+  return (
+    <div className="relative" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+      {showLeft && (
+        <div className="absolute left-0 top-0 bottom-0 w-8 z-10 pointer-events-none"
+          style={{ background: "linear-gradient(to right, #0a0e1a, transparent)" }} />
+      )}
+      {showRight && (
+        <div className="absolute right-0 top-0 bottom-0 w-8 z-10 pointer-events-none"
+          style={{ background: "linear-gradient(to left, #0a0e1a, transparent)" }} />
+      )}
+      <div
+        ref={scrollRef}
+        className="flex gap-0 overflow-x-auto tab-scroll"
+        style={{ scrollbarWidth: "none" }}
+      >
+        <style>{`.tab-scroll::-webkit-scrollbar { display: none; }`}</style>
         {visibleTabs.map((t) => {
           const Icon = t.icon;
           const active = tab === t.key;
@@ -176,45 +269,6 @@ export default function ServerDetailPage() {
             </button>
           );
         })}
-      </div>
-
-      {/* Tab content */}
-      <div className="animate-fade-in" key={tab}>
-        {tab === "console" && (
-          <RconConsole serverId={serverId} gameType={server.game_type} />
-        )}
-        {tab === "players" && <PlayerList serverId={serverId} />}
-        {tab === "chat" && <ChatLog serverId={serverId} />}
-        {tab === "metrics" && <ServerMetrics serverId={serverId} />}
-        {tab === "schedules" && (
-          <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <ScheduleManager serverId={serverId} />
-          </div>
-        )}
-        {tab === "options" && <ServerOptions serverId={serverId} />}
-        {tab === "activity" && (
-          <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <ActivityFeed serverId={serverId} limit={25} />
-          </div>
-        )}
-        {tab === "triggers" && isAdmin && (
-          <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <TriggerManager serverId={serverId} />
-          </div>
-        )}
-        {tab === "discord" && isAdmin && (
-          <DiscordSettings serverId={serverId} />
-        )}
-        {tab === "settings" && (
-          <SettingsPanel
-            serverId={serverId}
-            server={server}
-            onSaved={() => queryClient.invalidateQueries({ queryKey: ["server", serverId] })}
-          />
-        )}
-        {tab === "permissions" && isAdmin && (
-          <ServerPermissions serverId={serverId} />
-        )}
       </div>
     </div>
   );
