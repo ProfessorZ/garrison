@@ -65,6 +65,11 @@ class PluginLoader:
         if not plugin_file.exists():
             raise ValueError(f"No plugin.py found in {plugin_dir}")
 
+        # Add plugin dir to sys.path so relative imports (e.g. `from schema import ...`) work
+        plugin_dir_str = str(plugin_dir)
+        if plugin_dir_str not in sys.path:
+            sys.path.insert(0, plugin_dir_str)
+
         spec = importlib.util.spec_from_file_location(
             f"garrison_plugin_{game_type}", plugin_file
         )
