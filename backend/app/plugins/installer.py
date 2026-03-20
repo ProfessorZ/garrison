@@ -13,6 +13,18 @@ class PluginInstaller:
     def __init__(self, plugins_dir: str):
         self.plugins_dir = Path(plugins_dir)
 
+    def _install_requirements(self, plugin_dir: Path) -> None:
+        req_file = plugin_dir / "requirements.txt"
+        if req_file.exists():
+            import sys
+            result = subprocess.run(
+                [sys.executable, "-m", "pip", "install", "-r", str(req_file)],
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode != 0:
+                raise ValueError(f"Failed to install plugin requirements: {result.stderr}")
+
     def install(self, git_url: str) -> dict:
         """Install a plugin from a git URL."""
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -47,6 +59,7 @@ class PluginInstaller:
                 elif item.is_dir():
                     shutil.copytree(item, dest / item.name)
 
+            self._install_requirements(dest)
             return manifest
 
     def install_from_zip(self, zip_content: bytes) -> dict:
@@ -111,6 +124,8 @@ class PluginInstaller:
                         shutil.copy2(item, dest)
                     elif item.is_dir():
                         shutil.copytree(item, dest / item.name)
+
+                self._install_requirements(dest)
 
         return manifest
 
