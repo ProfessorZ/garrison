@@ -111,6 +111,13 @@ def get_plugin(game_type: str, loader: PluginLoader | None = None) -> ConnectedP
         available = [p["id"] for p in loader.list_plugins()]
         raise ValueError(f"Unknown game type: {game_type}. Available: {available}")
 
+    # Stateful plugins (custom_connection=True) hold per-connection state.
+    # Always give callers a fresh instance to avoid shared-state races.
+    if getattr(plugin, "custom_connection", False):
+        fresh = loader.new_instance(game_type)
+        if fresh is not None:
+            plugin = fresh
+
     return ConnectedPlugin(plugin, server_id=0)
 
 

@@ -14,12 +14,14 @@ class PluginLoader:
     def __init__(self, plugins_dir: str):
         self.plugins_dir = Path(plugins_dir)
         self.plugins: dict[str, GamePlugin] = {}
+        self.plugin_classes: dict[str, type] = {}
         self.manifests: dict[str, dict] = {}
         self.load_errors: dict[str, str] = {}
 
     def load_all(self):
         """Scan plugins directory and load all valid plugins."""
         self.plugins.clear()
+        self.plugin_classes.clear()
         self.manifests.clear()
         self.load_errors.clear()
 
@@ -93,6 +95,7 @@ class PluginLoader:
 
         plugin = plugin_class()
         self.plugins[game_type] = plugin
+        self.plugin_classes[game_type] = plugin_class
         self.manifests[game_type] = manifest
         logger.info(
             "Loaded plugin: %s (%s) v%s",
@@ -103,6 +106,11 @@ class PluginLoader:
 
     def get_plugin(self, game_type: str) -> GamePlugin | None:
         return self.plugins.get(game_type)
+
+    def new_instance(self, game_type: str) -> GamePlugin | None:
+        """Return a fresh plugin instance (for stateful/custom-connection plugins)."""
+        cls = self.plugin_classes.get(game_type)
+        return cls() if cls else None
 
     def list_plugins(self) -> list[dict]:
         return [
