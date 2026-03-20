@@ -1,6 +1,5 @@
 """Garrison plugin for Hell Let Loose dedicated servers."""
 
-import json
 import logging
 
 try:
@@ -104,7 +103,7 @@ logger = logging.getLogger(__name__)
 
 
 class HLLPlugin(GamePlugin):
-    """Hell Let Loose RCON plugin using the custom HLL JSON-over-TCP protocol."""
+    """Hell Let Loose RCON plugin using the XOR plaintext protocol."""
 
     custom_connection = True
 
@@ -133,83 +132,53 @@ class HLLPlugin(GamePlugin):
             self._connection = None
 
     async def send_command_custom(self, command: str) -> str:
-        """Send an HLL command.
-
-        Accepts either a bare command name (e.g. "GetSlots") or
-        "CommandName {json_content}" for commands that need a body.
-        Returns the full response as a JSON string.
-        """
+        """Send a raw HLL RCON command and return the plaintext response."""
         if not self._connection or not self._connection.connected:
-            return json.dumps({"statusCode": 0, "statusMessage": "Not connected"})
-        parts = command.split(" ", 1)
-        cmd_name = parts[0]
-        content = parts[1] if len(parts) > 1 else ""
-        resp = await self._connection.send(cmd_name, content=content)
-        return json.dumps(resp)
-
-    # ── Helpers ────────────────────────────────────────────────────
-
-    def _parse_response(self, raw: str) -> dict:
-        """Parse a JSON response string, returning the dict."""
-        data = json.loads(raw) if isinstance(raw, str) else raw
-        return data
-
-    def _get_content(self, data: dict):
-        """Extract and parse contentBody from a response."""
-        content = data.get("contentBody", "")
-        if isinstance(content, str):
-            try:
-                return json.loads(content)
-            except (json.JSONDecodeError, TypeError):
-                return content
-        return content
+            return "ERROR: Not connected"
+        return await self._connection.send(command)
 
     # ── GamePlugin interface ───────────────────────────────────────
 
     async def parse_players(self, raw_response: str) -> list[PlayerInfo]:
-        data = self._parse_response(raw_response)
-        content = self._get_content(data)
-        if not isinstance(content, list):
-            return []
+        """Parse the GetPlayerIds response.
+
+        HLL returns lines like:
+            PlayerName : 76561198012345678
+        """
         players = []
-        for entry in content:
-            if isinstance(entry, dict):
-                players.append(PlayerInfo(
-                    name=entry.get("name", "Unknown"),
-                    steam_id=entry.get("player_id"),
-                ))
-            elif isinstance(entry, str):
-                players.append(PlayerInfo(name=entry))
+        for line in raw_response.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            if " : " in line:
+                name, steam_id = line.rsplit(" : ", 1)
+                players.append(PlayerInfo(name=name.strip(), steam_id=steam_id.strip()))
+            else:
+                players.append(PlayerInfo(name=line))
         return players
 
     async def get_status(self, send_command) -> ServerStatus:
         try:
+            # GetSlots returns e.g. "50/100"
             slots_raw = await send_command("GetSlots")
-            slots = self._parse_response(slots_raw)
-            content = self._get_content(slots)
-            if isinstance(content, dict):
-                current = content.get("current_players", 0)
-                maximum = content.get("max_players", 0)
-            else:
-                current, maximum = 0, 0
+            current, maximum = 0, 0
+            if "/" in slots_raw:
+                parts = slots_raw.split("/", 1)
+                current = int(parts[0].strip())
+                maximum = int(parts[1].strip())
 
             extra: dict = {"max_players": maximum}
 
-            # Try to get server name
             try:
                 name_raw = await send_command("GetServerName")
-                name_data = self._parse_response(name_raw)
-                name_content = self._get_content(name_data)
-                if isinstance(name_content, str):
-                    extra["server_name"] = name_content
-                elif isinstance(name_content, dict):
-                    extra["server_name"] = name_content.get("name", "")
+                if name_raw:
+                    extra["server_name"] = name_raw
             except Exception:
                 pass
 
             return ServerStatus(
                 online=True,
-                player_count=int(current),
+                player_count=current,
                 extra=extra,
             )
         except Exception:
@@ -228,41 +197,28 @@ class HLLPlugin(GamePlugin):
         return await set_option(send_command, name, value)
 
     async def kick_player(self, send_command, name: str, reason: str = "") -> str:
-        # Look up player_id by name
-        raw = await send_command("GetPlayerIds")
-        players = await self.parse_players(raw)
-        player = next((p for p in players if p.name == name), None)
-        if not player or not player.steam_id:
-            return f"Error: player '{name}' not found or has no Steam ID"
-        content = {"player_id": player.steam_id, "reason": reason or "Kicked by admin"}
-        result_raw = await send_command(f"KickPlayerById {json.dumps(content)}")
-        result = self._parse_response(result_raw)
-        if result.get("statusCode") == 200:
-            return f"Kicked {name} ({player.steam_id})"
-        return f"Kick failed: {result.get('statusMessage', 'unknown error')}"
+        reason = reason or "Kicked by admin"
+        result = await send_command(f"Kick {name} {reason}")
+        if result.upper().startswith("SUCCESS"):
+            return f"Kicked {name}"
+        return f"Kick failed: {result}"
 
     async def ban_player(self, send_command, name: str, reason: str = "") -> str:
+        # Look up steam ID first
         raw = await send_command("GetPlayerIds")
         players = await self.parse_players(raw)
         player = next((p for p in players if p.name == name), None)
         if not player or not player.steam_id:
             return f"Error: player '{name}' not found or has no Steam ID"
-        content = {
-            "player_id": player.steam_id,
-            "reason": reason or "Banned by admin",
-            "by_admin_name": "Garrison",
-        }
-        result_raw = await send_command(f"PermanentBanByPlayerId {json.dumps(content)}")
-        result = self._parse_response(result_raw)
-        if result.get("statusCode") == 200:
+        reason = reason or "Banned by admin"
+        result = await send_command(f"BanById {player.steam_id} {reason}")
+        if result.upper().startswith("SUCCESS"):
             return f"Permanently banned {name} ({player.steam_id})"
-        return f"Ban failed: {result.get('statusMessage', 'unknown error')}"
+        return f"Ban failed: {result}"
 
     async def unban_player(self, send_command, name: str) -> str:
-        # For unban, name is treated as a Steam ID since we can't look up offline players
-        content = {"player_id": name}
-        result_raw = await send_command(f"UnbanByPlayerId {json.dumps(content)}")
-        result = self._parse_response(result_raw)
-        if result.get("statusCode") == 200:
+        # name is treated as a Steam ID for unbans
+        result = await send_command(f"PardonById {name}")
+        if result.upper().startswith("SUCCESS"):
             return f"Unbanned {name}"
-        return f"Unban failed: {result.get('statusMessage', 'unknown error')}"
+        return f"Unban failed: {result}"

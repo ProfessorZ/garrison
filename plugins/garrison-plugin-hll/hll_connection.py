@@ -1,14 +1,22 @@
-"""HLL custom JSON-over-TCP RCON protocol implementation."""
+"""HLL RCON protocol: XOR-encrypted plaintext over TCP."""
 
 import asyncio
-import json
 import logging
-import struct
-
-HEADER_FORMAT = "<II"
-HEADER_SIZE = 8
 
 logger = logging.getLogger(__name__)
+
+# How long to wait for additional data before considering a response complete.
+_READ_TIMEOUT = 2.0
+_CHUNK_SIZE = 4096
+
+
+def _xor_encrypt(data: bytes, key: bytes) -> bytes:
+    """XOR each byte of *data* with the 4-byte *key* (cycling)."""
+    return bytes(b ^ key[i % len(key)] for i, b in enumerate(data))
+
+
+# Decrypt is the same operation — XOR is its own inverse.
+_xor_decrypt = _xor_encrypt
 
 
 class HLLConnection:
@@ -18,50 +26,49 @@ class HLLConnection:
         self.host = host
         self.port = port
         self.password = password
-        self.auth_token: str | None = None
+        self._xor_key: bytes = b""
         self.reader: asyncio.StreamReader | None = None
         self.writer: asyncio.StreamWriter | None = None
-        self._request_id = 0
         self._lock = asyncio.Lock()
 
-    def _next_request_id(self) -> int:
-        self._request_id += 1
-        return self._request_id
+    # ── public API ────────────────────────────────────────────────
 
     async def connect(self) -> None:
-        """Connect to the server and authenticate."""
+        """Connect to the server, receive the XOR key, and authenticate."""
         self.reader, self.writer = await asyncio.wait_for(
             asyncio.open_connection(self.host, self.port),
             timeout=10,
         )
-        # Authenticate
-        resp = await self._send_raw(
-            self._next_request_id(),
-            "Login",
-            version=1,
-            content=json.dumps({"password": self.password}),
+
+        # Step 1: server sends 4-byte XOR key immediately on connect.
+        self._xor_key = await asyncio.wait_for(
+            self.reader.readexactly(4),
+            timeout=10,
         )
-        status = resp.get("statusCode", 0)
-        if status != 200:
-            msg = resp.get("statusMessage", "Unknown error — check RCON password and port")
-            raise ConnectionError(f"HLL authentication failed (status {status}): {msg}")
-        # Extract auth token from contentBody
-        content_body = resp.get("contentBody", "")
-        if isinstance(content_body, str):
-            try:
-                content_body = json.loads(content_body)
-            except (json.JSONDecodeError, TypeError):
-                pass
-        if isinstance(content_body, dict):
-            self.auth_token = content_body.get("token", content_body.get("authToken", ""))
-        else:
-            self.auth_token = str(content_body)
+        logger.debug("Received XOR key: %s", self._xor_key.hex())
+
+        # Step 2: send XOR-encrypted password (null-terminated).
+        password_bytes = (self.password + "\0").encode("utf-8")
+        self.writer.write(_xor_encrypt(password_bytes, self._xor_key))
+        await self.writer.drain()
+
+        # Step 3: read auth response — should decrypt to "PASS" or "FAIL".
+        raw_resp = await self._read_response()
+        if raw_resp != "PASS":
+            await self.close()
+            raise ConnectionError(
+                f"HLL authentication failed (server responded: {raw_resp!r})"
+            )
+
         logger.info("HLL RCON authenticated to %s:%d", self.host, self.port)
 
-    async def send(self, command: str, version: int = 1, content: str = "") -> dict:
-        """Send a command and return the parsed response dict."""
+    async def send(self, command: str) -> str:
+        """Send an RCON command and return the plaintext response."""
         async with self._lock:
-            return await self._send_raw(self._next_request_id(), command, version, content)
+            cmd_bytes = command.encode("utf-8")
+            self.writer.write(_xor_encrypt(cmd_bytes, self._xor_key))
+            await self.writer.drain()
+            return await self._read_response()
 
     async def close(self) -> None:
         """Close the TCP connection."""
@@ -73,37 +80,34 @@ class HLLConnection:
                 pass
             self.writer = None
             self.reader = None
-        self.auth_token = None
 
     @property
     def connected(self) -> bool:
         return self.writer is not None and not self.writer.is_closing()
 
-    async def _send_raw(self, request_id: int, command: str, version: int, content: str) -> dict:
-        body = json.dumps({
-            "authToken": self.auth_token or "",
-            "version": version,
-            "name": command,
-            "contentBody": content,
-        }).encode("utf-8")
-        header = struct.pack(HEADER_FORMAT, request_id, len(body))
-        self.writer.write(header + body)
-        await self.writer.drain()
-        return await self._receive_raw(request_id)
+    # ── internals ─────────────────────────────────────────────────
 
-    async def _receive_raw(self, expected_request_id: int) -> dict:
-        header = await asyncio.wait_for(
-            self.reader.readexactly(HEADER_SIZE),
-            timeout=15,
-        )
-        req_id, body_len = struct.unpack(HEADER_FORMAT, header)
-        if body_len == 0:
-            return {"statusCode": 0, "statusMessage": "Empty response from server"}
-        body = await asyncio.wait_for(
-            self.reader.readexactly(body_len),
-            timeout=15,
-        )
-        try:
-            return json.loads(body)
-        except json.JSONDecodeError:
-            return {"statusCode": 0, "statusMessage": f"Invalid JSON response: {body[:128]!r}"}
+    async def _read_response(self) -> str:
+        """Read and decrypt a full response from the server.
+
+        HLL RCON has no explicit length framing — we keep reading until
+        the server stops sending data (detected via a short timeout).
+        """
+        buf = bytearray()
+        while True:
+            try:
+                chunk = await asyncio.wait_for(
+                    self.reader.read(_CHUNK_SIZE),
+                    timeout=_READ_TIMEOUT,
+                )
+                if not chunk:
+                    # Connection closed by server.
+                    break
+                buf.extend(chunk)
+            except asyncio.TimeoutError:
+                # No more data — response is complete.
+                break
+
+        decrypted = _xor_decrypt(bytes(buf), self._xor_key)
+        # Strip any trailing null bytes or whitespace.
+        return decrypted.decode("utf-8", errors="replace").strip("\x00").strip()
