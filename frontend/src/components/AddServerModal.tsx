@@ -37,8 +37,10 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
   const { data: plugins = [] } = useQuery<PluginInfo[]>({
     queryKey: ["plugins"],
     queryFn: async () => {
-      const res = await client.get<PluginInfo[]>("/plugins/");
-      return res.data;
+      const res = await client.get<{ plugins: PluginInfo[] } | PluginInfo[]>("/plugins/");
+      // API may return {plugins: [...], errors: {...}} or a plain array
+      const data = res.data as any;
+      return Array.isArray(data) ? data : (data.plugins ?? []);
     },
     staleTime: 60_000,
   });
