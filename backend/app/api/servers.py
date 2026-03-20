@@ -126,7 +126,10 @@ async def server_status(
     server = result.scalar_one_or_none()
     if not server:
         raise HTTPException(status_code=404, detail="Server not found")
-    plugin = get_plugin(server.game_type)
+    try:
+        plugin = get_plugin(server.game_type)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Unknown game type: {server.game_type}. Install the plugin first.")
     password = decrypt_rcon_password(server.rcon_password_encrypted)
     await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
     try:
