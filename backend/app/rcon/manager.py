@@ -105,32 +105,42 @@ class RconConnection:
         self._authenticated = True
 
     async def send_command(self, command: str) -> str:
-        """Send a command and return the response string."""
+        """Send a command and return the response string.
+
+        Reads until we get the response for our command ID, then checks the
+        reader buffer for any immediately-available continuation packets
+        (multi-packet responses). Does not cancel mid-read (which would corrupt
+        the stream) and does not rely on a sentinel packet (which Factorio ignores).
+        """
         if not self.connected or not self._authenticated:
             raise ConnectionError("Not connected or not authenticated")
         async with self._lock:
             cmd_id = self._next_id()
-            # Send command packet
             self._writer.write(
                 _encode_packet(cmd_id, PacketType.SERVERDATA_EXECCOMMAND, command)
             )
-            # Send a follow-up empty packet to detect end of multi-packet responses.
-            # Use type EXECCOMMAND (2) not RESPONSE_VALUE (0) — some servers (e.g. Factorio)
-            # reject type 0 packets from clients as invalid.
-            end_id = self._next_id()
-            self._writer.write(
-                _encode_packet(end_id, PacketType.SERVERDATA_EXECCOMMAND, "")
-            )
             await self._writer.drain()
 
-            # Read response packets until we see end_id
             body_parts: list[str] = []
+            # Read until we get the response for our command
             while True:
-                resp_id, resp_type, body = await _read_packet(self._reader)
-                if resp_id == end_id:
-                    break
+                resp_id, _resp_type, body = await _read_packet(self._reader)
                 if resp_id == cmd_id:
                     body_parts.append(body)
+                    break
+
+            # Drain any immediately-available continuation packets without
+            # blocking — yield once so the event loop can fill the buffer,
+            # then read synchronously from it.
+            await asyncio.sleep(0)
+            while self._reader._buffer:
+                try:
+                    resp_id, _resp_type, body = await _read_packet(self._reader)
+                    if resp_id == cmd_id:
+                        body_parts.append(body)
+                except Exception:
+                    break
+
             return "".join(body_parts)
 
     async def close(self) -> None:
