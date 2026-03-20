@@ -16,12 +16,13 @@ class PluginInstaller:
     def install(self, git_url: str) -> dict:
         """Install a plugin from a git URL."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            subprocess.run(
+            result = subprocess.run(
                 ["git", "clone", "--depth", "1", git_url, tmpdir],
-                check=True,
                 capture_output=True,
                 text=True,
             )
+            if result.returncode != 0:
+                raise ValueError(f"git clone failed: {result.stderr}")
 
             manifest_path = Path(tmpdir) / "manifest.json"
             if not manifest_path.exists():

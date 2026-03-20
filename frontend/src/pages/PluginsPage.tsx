@@ -14,7 +14,7 @@ import {
   Package,
 } from "lucide-react";
 import { pluginsApi } from "../api/plugins";
-import type { Plugin } from "../api/plugins";
+import type { Plugin, PluginListResponse } from "../api/plugins";
 
 export default function PluginsPage() {
   const queryClient = useQueryClient();
@@ -27,10 +27,12 @@ export default function PluginsPage() {
   const [successPlugin, setSuccessPlugin] = useState<Plugin | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: plugins = [], isLoading } = useQuery({
+  const { data: pluginData, isLoading } = useQuery({
     queryKey: ["plugins"],
     queryFn: pluginsApi.list,
   });
+  const plugins = pluginData?.plugins ?? [];
+  const loadErrors = pluginData?.errors ?? {};
 
   const gitInstall = useMutation({
     mutationFn: (url: string) => pluginsApi.installFromGit(url),
@@ -172,6 +174,31 @@ export default function PluginsPage() {
           >
             <X className="h-4 w-4" />
           </button>
+        </div>
+      )}
+
+      {/* Plugin Load Errors */}
+      {Object.keys(loadErrors).length > 0 && (
+        <div
+          className="rounded-xl p-4 flex items-start gap-3"
+          style={{
+            background: "rgba(251, 191, 36, 0.06)",
+            border: "1px solid rgba(251, 191, 36, 0.25)",
+          }}
+        >
+          <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-amber-400">
+              Some plugins failed to load
+            </p>
+            <ul className="mt-2 space-y-1">
+              {Object.entries(loadErrors).map(([name, error]) => (
+                <li key={name} className="text-xs text-[#94a3b8]">
+                  <span className="font-medium text-[#e2e8f0]">{name}</span>: {error}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       )}
 

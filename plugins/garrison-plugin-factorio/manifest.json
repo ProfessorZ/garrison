@@ -9,7 +9,7 @@
   "garrison_api": "1",
   "default_ports": {
     "game": 34197,
-    "rcon": 27015
+    "rcon": 34197
   },
   "icon": "\u2699\ufe0f"
 }

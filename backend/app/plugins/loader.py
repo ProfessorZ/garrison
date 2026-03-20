@@ -13,11 +13,13 @@ class PluginLoader:
         self.plugins_dir = Path(plugins_dir)
         self.plugins: dict[str, GamePlugin] = {}
         self.manifests: dict[str, dict] = {}
+        self.load_errors: dict[str, str] = {}
 
     def load_all(self):
         """Scan plugins directory and load all valid plugins."""
         self.plugins.clear()
         self.manifests.clear()
+        self.load_errors.clear()
 
         if not self.plugins_dir.exists():
             self.plugins_dir.mkdir(parents=True, exist_ok=True)
@@ -30,6 +32,7 @@ class PluginLoader:
                     self._load_plugin(entry)
                 except Exception as e:
                     logger.error("Failed to load plugin %s: %s", entry.name, e)
+                    self.load_errors[entry.name] = str(e)
 
     def _load_plugin(self, plugin_dir: Path):
         manifest = json.loads((plugin_dir / "manifest.json").read_text())
@@ -96,3 +99,9 @@ class PluginLoader:
             }
             for m in self.manifests.values()
         ]
+
+    def list_plugins_full(self) -> dict:
+        return {
+            "plugins": self.list_plugins(),
+            "errors": dict(self.load_errors),
+        }

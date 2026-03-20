@@ -32,7 +32,7 @@ def _get_installer(request: Request):
 async def list_plugins(request: Request):
     """List all installed plugins."""
     loader = _get_loader(request)
-    return loader.list_plugins()
+    return loader.list_plugins_full()
 
 
 @router.post("/install")

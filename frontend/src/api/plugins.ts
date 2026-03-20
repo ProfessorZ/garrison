@@ -11,14 +11,19 @@ export interface Plugin {
   status?: string;
 }
 
+export interface PluginListResponse {
+  plugins: Plugin[];
+  errors: Record<string, string>;
+}
+
 export interface InstallResult {
   status: string;
   plugin: Plugin;
 }
 
 export const pluginsApi = {
-  list: async (): Promise<Plugin[]> => {
-    const res = await client.get<Plugin[]>("/plugins/");
+  list: async (): Promise<PluginListResponse> => {
+    const res = await client.get<PluginListResponse>("/plugins/");
     return res.data;
   },
 
