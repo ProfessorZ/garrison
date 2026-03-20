@@ -57,8 +57,14 @@ class HLLConnection:
         self._auth_token = resp.get("contentBody", "")
         logger.info("HLL RCON authenticated to %s:%d", self.host, self.port)
 
-    async def send(self, command: str, content: str = "") -> str:
-        """Send a command and return the contentBody of the response."""
+    async def send(self, command: str, content: str | dict = "") -> str:
+        """Send a command and return the contentBody of the response.
+
+        If *content* is a dict it is JSON-encoded before being placed in the
+        request's ``contentBody`` field.
+        """
+        if isinstance(content, dict):
+            content = json.dumps(content)
         async with self._lock:
             resp = await self._send_raw(command, content)
             return resp.get("contentBody", "")

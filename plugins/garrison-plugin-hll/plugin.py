@@ -1,5 +1,6 @@
 """Garrison plugin for Hell Let Loose dedicated servers."""
 
+import json
 import logging
 
 try:
@@ -131,24 +132,38 @@ class HLLPlugin(GamePlugin):
             await self._connection.close()
             self._connection = None
 
-    async def send_command_custom(self, command: str, content: str = "") -> str:
+    async def send_command_custom(self, command: str, content: str | dict = "") -> str:
         """Send an HLL RCON command and return the response contentBody."""
         if not self._connection or not self._connection.connected:
             return "ERROR: Not connected"
         # When called from the console with a single string like "Kick name reason",
         # split the first word as the command name.
-        if not content and " " in command:
+        if isinstance(content, str) and not content and " " in command:
             command, content = command.split(" ", 1)
         return await self._connection.send(command, content)
 
     # ── GamePlugin interface ───────────────────────────────────────
 
     async def parse_players(self, raw_response: str) -> list[PlayerInfo]:
-        """Parse the GetPlayerIds response.
+        """Parse the GetServerInformation players response.
 
-        HLL returns lines like:
-            PlayerName : 76561198012345678
+        The API returns JSON like: {"players": [{"name": "...", "steamId": "..."}, ...]}
+        Falls back to the old line-based format if JSON parsing fails.
         """
+        try:
+            data = json.loads(raw_response) if isinstance(raw_response, str) else raw_response
+            if isinstance(data, dict) and "players" in data:
+                return [
+                    PlayerInfo(
+                        name=p.get("name", "Unknown"),
+                        steam_id=p.get("steamId"),
+                    )
+                    for p in data["players"]
+                ]
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+        # Fallback: line-based "Name : SteamID" format
         players = []
         for line in raw_response.splitlines():
             line = line.strip()
@@ -163,22 +178,46 @@ class HLLPlugin(GamePlugin):
 
     async def get_status(self, send_command) -> ServerStatus:
         try:
-            # GetSlots returns e.g. "50/100"
-            slots_raw = await send_command("GetSlots")
-            current, maximum = 0, 0
-            if "/" in slots_raw:
-                parts = slots_raw.split("/", 1)
-                current = int(parts[0].strip())
-                maximum = int(parts[1].strip())
-
-            extra: dict = {"max_players": maximum}
-
+            session_raw = await send_command(
+                "GetServerInformation", {"Name": "session", "Value": ""}
+            )
             try:
-                name_raw = await send_command("GetServerName")
-                if name_raw:
-                    extra["server_name"] = name_raw
+                session = json.loads(session_raw) if isinstance(session_raw, str) else session_raw
+            except (json.JSONDecodeError, TypeError):
+                session = {}
+
+            extra: dict = {}
+            if session.get("serverName"):
+                extra["server_name"] = session["serverName"]
+            if session.get("mapName"):
+                extra["map"] = session["mapName"]
+            if session.get("gameMode"):
+                extra["game_mode"] = session["gameMode"]
+            if "remainingMatchTime" in session:
+                extra["remaining_time"] = session["remainingMatchTime"]
+            if "matchTime" in session:
+                extra["match_time"] = session["matchTime"]
+
+            # Try to get player slots
+            current, maximum = 0, 0
+            try:
+                slots_raw = await send_command(
+                    "GetServerInformation", {"Name": "slots", "Value": ""}
+                )
+                try:
+                    slots_data = json.loads(slots_raw) if isinstance(slots_raw, str) else slots_raw
+                    if isinstance(slots_data, dict):
+                        current = int(slots_data.get("current", 0))
+                        maximum = int(slots_data.get("max", 0))
+                except (json.JSONDecodeError, TypeError, ValueError):
+                    if isinstance(slots_raw, str) and "/" in slots_raw:
+                        parts = slots_raw.split("/", 1)
+                        current = int(parts[0].strip())
+                        maximum = int(parts[1].strip())
             except Exception:
                 pass
+
+            extra["max_players"] = maximum
 
             return ServerStatus(
                 online=True,
@@ -209,7 +248,9 @@ class HLLPlugin(GamePlugin):
 
     async def ban_player(self, send_command, name: str, reason: str = "") -> str:
         # Look up steam ID first
-        raw = await send_command("GetPlayerIds")
+        raw = await send_command(
+            "GetServerInformation", {"Name": "players", "Value": ""}
+        )
         players = await self.parse_players(raw)
         player = next((p for p in players if p.name == name), None)
         if not player or not player.steam_id:
