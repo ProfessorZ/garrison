@@ -16,6 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 import { serversApi } from "../api/servers";
+import { pluginsApi } from "../api/plugins";
 import { useAuth } from "../contexts/AuthContext";
 import RconConsole from "../components/RconConsole";
 import PlayerList from "../components/PlayerList";
@@ -276,6 +277,24 @@ function TabBar({
 
 // ---------- Settings Panel ----------
 
+function PluginSelect({ value, onChange, inputCls, inputStyle }: {
+  value: string;
+  onChange: (v: string) => void;
+  inputCls: string;
+  inputStyle: React.CSSProperties;
+}) {
+  const { data: pluginData } = useQuery({ queryKey: ["plugins"], queryFn: pluginsApi.list, staleTime: 60_000 });
+  const plugins = pluginData?.plugins ?? [];
+  return (
+    <select value={value} onChange={(e) => onChange(e.target.value)} className={inputCls} style={inputStyle}>
+      {plugins.map((p) => (
+        <option key={p.id} value={p.id}>{p.display_name ?? p.name}</option>
+      ))}
+      {plugins.length === 0 && <option value={value}>{value}</option>}
+    </select>
+  );
+}
+
 interface SettingsPanelProps {
   serverId: number;
   server: { name: string; host: string; port: number; rcon_port: number; game_type: string };
@@ -353,21 +372,12 @@ function SettingsPanel({ serverId, server, onSaved }: SettingsPanelProps) {
             <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1.5 uppercase tracking-wider">
               Game Type
             </label>
-            <select
+            <PluginSelect
               value={form.game_type}
-              onChange={(e) => setForm({ ...form, game_type: e.target.value })}
-              className={inputCls}
-              style={inputStyle}
-            >
-              <option value="zomboid">Project Zomboid</option>
-              <option value="factorio">Factorio</option>
-              <option value="minecraft">Minecraft</option>
-              <option value="valheim">Valheim</option>
-              <option value="ark">ARK: Survival</option>
-              <option value="rust">Rust</option>
-              <option value="csgo">CS2 / CS:GO</option>
-              <option value="other">Other</option>
-            </select>
+              onChange={(v) => setForm({ ...form, game_type: v })}
+              inputCls={inputCls}
+              inputStyle={inputStyle}
+            />
           </div>
         </div>
 

@@ -3,12 +3,15 @@ import client from "./client";
 export interface Plugin {
   id: string;
   name: string;
+  display_name?: string;
   version: string;
   description?: string;
   author?: string;
   repo?: string;
+  icon?: string;
   game_type?: string;
   status?: string;
+  default_ports?: { game?: number; rcon?: number };
 }
 
 export interface PluginListResponse {
