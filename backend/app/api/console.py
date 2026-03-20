@@ -112,7 +112,12 @@ async def websocket_console(websocket: WebSocket, server_id: int):
         await websocket.close(code=4004)
         return
 
-    plugin = get_plugin(server.game_type)
+    try:
+        plugin = get_plugin(server.game_type)
+    except ValueError as e:
+        await websocket.send_json({"type": "error", "message": str(e)})
+        await websocket.close(code=4004)
+        return
     password = decrypt_rcon_password(server.rcon_password_encrypted)
     try:
         await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
