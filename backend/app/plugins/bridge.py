@@ -75,6 +75,10 @@ class ConnectedPlugin:
     async def get_chat(self) -> list[str]:
         return []
 
+    async def poll_events(self, since: str | None = None) -> list[dict]:
+        """Poll for game events via the plugin."""
+        return await self.plugin.poll_events(self.send_command, since=since)
+
     async def get_options(self):
         return await self.plugin.get_options(self.send_command)
 

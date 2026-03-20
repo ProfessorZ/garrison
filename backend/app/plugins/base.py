@@ -117,3 +117,11 @@ class GamePlugin(ABC):
     async def send_command_custom(self, command: str, content: str = "") -> str:
         """Override to send a command via custom protocol."""
         raise NotImplementedError
+
+    async def poll_events(self, send_command, since: str | None = None) -> list[dict]:
+        """Override to return game events (kills, chat, connects, etc.) since last poll.
+
+        Each dict should have at minimum: event_type, timestamp, player_name.
+        Optional keys: player_id, target_name, target_id, message, weapon, raw.
+        """
+        return []

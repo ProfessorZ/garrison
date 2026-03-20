@@ -14,6 +14,7 @@ import {
   SlidersHorizontal,
   Bell,
   Zap,
+  Crosshair,
 } from "lucide-react";
 import { serversApi } from "../api/servers";
 import { pluginsApi } from "../api/plugins";
@@ -21,6 +22,7 @@ import { useAuth } from "../contexts/AuthContext";
 import RconConsole from "../components/RconConsole";
 import PlayerList from "../components/PlayerList";
 import ChatLog from "../components/ChatLog";
+import KillFeed from "../components/KillFeed";
 import ActivityFeed from "../components/ActivityFeed";
 import ServerPermissions from "../components/ServerPermissions";
 import ScheduleManager from "../components/ScheduleManager";
@@ -30,7 +32,7 @@ import TriggerManager from "../components/TriggerManager";
 import ServerMetrics from "../components/ServerMetrics";
 import { BarChart3 } from "lucide-react";
 
-type Tab = "console" | "players" | "chat" | "metrics" | "schedules" | "options" | "activity" | "triggers" | "discord" | "settings" | "permissions";
+type Tab = "console" | "players" | "chat" | "kills" | "metrics" | "schedules" | "options" | "activity" | "triggers" | "discord" | "settings" | "permissions";
 
 export default function ServerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -69,6 +71,7 @@ export default function ServerDetailPage() {
     { key: "console", label: "Console", icon: Terminal },
     { key: "players", label: "Players", icon: Users },
     { key: "chat", label: "Chat", icon: MessageSquare },
+    { key: "kills", label: "Kill Feed", icon: Crosshair },
     { key: "metrics", label: "Metrics", icon: BarChart3 },
     { key: "schedules", label: "Schedules", icon: Clock },
     { key: "options", label: "Options", icon: SlidersHorizontal },
@@ -169,6 +172,7 @@ export default function ServerDetailPage() {
         )}
         {tab === "players" && <PlayerList serverId={serverId} />}
         {tab === "chat" && <ChatLog serverId={serverId} />}
+        {tab === "kills" && <KillFeed serverId={serverId} />}
         {tab === "metrics" && <ServerMetrics serverId={serverId} />}
         {tab === "schedules" && (
           <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>

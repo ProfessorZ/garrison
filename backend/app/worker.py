@@ -31,6 +31,7 @@ from app.services.metrics_collector import collect_metrics
 from app.api.chat import poll_all_chat
 from app.api.servers import poll_all_servers
 from app.api.scheduler import run_due_scheduled_commands
+from app.services.event_poller import poll_all_events
 
 # ── Redis settings from URL ─────────────────────────────────────────────────
 
@@ -45,6 +46,7 @@ _redis_settings = RedisSettings(
 # ── Every-minute set (0–59) ──────────────────────────────────────────────────
 
 _EVERY_MINUTE = set(range(60))
+_EVERY_30_SEC = set(range(0, 60, 2))  # every even minute for ~30s effective interval
 _EVERY_5_MIN = {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55}
 
 
@@ -58,6 +60,7 @@ class WorkerSettings:
         cron(poll_all_servers, minute=_EVERY_MINUTE, second=30),
         cron(poll_all_chat, minute=_EVERY_MINUTE, second=45),
         cron(run_due_scheduled_commands, minute=_EVERY_MINUTE, second=15),
+        cron(poll_all_events, minute=_EVERY_MINUTE, second=50),
     ]
     redis_settings = _redis_settings
     on_startup = startup

@@ -259,6 +259,28 @@ export interface ChatMessage {
   timestamp: string;
 }
 
+// Game Events
+export interface GameEvent {
+  id: number;
+  server_id: number;
+  event_type: string;
+  timestamp: string;
+  player_name?: string | null;
+  player_id?: string | null;
+  target_name?: string | null;
+  target_id?: string | null;
+  message?: string | null;
+  weapon?: string | null;
+}
+
+export interface PlayerKDStats {
+  player_id: string;
+  player_name: string;
+  kills: number;
+  deaths: number;
+  teamkills: number;
+}
+
 // Dashboard stats
 export interface DashboardStats {
   total_servers: number;

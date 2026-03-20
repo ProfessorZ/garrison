@@ -22,6 +22,7 @@ from app.models.player_name import PlayerNameHistory  # noqa: F401
 from app.models.ban_list import BanList, BanListEntry, ServerBanList  # noqa: F401
 from app.models.trigger import Trigger  # noqa: F401
 from app.models.server_metric import ServerMetric  # noqa: F401
+from app.models.game_event import GameEvent  # noqa: F401
 
 config = context.config
 

@@ -25,10 +25,13 @@ import {
   Send,
   Trash2,
   ChevronDown,
+  Crosshair,
+  Skull,
 } from "lucide-react";
 import { knownPlayersApi } from "../api/knownPlayers";
 import { banListsApi } from "../api/banLists";
 import { banTemplatesApi } from "../api/banTemplates";
+import { eventsApi } from "../api/events";
 import type { BanTemplate } from "../types";
 
 function formatPlaytime(seconds: number): string {
@@ -236,6 +239,13 @@ export default function PlayerProfilePage() {
   const banList = bans ?? profile.bans;
   const nameHistory = profile.name_history ?? [];
   const serversPlayed = new Set(profile.sessions.map((s) => s.server_id)).size;
+
+  // Combat stats — only fetched if player has a steam_id (used as player_id in events)
+  const { data: combatStats } = useQuery({
+    queryKey: ["player-combat-stats", player.steam_id],
+    queryFn: () => eventsApi.getPlayerCombatStats(player.steam_id!),
+    enabled: !!player.steam_id,
+  });
 
   const tabs: { key: Tab; label: string; icon: typeof Clock; badge?: number }[] = [
     { key: "sessions", label: "Sessions", icon: Clock },
@@ -459,13 +469,20 @@ export default function PlayerProfilePage() {
 
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
-        {[
+        {([
           { label: "First Seen", value: relativeTime(player.first_seen), icon: Calendar, accent: "#818cf8" },
           { label: "Last Seen", value: relativeTime(player.last_seen), icon: Clock, accent: "#00d4aa" },
           { label: "Sessions", value: player.session_count, icon: Hash, accent: "#fbbf24" },
           { label: "Playtime", value: formatPlaytime(player.total_playtime_seconds), icon: Clock, accent: "#f472b6" },
           { label: "Servers", value: serversPlayed, icon: Server, accent: "#38bdf8" },
-        ].map((stat) => {
+          ...(combatStats && (combatStats.kills > 0 || combatStats.deaths > 0)
+            ? [
+                { label: "Kills", value: combatStats.kills, icon: Crosshair, accent: "#ef4444" },
+                { label: "Deaths", value: combatStats.deaths, icon: Skull, accent: "#64748b" },
+                { label: "K/D", value: combatStats.deaths > 0 ? (combatStats.kills / combatStats.deaths).toFixed(2) : combatStats.kills > 0 ? "\u221e" : "\u2014", icon: Crosshair, accent: "#fbbf24" },
+              ]
+            : []),
+        ] as { label: string; value: string | number; icon: typeof Calendar; accent: string }[]).map((stat) => {
           const Icon = stat.icon;
           return (
             <div

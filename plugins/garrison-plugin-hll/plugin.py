@@ -2,6 +2,8 @@
 
 import json
 import logging
+import re
+from datetime import datetime, timezone
 
 try:
     from app.plugins.base import GamePlugin, PlayerInfo, ServerStatus, CommandDef, ServerOption
@@ -267,3 +269,129 @@ class HLLPlugin(GamePlugin):
         if result.upper().startswith("SUCCESS"):
             return f"Unbanned {name}"
         return f"Unban failed: {result}"
+
+    # ── Event polling ──────────────────────────────────────────────
+
+    # Regex patterns for HLL structured log lines
+    _RE_KILL = re.compile(
+        r"^(?:TEAM )?KILL: (.+?)\((.+?)/(\d+)\) -> (.+?)\((.+?)/(\d+)\) with (.+)$"
+    )
+    _RE_CHAT = re.compile(
+        r"^CHAT\[(\w+)\]\[(.+?)\((.+?)/(\d+)\)\]: (.+)$"
+    )
+    _RE_CONNECT = re.compile(r"^CONNECTED (.+?) \((\d+)\)$")
+    _RE_DISCONNECT = re.compile(r"^DISCONNECTED (.+?) \((\d+)\)$")
+    _RE_KICK = re.compile(r"^KICK: \[(.+?)\] (?:has been kicked\.?\s*)?(?:\[(.+)\])?$")
+    _RE_BAN = re.compile(r"^BAN: \[(.+?)\].*$")
+
+    def _parse_log_line(self, line: str, now: datetime) -> dict | None:
+        """Parse a single HLL log line into an event dict."""
+        line = line.strip()
+        if not line:
+            return None
+
+        # Kill / Team Kill
+        m = self._RE_KILL.match(line)
+        if m:
+            is_tk = line.startswith("TEAM KILL")
+            return {
+                "event_type": "teamkill" if is_tk else "kill",
+                "timestamp": now.isoformat(),
+                "player_name": m.group(1).strip(),
+                "player_id": m.group(3),
+                "target_name": m.group(4).strip(),
+                "target_id": m.group(6),
+                "weapon": m.group(7).strip(),
+                "raw": line,
+            }
+
+        # Chat
+        m = self._RE_CHAT.match(line)
+        if m:
+            return {
+                "event_type": "chat",
+                "timestamp": now.isoformat(),
+                "player_name": m.group(2).strip(),
+                "player_id": m.group(4),
+                "message": m.group(5).strip(),
+                "raw": line,
+            }
+
+        # Connect
+        m = self._RE_CONNECT.match(line)
+        if m:
+            return {
+                "event_type": "connect",
+                "timestamp": now.isoformat(),
+                "player_name": m.group(1).strip(),
+                "player_id": m.group(2),
+                "raw": line,
+            }
+
+        # Disconnect
+        m = self._RE_DISCONNECT.match(line)
+        if m:
+            return {
+                "event_type": "disconnect",
+                "timestamp": now.isoformat(),
+                "player_name": m.group(1).strip(),
+                "player_id": m.group(2),
+                "raw": line,
+            }
+
+        # Kick
+        m = self._RE_KICK.match(line)
+        if m:
+            return {
+                "event_type": "kick",
+                "timestamp": now.isoformat(),
+                "player_name": m.group(1).strip(),
+                "message": m.group(2).strip() if m.group(2) else None,
+                "raw": line,
+            }
+
+        # Ban
+        m = self._RE_BAN.match(line)
+        if m:
+            return {
+                "event_type": "ban",
+                "timestamp": now.isoformat(),
+                "player_name": m.group(1).strip(),
+                "raw": line,
+            }
+
+        return None
+
+    async def poll_events(self, send_command, since: str | None = None) -> list[dict]:
+        """Poll HLL server for recent log events via GetStructuredLogs."""
+        try:
+            raw = await send_command("GetStructuredLogs", "")
+        except Exception as e:
+            logger.warning("Failed to get HLL logs: %s", e)
+            return []
+
+        if not raw or raw.startswith("Error"):
+            return []
+
+        now = datetime.now(timezone.utc)
+        events = []
+
+        # Handle JSON array or newline-separated log lines
+        lines: list[str] = []
+        try:
+            parsed = json.loads(raw) if isinstance(raw, str) else raw
+            if isinstance(parsed, list):
+                lines = [str(entry) for entry in parsed]
+            elif isinstance(parsed, str):
+                lines = parsed.splitlines()
+            else:
+                lines = str(raw).splitlines()
+        except (json.JSONDecodeError, TypeError):
+            lines = str(raw).splitlines()
+
+        for line in lines:
+            event = self._parse_log_line(line, now)
+            if event:
+                events.append(event)
+
+        return events
