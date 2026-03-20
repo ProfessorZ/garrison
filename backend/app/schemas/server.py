@@ -7,6 +7,7 @@ class ServerCreate(BaseModel):
     name: str
     host: str
     port: int
+    query_port: int | None = None
     rcon_port: int
     rcon_password: str
     game_type: str = "zomboid"
@@ -16,6 +17,7 @@ class ServerUpdate(BaseModel):
     name: str | None = None
     host: str | None = None
     port: int | None = None
+    query_port: int | None = None
     rcon_port: int | None = None
     rcon_password: str | None = None
     game_type: str | None = None
@@ -26,6 +28,7 @@ class ServerOut(BaseModel):
     name: str
     host: str
     port: int
+    query_port: int | None = None
     rcon_port: int
     game_type: str
     last_status: bool | None = None

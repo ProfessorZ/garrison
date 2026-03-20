@@ -16,6 +16,7 @@ export interface Server {
   name: string;
   host: string;
   port: number;
+  query_port?: number | null;
   rcon_port: number;
   game_type: string;
   last_status?: string | null;
@@ -137,6 +138,7 @@ export interface UpdateServerRequest {
   name?: string;
   host?: string;
   port?: number;
+  query_port?: number | null;
   rcon_port?: number;
   rcon_password?: string;
   game_type?: string;
@@ -197,6 +199,7 @@ export interface CreateServerRequest {
   name: string;
   host: string;
   port: number;
+  query_port?: number | null;
   rcon_port: number;
   rcon_password: string;
   game_type: string;

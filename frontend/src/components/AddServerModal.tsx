@@ -28,6 +28,7 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
     name: "",
     host: "",
     port: "",
+    query_port: "",
     rcon_port: "",
     rcon_password: "",
     game_type: "",
@@ -73,6 +74,7 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
       name: "",
       host: "",
       port: first?.default_ports?.game?.toString() ?? "",
+      query_port: "",
       rcon_port: first?.default_ports?.rcon?.toString() ?? "",
       rcon_password: "",
       game_type: first?.id ?? "",
@@ -101,10 +103,12 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
 
     const port = parseInt(form.port);
     const rconPort = parseInt(form.rcon_port);
+    const queryPort = form.query_port ? parseInt(form.query_port) : null;
 
     if (!form.name.trim()) { setError("Server name is required"); return; }
     if (!form.host.trim()) { setError("Host address is required"); return; }
     if (isNaN(port) || port < 1 || port > 65535) { setError("Game port must be between 1 and 65535"); return; }
+    if (queryPort !== null && (isNaN(queryPort) || queryPort < 1 || queryPort > 65535)) { setError("Query port must be between 1 and 65535"); return; }
     if (isNaN(rconPort) || rconPort < 1 || rconPort > 65535) { setError("RCON port must be between 1 and 65535"); return; }
     if (!form.rcon_password) { setError("RCON password is required"); return; }
     if (!form.game_type) { setError("Please select a game type"); return; }
@@ -113,6 +117,7 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
       name: form.name.trim(),
       host: form.host.trim(),
       port,
+      query_port: queryPort,
       rcon_port: rconPort,
       rcon_password: form.rcon_password,
       game_type: form.game_type,
@@ -195,6 +200,19 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
                 className={inputCls}
                 style={inputStyle}
                 placeholder="16261"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1.5 uppercase tracking-wider">
+                Query Port
+              </label>
+              <input
+                type="number"
+                value={form.query_port}
+                onChange={(e) => setForm({ ...form, query_port: e.target.value })}
+                className={inputCls}
+                style={inputStyle}
+                placeholder="e.g. 27015"
               />
             </div>
             <div>

@@ -16,6 +16,7 @@ from app.models.server_permission import ServerPermission
 from app.models.activity_log import ActionType
 from app.schemas.server import ServerCreate, ServerUpdate, ServerOut, ServerStatus
 from app.api.activity import log_activity
+from app.utils.query import query_server
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,7 @@ async def create_server(
         name=data.name,
         host=data.host,
         port=data.port,
+        query_port=data.query_port,
         rcon_port=data.rcon_port,
         rcon_password_encrypted=encrypt_rcon_password(data.rcon_password),
         game_type=data.game_type,
@@ -126,28 +128,52 @@ async def server_status(
     server = result.scalar_one_or_none()
     if not server:
         raise HTTPException(status_code=404, detail="Server not found")
+
+    a2s_result = None
+    status_info = None
+
+    # Try A2S query first if query_port is configured
+    if server.query_port:
+        a2s_result = await query_server(server.host, server.query_port)
+
+    # Try RCON for richer data
     try:
         plugin = get_plugin(server.game_type)
+        password = decrypt_rcon_password(server.rcon_password_encrypted)
+        await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
+        try:
+            status_info = await plugin.get_status()
+        finally:
+            await plugin.disconnect()
     except ValueError:
-        raise HTTPException(status_code=400, detail=f"Unknown game type: {server.game_type}. Install the plugin first.")
-    password = decrypt_rcon_password(server.rcon_password_encrypted)
-    await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
-    try:
-        status_info = await plugin.get_status()
-    finally:
-        await plugin.disconnect()
+        if not a2s_result:
+            raise HTTPException(status_code=400, detail=f"Unknown game type: {server.game_type}. Install the plugin first.")
+    except Exception:
+        if not a2s_result:
+            raise
+
+    # Determine final status: prefer RCON data, fall back to A2S
+    if status_info:
+        online = status_info.get("online", False)
+        player_count = status_info.get("player_count")
+    elif a2s_result:
+        online = True
+        player_count = a2s_result.get("players")
+    else:
+        online = False
+        player_count = None
 
     # Persist polled status
-    server.last_status = status_info.get("online", False)
-    server.player_count = status_info.get("player_count")
+    server.last_status = online
+    server.player_count = player_count
     server.last_checked = datetime.now(timezone.utc)
     await db.commit()
 
     return ServerStatus(
         server_id=server.id,
         name=server.name,
-        online=status_info.get("online", False),
-        player_count=status_info.get("player_count"),
+        online=online,
+        player_count=player_count,
     )
 
 
@@ -161,16 +187,37 @@ async def poll_all_servers(ctx: dict = None):
         for server in servers:
             previous_status = server.last_status
             try:
-                plugin = get_plugin(server.game_type)
-                password = decrypt_rcon_password(server.rcon_password_encrypted)
-                await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
+                a2s_result = None
+                status_info = None
+
+                # Try A2S query first if query_port is configured
+                if server.query_port:
+                    a2s_result = await query_server(server.host, server.query_port)
+
+                # Try RCON for richer data
                 try:
-                    status_info = await plugin.get_status()
-                finally:
-                    await plugin.disconnect()
-                new_status = status_info.get("online", False)
+                    plugin = get_plugin(server.game_type)
+                    password = decrypt_rcon_password(server.rcon_password_encrypted)
+                    await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
+                    try:
+                        status_info = await plugin.get_status()
+                    finally:
+                        await plugin.disconnect()
+                except Exception:
+                    if not a2s_result:
+                        raise
+
+                if status_info:
+                    new_status = status_info.get("online", False)
+                    server.player_count = status_info.get("player_count")
+                elif a2s_result:
+                    new_status = True
+                    server.player_count = a2s_result.get("players")
+                else:
+                    new_status = False
+                    server.player_count = None
+
                 server.last_status = new_status
-                server.player_count = status_info.get("player_count")
 
                 # Notify on status change
                 if previous_status is not None and new_status != previous_status:

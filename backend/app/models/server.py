@@ -10,6 +10,7 @@ class Server(Base):
     name = Column(String(100), nullable=False)
     host = Column(String(255), nullable=False)
     port = Column(Integer, nullable=False)
+    query_port = Column(Integer, nullable=True)
     rcon_port = Column(Integer, nullable=False)
     rcon_password_encrypted = Column(String(512), nullable=False)
     game_type = Column(String(50), nullable=False, default="zomboid")

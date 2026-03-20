@@ -132,6 +132,12 @@ export default function ServerDetailPage() {
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-[#64748b]">
               <span className="font-mono text-[#94a3b8]">{server.host}:{server.port}</span>
+              {server.query_port && (
+                <>
+                  <span className="text-[rgba(255,255,255,0.12)]">&middot;</span>
+                  <span>Query :{server.query_port}</span>
+                </>
+              )}
               <span className="text-[rgba(255,255,255,0.12)]">&middot;</span>
               <span>RCON :{server.rcon_port}</span>
               <span className="hidden sm:inline text-[rgba(255,255,255,0.12)]">&middot;</span>
@@ -297,7 +303,7 @@ function PluginSelect({ value, onChange, inputCls, inputStyle }: {
 
 interface SettingsPanelProps {
   serverId: number;
-  server: { name: string; host: string; port: number; rcon_port: number; game_type: string };
+  server: { name: string; host: string; port: number; query_port?: number | null; rcon_port: number; game_type: string };
   onSaved: () => void;
 }
 
@@ -306,6 +312,7 @@ function SettingsPanel({ serverId, server, onSaved }: SettingsPanelProps) {
     name: server.name,
     host: server.host,
     port: String(server.port),
+    query_port: server.query_port ? String(server.query_port) : "",
     rcon_port: String(server.rcon_port),
     rcon_password: "",
     game_type: server.game_type,
@@ -325,10 +332,11 @@ function SettingsPanel({ serverId, server, onSaved }: SettingsPanelProps) {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const data: Record<string, string | number> = {
+    const data: Record<string, string | number | null> = {
       name: form.name,
       host: form.host,
       port: parseInt(form.port),
+      query_port: form.query_port ? parseInt(form.query_port) : null,
       rcon_port: parseInt(form.rcon_port),
       game_type: form.game_type,
     };
@@ -350,6 +358,7 @@ function SettingsPanel({ serverId, server, onSaved }: SettingsPanelProps) {
             { label: "Name", value: form.name, key: "name" },
             { label: "Host", value: form.host, key: "host" },
             { label: "Game Port", value: form.port, key: "port", type: "number" },
+            { label: "Query Port", value: form.query_port, key: "query_port", type: "number", placeholder: "e.g. 27015", required: false },
             { label: "RCON Port", value: form.rcon_port, key: "rcon_port", type: "number" },
             { label: "RCON Password", value: form.rcon_password, key: "rcon_password", type: "password", placeholder: "Leave blank to keep current" },
           ].map((field) => (
@@ -361,7 +370,7 @@ function SettingsPanel({ serverId, server, onSaved }: SettingsPanelProps) {
                 type={field.type || "text"}
                 value={field.value}
                 onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
-                required={field.key !== "rcon_password"}
+                required={field.required !== false && field.key !== "rcon_password"}
                 placeholder={field.placeholder}
                 className={inputCls}
                 style={inputStyle}
