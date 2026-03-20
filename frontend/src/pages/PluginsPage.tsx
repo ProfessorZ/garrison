@@ -14,7 +14,7 @@ import {
   Package,
 } from "lucide-react";
 import { pluginsApi } from "../api/plugins";
-import type { Plugin, PluginListResponse } from "../api/plugins";
+import type { Plugin } from "../api/plugins";
 
 export default function PluginsPage() {
   const queryClient = useQueryClient();
