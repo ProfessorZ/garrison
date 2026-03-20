@@ -116,7 +116,7 @@ async def set_option(send_command, name: str, value: str) -> str:
     opt = _OPTIONS_BY_NAME.get(name)
     if not opt:
         raise ValueError(f"Unknown HLL option: {name}")
-    result = await send_command(f'{opt["setter"]} {value}')
+    result = await send_command(opt["setter"], value)
     if result.upper().startswith("SUCCESS") or result.upper() == "PASS":
         return f"{name} set to {value}"
     return f"Failed to set {name}: {result}"

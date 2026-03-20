@@ -95,7 +95,7 @@ except ImportError:
         async def disconnect_custom(self) -> None:
             raise NotImplementedError
 
-        async def send_command_custom(self, command: str) -> str:
+        async def send_command_custom(self, command: str, content: str = "") -> str:
             raise NotImplementedError
 from hll_connection import HLLConnection
 
@@ -131,11 +131,15 @@ class HLLPlugin(GamePlugin):
             await self._connection.close()
             self._connection = None
 
-    async def send_command_custom(self, command: str) -> str:
-        """Send a raw HLL RCON command and return the plaintext response."""
+    async def send_command_custom(self, command: str, content: str = "") -> str:
+        """Send an HLL RCON command and return the response contentBody."""
         if not self._connection or not self._connection.connected:
             return "ERROR: Not connected"
-        return await self._connection.send(command)
+        # When called from the console with a single string like "Kick name reason",
+        # split the first word as the command name.
+        if not content and " " in command:
+            command, content = command.split(" ", 1)
+        return await self._connection.send(command, content)
 
     # ── GamePlugin interface ───────────────────────────────────────
 
@@ -198,7 +202,7 @@ class HLLPlugin(GamePlugin):
 
     async def kick_player(self, send_command, name: str, reason: str = "") -> str:
         reason = reason or "Kicked by admin"
-        result = await send_command(f"Kick {name} {reason}")
+        result = await send_command("Kick", f"{name} {reason}")
         if result.upper().startswith("SUCCESS"):
             return f"Kicked {name}"
         return f"Kick failed: {result}"
@@ -211,14 +215,14 @@ class HLLPlugin(GamePlugin):
         if not player or not player.steam_id:
             return f"Error: player '{name}' not found or has no Steam ID"
         reason = reason or "Banned by admin"
-        result = await send_command(f"BanById {player.steam_id} {reason}")
+        result = await send_command("BanById", f"{player.steam_id} {reason}")
         if result.upper().startswith("SUCCESS"):
             return f"Permanently banned {name} ({player.steam_id})"
         return f"Ban failed: {result}"
 
     async def unban_player(self, send_command, name: str) -> str:
         # name is treated as a Steam ID for unbans
-        result = await send_command(f"PardonById {name}")
+        result = await send_command("PardonById", name)
         if result.upper().startswith("SUCCESS"):
             return f"Unbanned {name}"
         return f"Unban failed: {result}"

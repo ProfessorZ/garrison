@@ -114,6 +114,6 @@ class GamePlugin(ABC):
         """Override to close a custom protocol connection."""
         raise NotImplementedError
 
-    async def send_command_custom(self, command: str) -> str:
+    async def send_command_custom(self, command: str, content: str = "") -> str:
         """Override to send a command via custom protocol."""
         raise NotImplementedError

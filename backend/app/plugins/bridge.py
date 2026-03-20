@@ -33,16 +33,18 @@ class ConnectedPlugin:
     def _uses_custom(self) -> bool:
         return getattr(self.plugin, "custom_connection", False)
 
-    async def send_command(self, command: str) -> str:
+    async def send_command(self, command: str, content: str = "") -> str:
         """Send a command, routing through the plugin's custom protocol or
         the shared RCON manager depending on the plugin type."""
         if self._uses_custom:
             try:
-                return await self.plugin.send_command_custom(command)
+                return await self.plugin.send_command_custom(command, content)
             except Exception as e:
                 logger.error("Custom command failed: %s", e)
                 return f"Error: {e}"
-        formatted = self.plugin.format_command(command)
+        # Non-custom plugins use plain RCON — combine command + content.
+        full = f"{command} {content}".strip() if content else command
+        formatted = self.plugin.format_command(full)
         try:
             return await rcon_manager.send_command(self.server_id, formatted)
         except Exception as e:
