@@ -43,8 +43,8 @@ class HLLConnection:
         )
         status = resp.get("statusCode", 0)
         if status != 200:
-            msg = resp.get("statusMessage", "Unknown error")
-            raise ConnectionError(f"HLL authentication failed: {msg}")
+            msg = resp.get("statusMessage", "Unknown error — check RCON password and port")
+            raise ConnectionError(f"HLL authentication failed (status {status}): {msg}")
         # Extract auth token from contentBody
         content_body = resp.get("contentBody", "")
         if isinstance(content_body, str):
@@ -97,8 +97,13 @@ class HLLConnection:
             timeout=15,
         )
         req_id, body_len = struct.unpack(HEADER_FORMAT, header)
+        if body_len == 0:
+            return {"statusCode": 0, "statusMessage": "Empty response from server"}
         body = await asyncio.wait_for(
             self.reader.readexactly(body_len),
             timeout=15,
         )
-        return json.loads(body)
+        try:
+            return json.loads(body)
+        except json.JSONDecodeError:
+            return {"statusCode": 0, "statusMessage": f"Invalid JSON response: {body[:128]!r}"}
