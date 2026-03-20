@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { X, Plus, AlertCircle } from "lucide-react";
 import { serversApi } from "../api/servers";
-import client from "../api/client";
+import { pluginsApi } from "../api/plugins";
 
 interface AddServerModalProps {
   open: boolean;
@@ -33,17 +33,13 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
     game_type: "",
   });
 
-  // Fetch installed plugins from the API
-  const { data: plugins = [] } = useQuery<PluginInfo[]>({
+  // Fetch installed plugins from the API (shared cache key with PluginsPage)
+  const { data: pluginData } = useQuery({
     queryKey: ["plugins"],
-    queryFn: async () => {
-      const res = await client.get<{ plugins: PluginInfo[] } | PluginInfo[]>("/plugins/");
-      // API may return {plugins: [...], errors: {...}} or a plain array
-      const data = res.data as any;
-      return Array.isArray(data) ? data : (data.plugins ?? []);
-    },
+    queryFn: pluginsApi.list,
     staleTime: 60_000,
   });
+  const plugins: PluginInfo[] = (pluginData?.plugins ?? []) as PluginInfo[];
 
   // Set default game_type when plugins load
   useEffect(() => {
