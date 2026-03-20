@@ -105,32 +105,37 @@ class RconConnection:
         self._authenticated = True
 
     async def send_command(self, command: str) -> str:
-        """Send a command and return the response string."""
+        """Send a command and return the response string.
+
+        Strategy: send the command, collect all response packets for cmd_id,
+        then do a short-timeout drain to catch any trailing packets (multi-packet
+        responses). This avoids the sentinel-packet approach which breaks on
+        servers that ignore or reject empty/unknown commands (e.g. Factorio).
+        """
         if not self.connected or not self._authenticated:
             raise ConnectionError("Not connected or not authenticated")
         async with self._lock:
             cmd_id = self._next_id()
-            # Send command packet
             self._writer.write(
                 _encode_packet(cmd_id, PacketType.SERVERDATA_EXECCOMMAND, command)
             )
-            # Send a follow-up empty packet to detect end of multi-packet responses.
-            # Use type EXECCOMMAND (2) not RESPONSE_VALUE (0) — some servers (e.g. Factorio)
-            # reject type 0 packets from clients as invalid.
-            end_id = self._next_id()
-            self._writer.write(
-                _encode_packet(end_id, PacketType.SERVERDATA_EXECCOMMAND, "")
-            )
             await self._writer.drain()
 
-            # Read response packets until we see end_id
+            # Read packets: collect all that match cmd_id, stop on timeout
             body_parts: list[str] = []
+            timeout = 10.0
             while True:
-                resp_id, resp_type, body = await _read_packet(self._reader)
-                if resp_id == end_id:
+                try:
+                    resp_id, _resp_type, body = await asyncio.wait_for(
+                        _read_packet(self._reader), timeout=timeout
+                    )
+                except asyncio.TimeoutError:
                     break
                 if resp_id == cmd_id:
                     body_parts.append(body)
+                    # After first matching packet, use a short timeout to catch
+                    # any immediately-following continuation packets
+                    timeout = 0.1
             return "".join(body_parts)
 
     async def close(self) -> None:
