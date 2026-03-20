@@ -111,7 +111,7 @@ export default function UsersPage() {
                   {isOwner && (
                     <td className="px-5 py-3.5 text-right">
                       {u.id !== currentUser?.id && (
-                        <div className="relative inline-block">
+                        <div className="relative inline-block" style={{ isolation: "isolate" }}>
                           <button
                             onClick={() => setEditingUserId(editingUserId === u.id ? null : u.id)}
                             className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-[#e2e8f0] transition-all duration-150"
@@ -120,8 +120,18 @@ export default function UsersPage() {
                             Change Role <ChevronDown className="h-3 w-3" />
                           </button>
                           {editingUserId === u.id && (
-                            <div className="absolute right-0 top-full mt-1 w-40 rounded-xl shadow-2xl z-20 py-1"
-                              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}>
+                            <div className="fixed w-40 rounded-xl shadow-2xl py-1" style={{ zIndex: 9999, background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                              ref={el => {
+                                if (el) {
+                                  const btn = el.previousElementSibling as HTMLElement;
+                                  if (btn) {
+                                    const rect = btn.getBoundingClientRect();
+                                    el.style.top = `${rect.bottom + 4}px`;
+                                    el.style.right = `${window.innerWidth - rect.right}px`;
+                                  }
+                                }
+                              }}
+                              >
                               {ROLES.filter((r) => r !== "OWNER").map((role) => (
                                 <button
                                   key={role}
