@@ -115,6 +115,7 @@ class PluginLoader:
                 "author": m.get("author", ""),
                 "icon": m.get("icon", "\U0001f3ae"),
                 "default_ports": m.get("default_ports", {}),
+                "repo": m.get("repo", ""),
             }
             for m in self.manifests.values()
         ]
