@@ -114,10 +114,12 @@ class RconConnection:
             self._writer.write(
                 _encode_packet(cmd_id, PacketType.SERVERDATA_EXECCOMMAND, command)
             )
-            # Send a follow-up empty packet to detect end of multi-packet responses
+            # Send a follow-up empty packet to detect end of multi-packet responses.
+            # Use type EXECCOMMAND (2) not RESPONSE_VALUE (0) — some servers (e.g. Factorio)
+            # reject type 0 packets from clients as invalid.
             end_id = self._next_id()
             self._writer.write(
-                _encode_packet(end_id, PacketType.SERVERDATA_RESPONSE_VALUE, "")
+                _encode_packet(end_id, PacketType.SERVERDATA_EXECCOMMAND, "")
             )
             await self._writer.drain()
 
