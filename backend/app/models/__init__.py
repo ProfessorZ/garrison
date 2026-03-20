@@ -12,9 +12,12 @@ from app.models.known_player import KnownPlayer
 from app.models.player_session import PlayerSession
 from app.models.player_name import PlayerNameHistory
 from app.models.player_ban import PlayerBan
+from app.models.player_note import PlayerNote
+from app.models.ban_template import BanTemplate
 
 __all__ = [
     "User", "Server", "ScheduledCommand", "ActivityLog", "ChatMessage",
     "ServerPermission", "ServerWebhook", "BanList", "BanListEntry", "ServerBanList",
     "Trigger", "ServerMetric", "KnownPlayer", "PlayerSession", "PlayerNameHistory", "PlayerBan",
+    "PlayerNote", "BanTemplate",
 ]
