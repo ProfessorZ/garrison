@@ -1,6 +1,8 @@
 import importlib.util
 import json
 import logging
+import subprocess
+import sys
 from pathlib import Path
 
 from .base import GamePlugin
@@ -45,6 +47,18 @@ class PluginLoader:
                 f"Plugin requires API v{api_version}, "
                 f"Garrison supports v{GamePlugin.PLUGIN_API_VERSION}"
             )
+
+        # Install plugin dependencies if requirements.txt exists
+        req_file = plugin_dir / "requirements.txt"
+        if req_file.exists():
+            logger.info("Installing dependencies for plugin %s", game_type)
+            result = subprocess.run(
+                [sys.executable, "-m", "pip", "install", "-q", "-r", str(req_file)],
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode != 0:
+                raise ValueError(f"Failed to install plugin dependencies: {result.stderr}")
 
         # Load plugin.py
         plugin_file = plugin_dir / "plugin.py"
