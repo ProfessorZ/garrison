@@ -56,6 +56,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await authApi.login({ username, password });
     localStorage.setItem("garrison_token", data.access_token);
     setToken(data.access_token);
+    // Fetch user immediately so ProtectedRoute doesn't bounce us back to /login
+    try {
+      const me = await authApi.getMe();
+      setUser(me);
+    } catch {
+      // fetchUser via useEffect will handle the error
+    } finally {
+      setLoading(false);
+    }
   };
 
   const register = async (username: string, password: string) => {
