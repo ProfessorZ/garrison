@@ -37,7 +37,7 @@ export default function ServerPermissions({ serverId }: ServerPermissionsProps) 
 
   const availableUsers = allUsers.filter((u: User) => {
     if (permissions.some((p: ServerPermission) => p.user_id === u.id)) return false;
-    if (u.role === "OWNER" || u.role === "ADMIN") return false;
+    if (u.role === "OWNER") return false; // Owner has all access already
     if (searchQuery) return u.username.toLowerCase().includes(searchQuery.toLowerCase());
     return true;
   });
