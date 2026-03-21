@@ -11,7 +11,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from app.config import settings
+from app.config import settings, APP_VERSION, APP_NAME
 from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat, commands, users, server_options, known_players, plugins, webhooks, ban_lists, triggers, metrics, ban_templates, events, hll
 from app.database import engine
 from app.rcon.manager import rcon_manager
@@ -159,7 +159,7 @@ async def lifespan(app: FastAPI):
     logger.info("Garrison backend stopped")
 
 
-app = FastAPI(title="Garrison", version="0.2.0", lifespan=lifespan)
+app = FastAPI(title=APP_NAME, version=APP_VERSION, lifespan=lifespan)
 
 # Rate limiting
 app.state.limiter = limiter
@@ -202,3 +202,8 @@ app.include_router(hll.router)
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/api/version")
+async def version():
+    return {"version": APP_VERSION, "name": APP_NAME}

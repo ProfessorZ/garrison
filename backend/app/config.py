@@ -1,5 +1,8 @@
 from pydantic_settings import BaseSettings
 
+APP_VERSION = "0.2.0"
+APP_NAME = "Garrison"
+
 
 class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://garrison:garrison@db:5432/garrison"
