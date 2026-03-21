@@ -15,6 +15,8 @@ import {
   Bell,
   Zap,
   Crosshair,
+  Map,
+  BarChart3,
 } from "lucide-react";
 import { serversApi } from "../api/servers";
 import { pluginsApi } from "../api/plugins";
@@ -30,9 +32,12 @@ import ServerOptions from "../components/ServerOptions";
 import DiscordSettings from "../components/DiscordSettings";
 import TriggerManager from "../components/TriggerManager";
 import ServerMetrics from "../components/ServerMetrics";
-import { BarChart3 } from "lucide-react";
+import HLLMapRotation from "../components/HLLMapRotation";
+import HLLServerSettings from "../components/HLLServerSettings";
+import HLLPlayers from "../components/HLLPlayers";
+import HLLBroadcast from "../components/HLLBroadcast";
 
-type Tab = "console" | "players" | "chat" | "kills" | "metrics" | "schedules" | "options" | "activity" | "triggers" | "discord" | "settings" | "permissions";
+type Tab = "console" | "players" | "chat" | "kills" | "metrics" | "schedules" | "options" | "activity" | "triggers" | "discord" | "settings" | "permissions" | "hll-maps" | "hll-settings" | "hll-players";
 
 export default function ServerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -67,20 +72,38 @@ export default function ServerDetailPage() {
   const playerCount = status?.player_count;
   const isAdmin = user?.role === "OWNER" || user?.role === "ADMIN";
 
-  const tabs: { key: Tab; label: string; icon: typeof Terminal; adminOnly?: boolean }[] = [
-    { key: "console", label: "Console", icon: Terminal },
-    { key: "players", label: "Players", icon: Users },
-    { key: "chat", label: "Chat", icon: MessageSquare },
-    { key: "kills", label: "Kill Feed", icon: Crosshair },
-    { key: "metrics", label: "Metrics", icon: BarChart3 },
-    { key: "schedules", label: "Schedules", icon: Clock },
-    { key: "options", label: "Options", icon: SlidersHorizontal },
-    { key: "activity", label: "Activity", icon: Activity },
-    { key: "triggers", label: "Triggers", icon: Zap, adminOnly: true },
-    { key: "discord", label: "Discord", icon: Bell, adminOnly: true },
-    { key: "settings", label: "Settings", icon: Settings, adminOnly: true },
-    { key: "permissions", label: "Access", icon: Shield, adminOnly: true },
-  ];
+  const isHLL = server.game_type === "hll";
+
+  const tabs: { key: Tab; label: string; icon: typeof Terminal; adminOnly?: boolean }[] = isHLL
+    ? [
+        { key: "console", label: "Console", icon: Terminal },
+        { key: "hll-players", label: "Players", icon: Users },
+        { key: "hll-maps", label: "Maps", icon: Map },
+        { key: "chat", label: "Chat", icon: MessageSquare },
+        { key: "kills", label: "Kill Feed", icon: Crosshair },
+        { key: "metrics", label: "Metrics", icon: BarChart3 },
+        { key: "hll-settings", label: "Game Settings", icon: SlidersHorizontal },
+        { key: "schedules", label: "Schedules", icon: Clock },
+        { key: "activity", label: "Activity", icon: Activity },
+        { key: "triggers", label: "Triggers", icon: Zap, adminOnly: true },
+        { key: "discord", label: "Discord", icon: Bell, adminOnly: true },
+        { key: "settings", label: "Settings", icon: Settings, adminOnly: true },
+        { key: "permissions", label: "Access", icon: Shield, adminOnly: true },
+      ]
+    : [
+        { key: "console", label: "Console", icon: Terminal },
+        { key: "players", label: "Players", icon: Users },
+        { key: "chat", label: "Chat", icon: MessageSquare },
+        { key: "kills", label: "Kill Feed", icon: Crosshair },
+        { key: "metrics", label: "Metrics", icon: BarChart3 },
+        { key: "schedules", label: "Schedules", icon: Clock },
+        { key: "options", label: "Options", icon: SlidersHorizontal },
+        { key: "activity", label: "Activity", icon: Activity },
+        { key: "triggers", label: "Triggers", icon: Zap, adminOnly: true },
+        { key: "discord", label: "Discord", icon: Bell, adminOnly: true },
+        { key: "settings", label: "Settings", icon: Settings, adminOnly: true },
+        { key: "permissions", label: "Access", icon: Shield, adminOnly: true },
+      ];
 
   const visibleTabs = tabs.filter((t) => !t.adminOnly || isAdmin);
 
@@ -162,6 +185,9 @@ export default function ServerDetailPage() {
         </div>
       </div>
 
+      {/* HLL Broadcast Banner */}
+      {isHLL && <div className="mt-4"><HLLBroadcast serverId={serverId} /></div>}
+
       {/* Tabs — underline style, horizontally scrollable */}
       <TabBar visibleTabs={visibleTabs} tab={tab} setTab={setTab} />
 
@@ -171,6 +197,9 @@ export default function ServerDetailPage() {
           <RconConsole serverId={serverId} gameType={server.game_type} />
         )}
         {tab === "players" && <PlayerList serverId={serverId} />}
+        {tab === "hll-players" && <HLLPlayers serverId={serverId} />}
+        {tab === "hll-maps" && <HLLMapRotation serverId={serverId} />}
+        {tab === "hll-settings" && <HLLServerSettings serverId={serverId} />}
         {tab === "chat" && <ChatLog serverId={serverId} />}
         {tab === "kills" && <KillFeed serverId={serverId} />}
         {tab === "metrics" && <ServerMetrics serverId={serverId} />}
