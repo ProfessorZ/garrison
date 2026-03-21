@@ -46,14 +46,23 @@ def _register_plugin_schemas(loader: PluginLoader):
         "boolean": ParamType.BOOLEAN,
         "float": ParamType.FLOAT,
         "choice": ParamType.ENUM,
+        "enum": ParamType.ENUM,
     }
     _cat_map = {
         "ADMIN": CommandCategory.ADMIN,
+        "ADMIN_MGMT": CommandCategory.ADMIN_MGMT,
         "PLAYER_MGMT": CommandCategory.PLAYER_MGMT,
+        "PLAYER_ACTIONS": CommandCategory.PLAYER_ACTIONS,
         "WORLD": CommandCategory.WORLD,
         "MODERATION": CommandCategory.MODERATION,
         "SERVER": CommandCategory.SERVER,
+        "SERVER_INFO": CommandCategory.SERVER_INFO,
+        "SERVER_SETTINGS": CommandCategory.SERVER_SETTINGS,
         "WHITELIST": CommandCategory.WHITELIST,
+        "MAP_MGMT": CommandCategory.MAP_MGMT,
+        "TIMERS": CommandCategory.TIMERS,
+        "PERFORMANCE": CommandCategory.PERFORMANCE,
+        "SCRIPTING": CommandCategory.SCRIPTING,
         "DEBUG": CommandCategory.DEBUG,
     }
 

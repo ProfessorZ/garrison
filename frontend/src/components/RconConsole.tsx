@@ -59,7 +59,7 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
 
   const { data: commandSchema } = useQuery({
     queryKey: ["game-commands", gameType],
-    queryFn: () => commandsApi.getCommands(gameType),
+    queryFn: () => commandsApi.getCommands(gameType).catch(() => null),
     staleTime: Infinity,
   });
 
