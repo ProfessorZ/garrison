@@ -19,13 +19,13 @@ export default function KillFeed({ serverId }: KillFeedProps) {
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["server-kills", serverId],
     queryFn: () => eventsApi.getEvents(serverId, "kill", 100),
-    refetchInterval: 15000,
+    refetchInterval: 60000,
   });
 
   const { data: teamkills = [] } = useQuery({
     queryKey: ["server-teamkills", serverId],
     queryFn: () => eventsApi.getEvents(serverId, "teamkill", 50),
-    refetchInterval: 15000,
+    refetchInterval: 60000,
   });
 
   // Merge and sort by timestamp desc

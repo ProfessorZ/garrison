@@ -13,7 +13,7 @@ export default function ChatLog({ serverId }: ChatLogProps) {
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ["server-chat", serverId],
     queryFn: () => chatApi.getServerChat(serverId),
-    refetchInterval: 5000,
+    refetchInterval: 30000,
   });
 
   useEffect(() => {

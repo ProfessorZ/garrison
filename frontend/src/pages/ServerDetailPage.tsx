@@ -57,7 +57,7 @@ export default function ServerDetailPage() {
     queryKey: ["server-status", serverId],
     queryFn: () => serversApi.getStatus(serverId),
     enabled: !isNaN(serverId),
-    refetchInterval: 15000,
+    refetchInterval: 60000,
   });
 
   if (serverLoading || !server) {

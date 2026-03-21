@@ -121,6 +121,7 @@ async def delete_server(
 @router.get("/{server_id}/status", response_model=ServerStatus)
 async def server_status(
     server_id: int,
+    live: bool = False,
     db: AsyncSession = Depends(get_db),
     _user: User = Depends(require_server_access(UserRole.VIEWER)),
 ):
@@ -128,6 +129,16 @@ async def server_status(
     server = result.scalar_one_or_none()
     if not server:
         raise HTTPException(status_code=404, detail="Server not found")
+
+    # Return cached status from DB if not requesting live data
+    if not live:
+        return ServerStatus(
+            server_id=server.id,
+            name=server.name,
+            online=server.last_status or False,
+            player_count=server.player_count or 0,
+            extra={},
+        )
 
     a2s_result = None
     status_info = None

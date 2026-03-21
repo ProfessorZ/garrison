@@ -39,7 +39,7 @@ export default function PlayerList({ serverId }: PlayerListProps) {
   } = useQuery({
     queryKey: ["server-players", serverId],
     queryFn: () => serversApi.getPlayers(serverId),
-    refetchInterval: 15000,
+    refetchInterval: 60000,
   });
 
   const kickMutation = useMutation({

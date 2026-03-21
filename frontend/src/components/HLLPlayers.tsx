@@ -37,7 +37,7 @@ export default function HLLPlayers({ serverId }: Props) {
   const { data: playersData, isLoading } = useQuery({
     queryKey: ["server-players", serverId],
     queryFn: () => serversApi.getPlayers(serverId),
-    refetchInterval: 10000,
+    refetchInterval: 30000,
   });
 
   const players = playersData?.players ?? [];
