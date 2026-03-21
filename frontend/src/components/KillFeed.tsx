@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Crosshair, Skull, AlertTriangle } from "lucide-react";
 import { eventsApi } from "../api/events";
-import type { GameEvent } from "../types";
 
 interface KillFeedProps {
   serverId: number;
