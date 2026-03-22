@@ -91,8 +91,20 @@ class ConnectedPlugin:
     async def message_player(self, player_name: str, message: str) -> str:
         return await self.plugin.message_player(self.send_command, player_name, message)
 
-    async def get_chat(self) -> list[str]:
-        return []
+    async def get_chat(self) -> list[dict]:
+        """Get recent chat messages. For plugins that track events (e.g. HLL),
+        pull chat from poll_events. Others return empty."""
+        try:
+            events = await self.plugin.poll_events(self.send_command)
+            return [
+                {"player": e.get("player_name", "Unknown"), "message": e.get("message", "")}
+                for e in events
+                if e.get("event_type") == "chat" and e.get("message")
+            ]
+        except NotImplementedError:
+            return []
+        except Exception:
+            return []
 
     async def poll_events(self, since: str | None = None) -> list[dict]:
         """Poll for game events via the plugin."""

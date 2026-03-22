@@ -40,7 +40,16 @@ async def get_chat_log(
 
 
 async def poll_server_chat(server_id: int):
-    """Background task: poll chat from a single server and store new messages."""
+    """Background task: poll chat from a single server and store new messages. 20s timeout."""
+    import asyncio
+    try:
+        await asyncio.wait_for(_poll_server_chat_impl(server_id), timeout=20.0)
+    except asyncio.TimeoutError:
+        logger.warning("Chat poll timeout for server %s", server_id)
+
+
+async def _poll_server_chat_impl(server_id: int):
+    """Internal implementation of poll_server_chat."""
     async with async_session() as db:
         result = await db.execute(select(Server).where(Server.id == server_id))
         server = result.scalar_one_or_none()
