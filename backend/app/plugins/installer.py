@@ -25,11 +25,15 @@ class PluginInstaller:
             if result.returncode != 0:
                 raise ValueError(f"Failed to install plugin requirements: {result.stderr}")
 
-    def install(self, git_url: str) -> dict:
-        """Install a plugin from a git URL."""
+    def install(self, git_url: str, ref: str | None = None) -> dict:
+        """Install a plugin from a git URL, optionally checking out a specific ref."""
         with tempfile.TemporaryDirectory() as tmpdir:
+            clone_cmd = ["git", "clone", "--depth", "1"]
+            if ref:
+                clone_cmd += ["--branch", ref]
+            clone_cmd += [git_url, tmpdir]
             result = subprocess.run(
-                ["git", "clone", "--depth", "1", git_url, tmpdir],
+                clone_cmd,
                 capture_output=True,
                 text=True,
             )

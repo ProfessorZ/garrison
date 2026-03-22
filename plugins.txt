@@ -1,0 +1,10 @@
+# Garrison plugin manifest
+# Format: <github_url>[@ref]
+# The app will install these plugins on startup if not already present.
+
+https://github.com/ProfessorZ/garrison-plugin-zomboid
+https://github.com/ProfessorZ/garrison-plugin-factorio
+https://github.com/ProfessorZ/garrison-plugin-hll
+https://github.com/ProfessorZ/garrison-plugin-dayz
+https://github.com/ProfessorZ/garrison-plugin-arma-reforger
+https://github.com/ProfessorZ/garrison-plugin-minecraft

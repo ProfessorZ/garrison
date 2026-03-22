@@ -1,7 +1,9 @@
+import asyncio
 import logging
 import os
 import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -102,14 +104,71 @@ def _register_plugin_schemas(loader: PluginLoader):
         logger.info("Registered %d commands for plugin %s", len(rcon_commands), game_type)
 
 
+async def sync_plugin_manifest(plugins_dir: str):
+    """Read plugins.txt and install any plugins not already present."""
+    manifest_paths = [
+        Path("/app/plugins.txt"),                                # Docker mount
+        Path(__file__).parent.parent.parent / "plugins.txt",     # dev
+    ]
+
+    manifest_file = None
+    for p in manifest_paths:
+        if p.exists():
+            manifest_file = p
+            break
+
+    if not manifest_file:
+        logger.info("No plugins.txt found, skipping manifest sync")
+        return
+
+    logger.info("Reading plugin manifest: %s", manifest_file)
+    urls = []
+    for line in manifest_file.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        urls.append(line)
+
+    if not urls:
+        return
+
+    plugins_path = Path(plugins_dir)
+    plugins_path.mkdir(parents=True, exist_ok=True)
+    installer = PluginInstaller(plugins_dir)
+
+    for url in urls:
+        # Parse optional @ref suffix
+        ref = None
+        if "@" in url.split("/")[-1]:
+            url, ref = url.rsplit("@", 1)
+
+        repo_name = url.rstrip("/").split("/")[-1]
+        plugin_dir = plugins_path / repo_name
+
+        if plugin_dir.exists():
+            logger.debug("Plugin already installed: %s", repo_name)
+            continue
+
+        logger.info("Installing plugin from manifest: %s", url)
+        try:
+            await asyncio.get_event_loop().run_in_executor(
+                None, installer.install, url, ref
+            )
+            logger.info("Installed plugin: %s", repo_name)
+        except Exception as e:
+            logger.error("Failed to install plugin %s: %s", url, e)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Sync plugins from manifest before loading
+    await sync_plugin_manifest(PLUGINS_DIR)
+
     # Initialize plugin system
     loader = PluginLoader(PLUGINS_DIR)
 
     # Add plugin directories to sys.path so relative imports within plugins work
-    import pathlib
-    plugins_path = pathlib.Path(PLUGINS_DIR)
+    plugins_path = Path(PLUGINS_DIR)
     if plugins_path.exists():
         for entry in sorted(plugins_path.iterdir()):
             if entry.is_dir() and (entry / "plugin.py").exists():

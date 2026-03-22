@@ -42,6 +42,7 @@ services:
       REDIS_URL: redis://redis:6379
     volumes:
       - ./plugins:/data/plugins
+      - ./plugins.txt:/app/plugins.txt:ro
     depends_on:
       db:
         condition: service_healthy
