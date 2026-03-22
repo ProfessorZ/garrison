@@ -341,7 +341,7 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
 // ---------- Action Menu (kebab dropdown) ----------
 
 function ActionMenu({
-  player,
+  player: _player,
   actions,
   isOpen,
   onToggle,
