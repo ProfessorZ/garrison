@@ -582,3 +582,42 @@ async def get_hll_session(
         return _parse_json(raw, "session")
     finally:
         await plugin.disconnect()
+
+
+# ── Server Control ───────────────────────────────────────────────────
+
+
+@router.post("/{server_id}/hll/restart")
+async def restart_server(
+    server_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_server_access(UserRole.ADMIN)),
+):
+    """Restart the HLL match/server."""
+    plugin, server = await _get_hll_plugin(server_id, db)
+    try:
+        raw = await _hll_command(plugin, "GameState", {"State": "Restart"})
+        await log_activity(db, server_id=server_id, user_id=_user.id,
+                           action=ActionType.COMMAND, detail="HLL: server restart")
+        await db.commit()
+        return {"ok": True, "result": raw}
+    finally:
+        await plugin.disconnect()
+
+
+@router.post("/{server_id}/hll/end-match")
+async def end_match(
+    server_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_server_access(UserRole.ADMIN)),
+):
+    """End the current match and advance to the next map."""
+    plugin, server = await _get_hll_plugin(server_id, db)
+    try:
+        raw = await _hll_command(plugin, "GameState", {"State": "NextMap"})
+        await log_activity(db, server_id=server_id, user_id=_user.id,
+                           action=ActionType.COMMAND, detail="HLL: end match / next map")
+        await db.commit()
+        return {"ok": True, "result": raw}
+    finally:
+        await plugin.disconnect()

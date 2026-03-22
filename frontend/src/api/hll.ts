@@ -126,4 +126,14 @@ export const hllApi = {
     const res = await client.delete(`/servers/${serverId}/hll/vips/${encodeURIComponent(player_id)}`);
     return res.data;
   },
+
+  // Server control
+  restartServer: async (serverId: number) => {
+    const res = await client.post(`/servers/${serverId}/hll/restart`);
+    return res.data;
+  },
+  endMatch: async (serverId: number) => {
+    const res = await client.post(`/servers/${serverId}/hll/end-match`);
+    return res.data;
+  },
 };

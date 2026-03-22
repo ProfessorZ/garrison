@@ -6,6 +6,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 ## [Unreleased]
 
 ### Added
+- HLL server restart and end-match buttons (admin only, with confirmation)
+- Gameplay analytics tab: kill stats, top weapons, most killed, teamkills, map frequency
+- Analytics API: /api/servers/{id}/analytics/kills and /maps endpoints
 - Worker auto-restart on plugin file changes (watchdog via asyncio polling)
 - Distributed Redis locking for cron jobs (prevents duplicate runs when scaled)
 - Worker horizontal scaling support: `docker compose up --scale worker=N`

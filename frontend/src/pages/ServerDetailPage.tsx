@@ -17,9 +17,11 @@ import {
   Crosshair,
   Map,
   BarChart3,
+  PieChart,
 } from "lucide-react";
 import { serversApi } from "../api/servers";
 import { pluginsApi } from "../api/plugins";
+import { hllApi } from "../api/hll";
 import { useAuth } from "../contexts/AuthContext";
 import RconConsole from "../components/RconConsole";
 import PlayerList from "../components/PlayerList";
@@ -32,13 +34,14 @@ import ServerOptions from "../components/ServerOptions";
 import DiscordSettings from "../components/DiscordSettings";
 import TriggerManager from "../components/TriggerManager";
 import ServerMetrics from "../components/ServerMetrics";
+import ServerAnalytics from "../components/ServerAnalytics";
 import HLLMapRotation from "../components/HLLMapRotation";
 import HLLServerSettings from "../components/HLLServerSettings";
 import HLLPlayers from "../components/HLLPlayers";
 import HLLBroadcast from "../components/HLLBroadcast";
 import MapChangePanel from "../components/MapChangePanel";
 
-type Tab = "console" | "players" | "chat" | "kills" | "metrics" | "schedules" | "options" | "activity" | "triggers" | "discord" | "settings" | "permissions" | "hll-maps" | "hll-settings" | "hll-players";
+type Tab = "console" | "players" | "chat" | "kills" | "metrics" | "schedules" | "options" | "activity" | "triggers" | "discord" | "settings" | "permissions" | "hll-maps" | "hll-settings" | "hll-players" | "analytics";
 
 export default function ServerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -47,6 +50,8 @@ export default function ServerDetailPage() {
   const serverId = Number(id);
 
   const [tab, setTab] = useState<Tab>("console");
+  const [confirmAction, setConfirmAction] = useState<"restart" | "end-match" | null>(null);
+  const [actionPending, setActionPending] = useState(false);
 
   const { data: server, isLoading: serverLoading } = useQuery({
     queryKey: ["server", serverId],
@@ -82,6 +87,7 @@ export default function ServerDetailPage() {
         { key: "hll-maps", label: "Maps", icon: Map },
         { key: "chat", label: "Chat", icon: MessageSquare },
         { key: "kills", label: "Kill Feed", icon: Crosshair },
+        { key: "analytics", label: "Analytics", icon: PieChart },
         { key: "metrics", label: "Metrics", icon: BarChart3 },
         { key: "hll-settings", label: "Game Settings", icon: SlidersHorizontal },
         { key: "schedules", label: "Schedules", icon: Clock },
@@ -186,8 +192,74 @@ export default function ServerDetailPage() {
         </div>
       </div>
 
-      {/* HLL Broadcast Banner */}
-      {isHLL && <div className="mt-4"><HLLBroadcast serverId={serverId} /></div>}
+      {/* HLL Broadcast Banner + Admin Controls */}
+      {isHLL && (
+        <div className="mt-4" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 200 }}><HLLBroadcast serverId={serverId} /></div>
+          {isAdmin && (
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={() => setConfirmAction("end-match")}
+                style={{ padding: "7px 14px", borderRadius: 8, border: "1px solid rgba(251,191,36,0.3)", background: "rgba(251,191,36,0.08)", color: "#fbbf24", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}
+              >
+                ⏭ End Match
+              </button>
+              <button
+                onClick={() => setConfirmAction("restart")}
+                style={{ padding: "7px 14px", borderRadius: 8, border: "1px solid rgba(255,71,87,0.3)", background: "rgba(255,71,87,0.08)", color: "#ff4757", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}
+              >
+                🔄 Restart Server
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Confirmation modal */}
+      {confirmAction && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.6)" }}
+          onClick={() => !actionPending && setConfirmAction(null)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: 24, maxWidth: 400, width: "90%" }}>
+            <h3 style={{ color: "#e2e8f0", fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
+              {confirmAction === "restart" ? "Restart Server?" : "End Match?"}
+            </h3>
+            <p style={{ color: "#94a3b8", fontSize: 13, marginBottom: 20 }}>
+              {confirmAction === "restart"
+                ? "This will restart the HLL server and disconnect all players. Are you sure?"
+                : "This will end the current match and advance to the next map. Are you sure?"}
+            </p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <button
+                disabled={actionPending}
+                onClick={() => setConfirmAction(null)}
+                style={{ padding: "7px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "#94a3b8", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              >
+                Cancel
+              </button>
+              <button
+                disabled={actionPending}
+                onClick={async () => {
+                  setActionPending(true);
+                  try {
+                    if (confirmAction === "restart") await hllApi.restartServer(serverId);
+                    else await hllApi.endMatch(serverId);
+                    setConfirmAction(null);
+                  } catch { /* toast could go here */ }
+                  setActionPending(false);
+                }}
+                style={{
+                  padding: "7px 16px", borderRadius: 8, border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                  background: confirmAction === "restart" ? "#ff4757" : "#fbbf24",
+                  color: confirmAction === "restart" ? "#fff" : "#0a0e1a",
+                  opacity: actionPending ? 0.6 : 1,
+                }}
+              >
+                {actionPending ? "Processing..." : confirmAction === "restart" ? "Restart" : "End Match"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs — underline style, horizontally scrollable */}
       <TabBar visibleTabs={visibleTabs} tab={tab} setTab={setTab} />
@@ -203,6 +275,7 @@ export default function ServerDetailPage() {
         {tab === "hll-settings" && <HLLServerSettings serverId={serverId} />}
         {tab === "chat" && <ChatLog serverId={serverId} />}
         {tab === "kills" && <KillFeed serverId={serverId} />}
+        {tab === "analytics" && <ServerAnalytics serverId={serverId} />}
         {tab === "metrics" && <ServerMetrics serverId={serverId} />}
         {tab === "schedules" && (
           <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
