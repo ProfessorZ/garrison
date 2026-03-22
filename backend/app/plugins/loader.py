@@ -40,7 +40,7 @@ class PluginLoader:
 
     def _load_plugin(self, plugin_dir: Path):
         manifest = json.loads((plugin_dir / "manifest.json").read_text())
-        game_type = manifest["id"]
+        game_type = manifest.get("id") or manifest.get("game_type")
 
         # Validate API version
         api_version = int(manifest.get("garrison_api", "1"))
@@ -137,9 +137,9 @@ class PluginLoader:
     def list_plugins(self) -> list[dict]:
         return [
             {
-                "id": m["id"],
-                "name": m.get("name", m["id"]),
-                "display_name": m.get("display_name", m["id"]),
+                "id": m.get("id") or m.get("game_type"),
+                "name": m.get("name", m.get("id") or m.get("game_type")),
+                "display_name": m.get("display_name", m.get("id") or m.get("game_type")),
                 "version": m.get("version", "0.0.0"),
                 "description": m.get("description", ""),
                 "author": m.get("author", ""),
