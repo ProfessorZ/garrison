@@ -176,17 +176,35 @@ export default function HLLMapRotation({ serverId }: Props) {
     setSaving(true);
     setError("");
     try {
-      // Step 1: Remove all maps
-      setSaveProgress("Removing old rotation...");
-      for (let i = 0; i < serverMaps.length; i++) {
-        setSaveProgress(`Removing ${i + 1}/${serverMaps.length}...`);
-        await hllApi.removeMapFromRotation(serverId, serverMaps[i].iD);
+      const serverIds = new Set(serverMaps.map(m => m.iD));
+      const localIds = new Set(localRotation.map(m => m.iD));
+
+      // Maps to remove (in server but not in new rotation)
+      const toRemove = serverMaps.filter(m => !localIds.has(m.iD));
+      // Maps to add (in new rotation but not in server)
+      const toAdd = localRotation.filter(m => !serverIds.has(m.iD));
+
+      if (toRemove.length === 0 && toAdd.length === 0) {
+        // Only reorder — HLL doesn't support reorder natively, must remove+re-add changed maps
+        // Do a full replace only if order actually changed
+        const orderChanged = localRotation.some((m, i) => serverMaps[i]?.iD !== m.iD);
+        if (!orderChanged) {
+          setLocalRotation(null);
+          return;
+        }
+        // For reorder: remove all and re-add in new order (unavoidable for HLL)
+        setSaveProgress("Reordering rotation...");
+        await Promise.all(serverMaps.map(m => hllApi.removeMapFromRotation(serverId, m.iD)));
+        for (const m of localRotation) {
+          await hllApi.addMapToRotation(serverId, m.iD, m.gameMode);
+        }
+      } else {
+        // Diff-based: only remove maps that are gone, add new ones — much faster
+        setSaveProgress(`Applying changes (−${toRemove.length} +${toAdd.length})...`);
+        await Promise.all(toRemove.map(m => hllApi.removeMapFromRotation(serverId, m.iD)));
+        await Promise.all(toAdd.map(m => hllApi.addMapToRotation(serverId, m.iD, m.gameMode)));
       }
-      // Step 2: Add in new order
-      for (let i = 0; i < localRotation.length; i++) {
-        setSaveProgress(`Adding ${i + 1}/${localRotation.length}...`);
-        await hllApi.addMapToRotation(serverId, localRotation[i].iD, localRotation[i].gameMode);
-      }
+
       setSaveProgress("");
       setLocalRotation(null);
       queryClient.invalidateQueries({ queryKey: ["hll-map-rotation", serverId] });
