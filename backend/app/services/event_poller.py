@@ -56,18 +56,16 @@ async def _poll_server_events_impl(server_id: int) -> None:
         if not events:
             return
 
-        # De-duplicate: look at raw field to avoid re-inserting the same log lines.
-        # We check raw values from the last batch.
-        existing_raws: set[str] = set()
-        if since:
-            stmt = (
-                select(GameEvent.raw)
-                .where(GameEvent.server_id == server_id, GameEvent.raw.isnot(None))
-                .order_by(GameEvent.created_at.desc())
-                .limit(500)
-            )
-            rows = await db.execute(stmt)
-            existing_raws = {r[0] for r in rows.all() if r[0]}
+        # De-duplicate: always check raw field against recent events to avoid
+        # re-inserting the same log lines on worker restart.
+        stmt = (
+            select(GameEvent.raw)
+            .where(GameEvent.server_id == server_id, GameEvent.raw.isnot(None))
+            .order_by(GameEvent.created_at.desc())
+            .limit(1000)
+        )
+        rows = await db.execute(stmt)
+        existing_raws: set[str] = {r[0] for r in rows.all() if r[0]}
 
         now = datetime.now(timezone.utc)
         added = 0

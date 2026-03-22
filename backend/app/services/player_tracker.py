@@ -261,6 +261,22 @@ async def poll_players(ctx: dict = None) -> None:
                     p["name"]: p.get("steam_id") for p in current_players
                 }
                 current_names = set(steam_id_map.keys())
+
+                # On first poll for this server, seed previous_names from open DB sessions
+                # to avoid creating duplicate join events on worker restart.
+                if server.id not in _server_players:
+                    open_sessions = await db.execute(
+                        select(PlayerSession)
+                        .join(PlayerSession.player)
+                        .where(
+                            PlayerSession.server_id == server.id,
+                            PlayerSession.left_at.is_(None),
+                        )
+                    )
+                    seeded = {s.player.name for s in open_sessions.scalars().all() if s.player}
+                    _server_players[server.id] = seeded
+                    logger.debug("Seeded %d players for server %s from open sessions", len(seeded), server.id)
+
                 previous_names = _server_players.get(server.id, set())
 
                 joined = current_names - previous_names
