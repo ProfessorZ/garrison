@@ -53,9 +53,13 @@ class ConnectedPlugin:
 
     async def get_players(self) -> list[dict]:
         """Get players list as dicts (backward-compatible with old API)."""
-        _player_commands = {"factorio": "/players online", "hll": "GetPlayerIds"}
-        cmd = _player_commands.get(self.plugin.game_type, "players")
-        raw = await self.send_command(cmd)
+        if self.plugin.game_type == "factorio":
+            raw = await self.send_command("/players online")
+        elif self.plugin.game_type == "hll":
+            # HLL uses custom protocol: GetServerInformation with Name=players
+            raw = await self.send_command("GetServerInformation", '{"Name": "players", "Value": ""}')
+        else:
+            raw = await self.send_command("players")
         players = await self.plugin.parse_players(raw)
         return [{"name": p.name, **({"steam_id": p.steam_id} if p.steam_id else {})} for p in players]
 
