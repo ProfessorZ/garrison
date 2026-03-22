@@ -8,3 +8,4 @@ https://github.com/ProfessorZ/garrison-plugin-hll
 https://github.com/ProfessorZ/garrison-plugin-dayz
 https://github.com/ProfessorZ/garrison-plugin-arma-reforger
 https://github.com/ProfessorZ/garrison-plugin-minecraft
+https://github.com/ProfessorZ/garrison-plugin-beammp
