@@ -185,6 +185,7 @@ async def server_status(
         name=server.name,
         online=online,
         player_count=player_count,
+        extra=status_info.get("extra") if status_info else None,
     )
 
 

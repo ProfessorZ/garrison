@@ -43,6 +43,7 @@ class ServerStatus(BaseModel):
     name: str
     online: bool
     player_count: int | None = None
+    extra: dict | None = None
 
 
 class CommandRequest(BaseModel):

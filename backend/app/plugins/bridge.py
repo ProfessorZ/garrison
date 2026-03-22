@@ -65,7 +65,7 @@ class ConnectedPlugin:
 
     async def get_status(self) -> dict:
         status = await self.plugin.get_status(self.send_command)
-        return {"online": status.online, "player_count": status.player_count}
+        return {"online": status.online, "player_count": status.player_count, "extra": status.extra or {}}
 
     async def kick_player(self, player_name: str, reason: str = "") -> str:
         return await self.plugin.kick_player(self.send_command, player_name, reason)
