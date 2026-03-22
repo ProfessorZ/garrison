@@ -195,7 +195,7 @@ export default function HLLPlayers({ serverId }: Props) {
         ) : (
           <div className="space-y-0.5">
             {players.map((p: { name: string; steam_id?: string; player_id?: string; team?: string; role?: string; level?: number }) => {
-              const playerId = p.steam_id || p.player_id || p.name;
+              const playerId = (p as any).iD || p.steam_id || p.player_id || p.name;
               return (
                 <div
                   key={playerId}
