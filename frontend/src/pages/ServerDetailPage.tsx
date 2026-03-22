@@ -36,6 +36,7 @@ import HLLMapRotation from "../components/HLLMapRotation";
 import HLLServerSettings from "../components/HLLServerSettings";
 import HLLPlayers from "../components/HLLPlayers";
 import HLLBroadcast from "../components/HLLBroadcast";
+import MapChangePanel from "../components/MapChangePanel";
 
 type Tab = "console" | "players" | "chat" | "kills" | "metrics" | "schedules" | "options" | "activity" | "triggers" | "discord" | "settings" | "permissions" | "hll-maps" | "hll-settings" | "hll-players";
 
@@ -196,7 +197,7 @@ export default function ServerDetailPage() {
         {tab === "console" && (
           <RconConsole serverId={serverId} gameType={server.game_type} />
         )}
-        {tab === "players" && <PlayerList serverId={serverId} />}
+        {tab === "players" && <PlayerList serverId={serverId} gameType={server.game_type} />}
         {tab === "hll-players" && <HLLPlayers serverId={serverId} />}
         {tab === "hll-maps" && <HLLMapRotation serverId={serverId} />}
         {tab === "hll-settings" && <HLLServerSettings serverId={serverId} />}
@@ -223,11 +224,16 @@ export default function ServerDetailPage() {
           <DiscordSettings serverId={serverId} />
         )}
         {tab === "settings" && (
-          <SettingsPanel
-            serverId={serverId}
-            server={server}
-            onSaved={() => queryClient.invalidateQueries({ queryKey: ["server", serverId] })}
-          />
+          <>
+            <SettingsPanel
+              serverId={serverId}
+              server={server}
+              onSaved={() => queryClient.invalidateQueries({ queryKey: ["server", serverId] })}
+            />
+            {!isHLL && server.game_type !== "dayz" && (
+              <MapChangePanel serverId={serverId} gameType={server.game_type} />
+            )}
+          </>
         )}
         {tab === "permissions" && isAdmin && (
           <ServerPermissions serverId={serverId} />

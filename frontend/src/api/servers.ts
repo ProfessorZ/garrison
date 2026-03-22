@@ -62,4 +62,38 @@ export const serversApi = {
     );
     return res.data;
   },
+
+  messagePlayer: async (id: number, playerName: string, message: string) => {
+    const res = await client.post(
+      `/servers/${id}/players/${encodeURIComponent(playerName)}/message`,
+      { message }
+    );
+    return res.data;
+  },
+
+  teleportPlayer: async (id: number, playerName: string, x: number, y: number, z: number) => {
+    const res = await client.post(
+      `/servers/${id}/players/${encodeURIComponent(playerName)}/teleport`,
+      { x, y, z }
+    );
+    return res.data;
+  },
+
+  giveItem: async (id: number, playerName: string, item: string, count: number = 1) => {
+    const res = await client.post(
+      `/servers/${id}/players/${encodeURIComponent(playerName)}/give`,
+      { item, count }
+    );
+    return res.data;
+  },
+
+  getMaps: async (id: number): Promise<string[]> => {
+    const res = await client.get<string[]>(`/servers/${id}/maps`);
+    return res.data;
+  },
+
+  changeMap: async (id: number, mapName: string) => {
+    const res = await client.post(`/servers/${id}/change-map`, { map_name: mapName });
+    return res.data;
+  },
 };
