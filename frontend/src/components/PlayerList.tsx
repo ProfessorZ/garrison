@@ -446,6 +446,7 @@ function ActionModal({
   reason, setReason,
   tpX, setTpX, tpY, setTpY, tpZ, setTpZ,
   itemName, setItemName, itemCount, setItemCount,
+  availableRoles, selectedRole, setSelectedRole,
 }: {
   modal: { type: ActionType; player: EnrichedPlayer } | null;
   gameType: string;
