@@ -5,6 +5,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Added
+- Worker auto-restart on plugin file changes (watchdog via asyncio polling)
+- Distributed Redis locking for cron jobs (prevents duplicate runs when scaled)
+- Worker horizontal scaling support: `docker compose up --scale worker=N`
+
 ## [0.2.0] - 2026-03-21
 
 ### Added

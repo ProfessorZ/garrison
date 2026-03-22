@@ -50,6 +50,7 @@ services:
     networks:
       - garrison
 
+  # Scale workers: docker compose up --scale worker=3
   worker:
     build:
       context: .
@@ -68,6 +69,8 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
+    deploy:
+      replicas: 1
     networks:
       - garrison
 

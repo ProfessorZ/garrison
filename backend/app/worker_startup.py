@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import sys
@@ -33,9 +34,15 @@ async def startup(ctx):
     from app.plugins.bridge import set_standalone_loader
     set_standalone_loader(loader)
 
+    # Start plugin file watcher for auto-restart
+    from app.worker_watcher import watch_plugins
+    ctx["watcher_task"] = asyncio.create_task(watch_plugins(os.getpid()))
+
     logger.info("ARQ worker started — %d plugins loaded from %s", len(loader.plugins), plugins_dir)
 
 
 async def shutdown(ctx):
     """Called when the ARQ worker process shuts down."""
+    if task := ctx.get("watcher_task"):
+        task.cancel()
     logger.info("ARQ worker shutting down")

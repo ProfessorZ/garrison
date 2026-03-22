@@ -8,9 +8,8 @@ ran every 15 seconds — it now runs every minute.  This is an acceptable
 tradeoff; sub-minute polling can be restored later using the ARQ
 functions + self-re-enqueue pattern if needed.
 
-Note: player_tracker.py maintains in-memory state (_server_players).
-This works fine with a single worker.  Horizontal worker scaling would
-require moving that state to Redis (future work).
+Cron jobs use distributed Redis locks so that only one worker instance
+runs each job when scaled horizontally (docker compose up --scale worker=N).
 """
 
 import logging
@@ -20,18 +19,52 @@ from arq import cron
 from arq.connections import RedisSettings
 
 from app.config import settings
+from app.worker_lock import with_lock
 from app.worker_startup import startup, shutdown
 
 logging.basicConfig(level=logging.INFO)
 
 # ── Job imports ──────────────────────────────────────────────────────────────
 
-from app.services.player_tracker import poll_players
-from app.services.metrics_collector import collect_metrics
-from app.api.chat import poll_all_chat
-from app.api.servers import poll_all_servers
-from app.api.scheduler import run_due_scheduled_commands
-from app.services.event_poller import poll_all_events
+from app.services.player_tracker import poll_players as _poll_players
+from app.services.metrics_collector import collect_metrics as _collect_metrics
+from app.api.chat import poll_all_chat as _poll_all_chat
+from app.api.servers import poll_all_servers as _poll_all_servers
+from app.api.scheduler import run_due_scheduled_commands as _run_due_scheduled_commands
+from app.services.event_poller import poll_all_events as _poll_all_events
+
+# ── Locked cron wrappers (one execution per job across all workers) ──────────
+
+
+@with_lock("poll_players", ttl_seconds=50)
+async def poll_players(ctx):
+    return await _poll_players(ctx)
+
+
+@with_lock("collect_metrics", ttl_seconds=280)
+async def collect_metrics(ctx):
+    return await _collect_metrics(ctx)
+
+
+@with_lock("poll_all_servers", ttl_seconds=50)
+async def poll_all_servers(ctx):
+    return await _poll_all_servers(ctx)
+
+
+@with_lock("poll_all_chat", ttl_seconds=50)
+async def poll_all_chat(ctx):
+    return await _poll_all_chat(ctx)
+
+
+@with_lock("run_due_scheduled_commands", ttl_seconds=50)
+async def run_due_scheduled_commands(ctx):
+    return await _run_due_scheduled_commands(ctx)
+
+
+@with_lock("poll_all_events", ttl_seconds=50)
+async def poll_all_events(ctx):
+    return await _poll_all_events(ctx)
+
 
 # ── Redis settings from URL ─────────────────────────────────────────────────
 
