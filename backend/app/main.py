@@ -70,10 +70,18 @@ def _register_plugin_schemas(loader: PluginLoader):
 
     for game_type, plugin in loader.plugins.items():
         try:
+            # Point sys.modules["schema"] to this plugin's schema before calling get_commands()
+            # so that `from schema import get_commands` inside each plugin resolves correctly
+            schema_key = f"garrison_schema_{game_type}"
+            if schema_key in sys.modules:
+                sys.modules["schema"] = sys.modules[schema_key]
             cmds = plugin.get_commands()
         except Exception as e:
             logger.warning("Failed to get commands from plugin %s: %s", game_type, e)
             continue
+        finally:
+            # Clean up the "schema" alias
+            sys.modules.pop("schema", None)
 
         rcon_commands = []
         for cmd in cmds:
