@@ -146,7 +146,26 @@ async def sync_plugin_manifest(plugins_dir: str):
         plugin_dir = plugins_path / repo_name
 
         if plugin_dir.exists():
-            logger.debug("Plugin already installed: %s", repo_name)
+            # Update existing plugin via git pull
+            logger.info("Updating plugin: %s", repo_name)
+            try:
+                import subprocess
+                result = subprocess.run(
+                    ["git", "pull", "--ff-only"],
+                    cwd=str(plugin_dir),
+                    capture_output=True, text=True, timeout=30
+                )
+                if result.returncode == 0:
+                    logger.info("Updated plugin %s: %s", repo_name, result.stdout.strip())
+                    # Clear pycache so updated code is loaded
+                    import shutil
+                    pycache = plugin_dir / "__pycache__"
+                    if pycache.exists():
+                        shutil.rmtree(pycache)
+                else:
+                    logger.warning("git pull failed for %s: %s", repo_name, result.stderr.strip())
+            except Exception as e:
+                logger.warning("Could not update plugin %s: %s", repo_name, e)
             continue
 
         logger.info("Installing plugin from manifest: %s", url)
