@@ -155,3 +155,12 @@ class ZomboidPlugin(GamePlugin):
 
     async def unban_player(self, send_command, name: str) -> str:
         return await send_command(f'unbanuser "{name}"')
+
+    async def teleport_player(self, send_command, name: str, x: float, y: float, z: float) -> str:
+        return await send_command(f"teleport {name} {x},{y},{z}")
+
+    async def give_item(self, send_command, player: str, item: str, count: int = 1) -> str:
+        return await send_command(f"additem {player} {item} {count}")
+
+    async def message_player(self, send_command, name: str, message: str) -> str:
+        return await send_command(f'servermsg "{name}" "{message}"')

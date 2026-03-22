@@ -61,11 +61,6 @@ class GamePlugin(ABC):
     # instead of the shared RCON manager.
     custom_connection: bool = False
 
-    # Set to True in plugins that use a custom protocol (not Source RCON).
-    # When True, the bridge will call connect_custom / send_command_custom
-    # instead of the shared RCON manager.
-    custom_connection: bool = False
-
     @property
     @abstractmethod
     def game_type(self) -> str: ...
@@ -102,6 +97,22 @@ class GamePlugin(ABC):
         raise NotImplementedError
 
     async def unban_player(self, send_command, name: str) -> str:
+        raise NotImplementedError
+
+    async def teleport_player(self, send_command, name: str, x: float, y: float, z: float) -> str:
+        raise NotImplementedError
+
+    async def give_item(self, send_command, player: str, item: str, count: int = 1) -> str:
+        raise NotImplementedError
+
+    async def get_maps(self, send_command) -> list[str]:
+        """Return list of available map names."""
+        raise NotImplementedError
+
+    async def change_map(self, send_command, map_name: str) -> str:
+        raise NotImplementedError
+
+    async def message_player(self, send_command, name: str, message: str) -> str:
         raise NotImplementedError
 
     # ── Custom connection hooks (for non-Source-RCON protocols) ────

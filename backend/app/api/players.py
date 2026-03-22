@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -162,3 +163,134 @@ async def get_chat(
     finally:
         await plugin.disconnect()
     return {"messages": chat}
+
+
+# ── Request models for new player actions ────────────────────────────
+
+
+class TeleportRequest(BaseModel):
+    x: float
+    y: float
+    z: float
+
+
+class GiveItemRequest(BaseModel):
+    item: str
+    count: int = 1
+
+
+class MessagePlayerRequest(BaseModel):
+    message: str
+
+
+class ChangeMapRequest(BaseModel):
+    map_name: str
+
+
+# ── Teleport ─────────────────────────────────────────────────────────
+
+
+@router.post("/{server_id}/players/{player_name}/teleport")
+async def teleport_player(
+    server_id: int,
+    player_name: str,
+    data: TeleportRequest,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_server_access(UserRole.MODERATOR)),
+):
+    server, plugin = await _get_server_plugin(server_id, db)
+    try:
+        result = await plugin.teleport_player(player_name, data.x, data.y, data.z)
+    finally:
+        await plugin.disconnect()
+    await log_activity(
+        db, server_id=server_id, user_id=_user.id, action=ActionType.COMMAND,
+        detail=f"Teleported {player_name} to ({data.x}, {data.y}, {data.z})",
+    )
+    await db.commit()
+    return {"result": result}
+
+
+# ── Give Item ────────────────────────────────────────────────────────
+
+
+@router.post("/{server_id}/players/{player_name}/give-item")
+async def give_item(
+    server_id: int,
+    player_name: str,
+    data: GiveItemRequest,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_server_access(UserRole.MODERATOR)),
+):
+    server, plugin = await _get_server_plugin(server_id, db)
+    try:
+        result = await plugin.give_item(player_name, data.item, data.count)
+    finally:
+        await plugin.disconnect()
+    await log_activity(
+        db, server_id=server_id, user_id=_user.id, action=ActionType.COMMAND,
+        detail=f"Gave {player_name} {data.count}x {data.item}",
+    )
+    await db.commit()
+    return {"result": result}
+
+
+# ── Message Player ───────────────────────────────────────────────────
+
+
+@router.post("/{server_id}/players/{player_name}/message")
+async def message_player(
+    server_id: int,
+    player_name: str,
+    data: MessagePlayerRequest,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_server_access(UserRole.MODERATOR)),
+):
+    server, plugin = await _get_server_plugin(server_id, db)
+    try:
+        result = await plugin.message_player(player_name, data.message)
+    finally:
+        await plugin.disconnect()
+    await log_activity(
+        db, server_id=server_id, user_id=_user.id, action=ActionType.COMMAND,
+        detail=f"Messaged {player_name}",
+    )
+    await db.commit()
+    return {"result": result}
+
+
+# ── Maps ─────────────────────────────────────────────────────────────
+
+
+@router.get("/{server_id}/maps")
+async def get_maps(
+    server_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_server_access(UserRole.VIEWER)),
+):
+    server, plugin = await _get_server_plugin(server_id, db)
+    try:
+        maps = await plugin.get_maps()
+    finally:
+        await plugin.disconnect()
+    return {"maps": maps}
+
+
+@router.post("/{server_id}/change-map")
+async def change_map(
+    server_id: int,
+    data: ChangeMapRequest,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_server_access(UserRole.MODERATOR)),
+):
+    server, plugin = await _get_server_plugin(server_id, db)
+    try:
+        result = await plugin.change_map(data.map_name)
+    finally:
+        await plugin.disconnect()
+    await log_activity(
+        db, server_id=server_id, user_id=_user.id, action=ActionType.COMMAND,
+        detail=f"Changed map to {data.map_name}",
+    )
+    await db.commit()
+    return {"result": result}

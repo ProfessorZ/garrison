@@ -183,3 +183,16 @@ class FactorioPlugin(GamePlugin):
 
     async def unban_player(self, send_command, name: str) -> str:
         return await send_command(f"/unban {name}")
+
+    async def teleport_player(self, send_command, name: str, x: float, y: float, z: float) -> str:
+        # Factorio is 2D; z is ignored. Teleport via Lua command.
+        lua = f'game.get_player("{name}").teleport({{x={x}, y={y}}})'
+        return await send_command(f"/silent-command {lua}")
+
+    async def give_item(self, send_command, player: str, item: str, count: int = 1) -> str:
+        lua = f'game.get_player("{player}").insert({{name="{item}", count={count}}})'
+        return await send_command(f"/silent-command {lua}")
+
+    async def message_player(self, send_command, name: str, message: str) -> str:
+        lua = f'game.get_player("{name}").print("{message}")'
+        return await send_command(f"/silent-command {lua}")

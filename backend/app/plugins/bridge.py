@@ -72,6 +72,21 @@ class ConnectedPlugin:
     async def unban_player(self, player_name: str) -> str:
         return await self.plugin.unban_player(self.send_command, player_name)
 
+    async def teleport_player(self, player_name: str, x: float, y: float, z: float) -> str:
+        return await self.plugin.teleport_player(self.send_command, player_name, x, y, z)
+
+    async def give_item(self, player_name: str, item: str, count: int = 1) -> str:
+        return await self.plugin.give_item(self.send_command, player_name, item, count)
+
+    async def get_maps(self) -> list[str]:
+        return await self.plugin.get_maps(self.send_command)
+
+    async def change_map(self, map_name: str) -> str:
+        return await self.plugin.change_map(self.send_command, map_name)
+
+    async def message_player(self, player_name: str, message: str) -> str:
+        return await self.plugin.message_player(self.send_command, player_name, message)
+
     async def get_chat(self) -> list[str]:
         return []
 
