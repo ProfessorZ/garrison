@@ -32,8 +32,8 @@ export const serversApi = {
     await client.delete(`/servers/${id}`);
   },
 
-  getStatus: async (id: number): Promise<ServerStatus> => {
-    const res = await client.get<ServerStatus>(`/servers/${id}/status`);
+  getStatus: async (id: number, live = false): Promise<ServerStatus> => {
+    const res = await client.get<ServerStatus>(`/servers/${id}/status${live ? "?live=true" : ""}`);
     return res.data;
   },
 

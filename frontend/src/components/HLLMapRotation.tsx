@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Map, Search, Play, Trash2, ChevronUp, ChevronDown, Plus, Save, Loader2 } from "lucide-react";
 import { hllApi } from "../api/hll";
+import { serversApi } from "../api/servers";
 
 interface Props {
   serverId: number;
@@ -100,6 +101,14 @@ export default function HLLMapRotation({ serverId }: Props) {
     queryFn: () => hllApi.getMapRotation(serverId),
     refetchInterval: 30000,
   });
+
+  // Fetch live status to get the actual current map (currentIndex in rotation is unreliable)
+  const { data: statusData } = useQuery({
+    queryKey: ["server-status-live", serverId],
+    queryFn: () => serversApi.getStatus(serverId, true),
+    refetchInterval: 30000,
+  });
+  const activeMapId: string | null = (statusData as any)?.extra?.map ?? null;
 
   // Initialize local rotation from server data
   const serverMaps = data?.mAPS ?? [];
@@ -205,7 +214,10 @@ export default function HLLMapRotation({ serverId }: Props) {
   };
 
   // Current playing map
-  const nowPlaying = serverMaps[data?.currentIndex ?? 0];
+  // Find currently active map by mapId from live status, fall back to currentIndex
+  const nowPlaying = activeMapId
+    ? serverMaps.find(m => m.iD === activeMapId) ?? serverMaps[data?.currentIndex ?? 0]
+    : serverMaps[data?.currentIndex ?? 0];
 
   if (isLoading) {
     return (
@@ -347,7 +359,7 @@ export default function HLLMapRotation({ serverId }: Props) {
           ) : (
             <div className="flex-1 overflow-y-auto max-h-[500px] space-y-0.5">
               {rotation.map((m, i) => {
-                const isActive = !isDirty && i === (data?.currentIndex ?? -1);
+                const isActive = !isDirty && (activeMapId ? m.iD === activeMapId : i === (data?.currentIndex ?? -1));
                 return (
                   <div
                     key={`${m.iD}-${i}`}
