@@ -229,6 +229,13 @@ export default function PlayerProfilePage() {
     setBanDurationHours(t.duration_hours != null ? String(t.duration_hours) : "");
   };
 
+  // Combat stats — must be before early return (Rules of Hooks)
+  const { data: combatStats } = useQuery({
+    queryKey: ["player-combat-stats", profile?.player?.steam_id],
+    queryFn: () => eventsApi.getPlayerCombatStats(profile!.player.steam_id!),
+    enabled: !!profile?.player?.steam_id,
+  });
+
   if (isLoading || !profile) {
     return <ProfileSkeleton />;
   }
@@ -239,13 +246,6 @@ export default function PlayerProfilePage() {
   const banList = bans ?? profile.bans;
   const nameHistory = profile.name_history ?? [];
   const serversPlayed = new Set(profile.sessions.map((s) => s.server_id)).size;
-
-  // Combat stats — only fetched if player has a steam_id (used as player_id in events)
-  const { data: combatStats } = useQuery({
-    queryKey: ["player-combat-stats", player.steam_id],
-    queryFn: () => eventsApi.getPlayerCombatStats(player.steam_id!),
-    enabled: !!player.steam_id,
-  });
 
   const tabs: { key: Tab; label: string; icon: typeof Clock; badge?: number }[] = [
     { key: "sessions", label: "Sessions", icon: Clock },
