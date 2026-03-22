@@ -87,6 +87,26 @@ export const serversApi = {
     return res.data;
   },
 
+  getRoles: async (id: number): Promise<{ roles: string[] }> => {
+    const res = await client.get<{ roles: string[] }>(`/servers/${id}/roles`);
+    return res.data;
+  },
+
+  promotePlayer: async (id: number, playerName: string, role: string) => {
+    const res = await client.post(
+      `/servers/${id}/players/${encodeURIComponent(playerName)}/promote`,
+      { role }
+    );
+    return res.data;
+  },
+
+  demotePlayer: async (id: number, playerName: string) => {
+    const res = await client.post(
+      `/servers/${id}/players/${encodeURIComponent(playerName)}/demote`
+    );
+    return res.data;
+  },
+
   getMaps: async (id: number): Promise<string[]> => {
     const res = await client.get<string[]>(`/servers/${id}/maps`);
     return res.data;

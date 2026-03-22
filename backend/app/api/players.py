@@ -294,3 +294,65 @@ async def change_map(
     )
     await db.commit()
     return {"result": result}
+
+
+class PromoteRequest(BaseModel):
+    role: str
+
+
+@router.get("/{server_id}/roles")
+async def get_roles(
+    server_id: int,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_server_access(UserRole.VIEWER)),
+):
+    """Return available player roles for this game type."""
+    server, plugin = await _get_server_plugin(server_id, db)
+    try:
+        roles = await plugin.get_player_roles()
+    except NotImplementedError:
+        roles = []
+    finally:
+        await plugin.disconnect()
+    return {"roles": roles}
+
+
+@router.post("/{server_id}/players/{player_name}/promote")
+async def promote_player(
+    server_id: int,
+    player_name: str,
+    data: PromoteRequest,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_server_access(UserRole.ADMIN)),
+):
+    server, plugin = await _get_server_plugin(server_id, db)
+    try:
+        result = await plugin.promote_player(player_name, data.role)
+    finally:
+        await plugin.disconnect()
+    await log_activity(
+        db, server_id=server_id, user_id=_user.id, action=ActionType.COMMAND,
+        detail=f"Promoted {player_name} to {data.role}",
+    )
+    await db.commit()
+    return {"ok": True, "result": result}
+
+
+@router.post("/{server_id}/players/{player_name}/demote")
+async def demote_player(
+    server_id: int,
+    player_name: str,
+    db: AsyncSession = Depends(get_db),
+    _user: User = Depends(require_server_access(UserRole.ADMIN)),
+):
+    server, plugin = await _get_server_plugin(server_id, db)
+    try:
+        result = await plugin.demote_player(player_name)
+    finally:
+        await plugin.disconnect()
+    await log_activity(
+        db, server_id=server_id, user_id=_user.id, action=ActionType.COMMAND,
+        detail=f"Demoted {player_name}",
+    )
+    await db.commit()
+    return {"ok": True, "result": result}

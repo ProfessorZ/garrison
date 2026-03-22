@@ -129,6 +129,18 @@ class GamePlugin(ABC):
         """Override to send a command via custom protocol."""
         raise NotImplementedError
 
+    async def get_player_roles(self) -> list[str]:
+        """Return available role names for this game (empty = no role support)."""
+        return []
+
+    async def promote_player(self, send_command, player: str, role: str) -> str:
+        """Grant a role to a player. Returns output/confirmation."""
+        raise NotImplementedError
+
+    async def demote_player(self, send_command, player: str) -> str:
+        """Remove admin/role from a player. Returns output/confirmation."""
+        raise NotImplementedError
+
     async def poll_events(self, send_command, since: str | None = None) -> list[dict]:
         """Override to return game events (kills, chat, connects, etc.) since last poll.
 

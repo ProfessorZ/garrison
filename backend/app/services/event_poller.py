@@ -20,7 +20,16 @@ _last_event_ts: dict[int, datetime] = {}
 
 
 async def _poll_server_events(server_id: int) -> None:
-    """Poll events from a single server and persist new ones."""
+    """Poll events from a single server and persist new ones. 20s timeout."""
+    import asyncio
+    try:
+        await asyncio.wait_for(_poll_server_events_impl(server_id), timeout=20.0)
+    except asyncio.TimeoutError:
+        logger.warning("Event poll timeout for server %s", server_id)
+
+
+async def _poll_server_events_impl(server_id: int) -> None:
+    """Internal: poll events from a single server and persist new ones."""
     async with async_session() as db:
         result = await db.execute(select(Server).where(Server.id == server_id))
         server = result.scalar_one_or_none()

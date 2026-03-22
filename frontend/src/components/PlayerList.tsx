@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
   RefreshCw, UserX, Ban, Users, Clock, ExternalLink,
-  MoreVertical, MessageSquare, MapPin, Package, X,
+  MoreVertical, MessageSquare, MapPin, Package, X, ShieldCheck, ShieldOff,
 } from "lucide-react";
 import { serversApi } from "../api/servers";
 import type { EnrichedPlayer } from "../types";
@@ -14,7 +14,7 @@ interface PlayerListProps {
   gameType: string;
 }
 
-type ActionType = "message" | "kick" | "ban" | "teleport" | "give";
+type ActionType = "message" | "kick" | "ban" | "teleport" | "give" | "promote" | "demote";
 
 function formatPlaytime(seconds: number): string {
   if (seconds < 60) return "<1m";
@@ -46,6 +46,7 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
   const [tpZ, setTpZ] = useState("0");
   const [itemName, setItemName] = useState("");
   const [itemCount, setItemCount] = useState("1");
+  const [selectedRole, setSelectedRole] = useState("");
 
   const {
     data: playersData,
@@ -55,6 +56,26 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
     queryKey: ["server-players", serverId],
     queryFn: () => serversApi.getPlayers(serverId),
     refetchInterval: 60000,
+  });
+
+  const { data: rolesData } = useQuery({
+    queryKey: ["server-roles", serverId],
+    queryFn: () => serversApi.getRoles(serverId),
+    staleTime: Infinity,
+  });
+  const availableRoles: string[] = rolesData?.roles ?? [];
+
+  const promoteMutation = useMutation({
+    mutationFn: ({ name, role }: { name: string; role: string }) =>
+      serversApi.promotePlayer(serverId, name, role),
+    onSuccess: () => { closeModal(); showToast("Player promoted"); },
+    onError: (err) => handleApiError(err),
+  });
+
+  const demoteMutation = useMutation({
+    mutationFn: (name: string) => serversApi.demotePlayer(serverId, name),
+    onSuccess: () => { closeModal(); showToast("Player demoted"); },
+    onError: (err) => handleApiError(err),
   });
 
   const kickMutation = useMutation({
@@ -117,6 +138,7 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
     setTpX("0"); setTpY("0"); setTpZ("0");
     setItemName("");
     setItemCount("1");
+    setSelectedRole("");
   }
 
   function openAction(type: ActionType, player: EnrichedPlayer) {
@@ -143,12 +165,19 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
       case "give":
         if (itemName.trim()) giveMutation.mutate({ name: player.name, item: itemName.trim(), count: Math.max(1, Number(itemCount)) });
         break;
+      case "promote":
+        if (selectedRole) promoteMutation.mutate({ name: player.name, role: selectedRole });
+        break;
+      case "demote":
+        demoteMutation.mutate(player.name);
+        break;
     }
   };
 
   const isActionLoading =
     kickMutation.isPending || banMutation.isPending || messageMutation.isPending ||
-    teleportMutation.isPending || giveMutation.isPending;
+    teleportMutation.isPending || giveMutation.isPending ||
+    promoteMutation.isPending || demoteMutation.isPending;
 
   const players: EnrichedPlayer[] = playersData?.players ?? [];
 
@@ -158,6 +187,8 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
     { type: "ban", label: "Ban", icon: Ban, color: "#ff4757", show: true },
     { type: "teleport", label: "Teleport", icon: MapPin, show: supportsAdvanced(gameType) },
     { type: "give", label: "Give Item", icon: Package, show: supportsAdvanced(gameType) },
+    { type: "promote", label: "Promote", icon: ShieldCheck, show: availableRoles.length > 0 },
+    { type: "demote", label: "Demote", icon: ShieldOff, show: availableRoles.length > 0 },
   ];
   const visibleActions = actions.filter((a) => a.show);
 
@@ -324,6 +355,8 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
         tpZ={tpZ} setTpZ={setTpZ}
         itemName={itemName} setItemName={setItemName}
         itemCount={itemCount} setItemCount={setItemCount}
+        availableRoles={availableRoles}
+        selectedRole={selectedRole} setSelectedRole={setSelectedRole}
       />
 
       {/* Toast */}
@@ -426,6 +459,7 @@ function ActionModal({
   tpZ: string; setTpZ: (v: string) => void;
   itemName: string; setItemName: (v: string) => void;
   itemCount: string; setItemCount: (v: string) => void;
+  availableRoles: string[]; selectedRole: string; setSelectedRole: (v: string) => void;
 }) {
   useEffect(() => {
     if (!modal) return;
@@ -448,6 +482,8 @@ function ActionModal({
     ban: `Ban ${player.name}?`,
     teleport: `Teleport ${player.name}`,
     give: `Give Item to ${player.name}`,
+    promote: `Promote ${player.name}`,
+    demote: `Demote ${player.name}?`,
   };
 
   const confirmLabels: Record<ActionType, string> = {
@@ -456,6 +492,8 @@ function ActionModal({
     ban: "Ban Player",
     teleport: "Teleport",
     give: "Give Item",
+    promote: "Promote",
+    demote: "Demote",
   };
 
   const btnColors: Record<ActionType, string> = {
@@ -464,6 +502,8 @@ function ActionModal({
     ban: "#ff4757",
     teleport: "#00d4aa",
     give: "#00d4aa",
+    promote: "#6366f1",
+    demote: "#ffa502",
   };
 
   const btnTextColors: Record<ActionType, string> = {
@@ -472,6 +512,8 @@ function ActionModal({
     ban: "#ffffff",
     teleport: "#0a0e1a",
     give: "#0a0e1a",
+    promote: "#ffffff",
+    demote: "#0a0e1a",
   };
 
   return (
@@ -552,6 +594,28 @@ function ActionModal({
                 </div>
               ))}
             </div>
+          )}
+
+          {type === "promote" && (
+            <div>
+              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1 uppercase">Role</label>
+              <select
+                autoFocus
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+                className={inputCls}
+                style={inputStyle}
+              >
+                <option value="">Select role...</option>
+                {availableRoles.filter(r => r !== "none").map(r => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {type === "demote" && (
+            <p className="text-sm text-[#94a3b8]">Remove admin/role from {player.name}?</p>
           )}
 
           {type === "give" && (

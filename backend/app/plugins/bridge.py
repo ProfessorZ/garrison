@@ -88,6 +88,15 @@ class ConnectedPlugin:
     async def change_map(self, map_name: str) -> str:
         return await self.plugin.change_map(self.send_command, map_name)
 
+    async def get_player_roles(self) -> list[str]:
+        return await self.plugin.get_player_roles()
+
+    async def promote_player(self, player_name: str, role: str) -> str:
+        return await self.plugin.promote_player(self.send_command, player_name, role)
+
+    async def demote_player(self, player_name: str) -> str:
+        return await self.plugin.demote_player(self.send_command, player_name)
+
     async def message_player(self, player_name: str, message: str) -> str:
         return await self.plugin.message_player(self.send_command, player_name, message)
 
