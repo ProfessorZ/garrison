@@ -67,16 +67,38 @@ class PluginLoader:
         if not plugin_file.exists():
             raise ValueError(f"No plugin.py found in {plugin_dir}")
 
-        # Add plugin dir to sys.path so relative imports (e.g. `from schema import ...`) work
+        # Add plugin dir to sys.path so relative imports (e.g. `from schema import ...`) work.
+        # We insert at position 0 and remove after loading to avoid schema cross-contamination
+        # between plugins (each plugin has its own schema.py).
         plugin_dir_str = str(plugin_dir)
+        inserted = False
         if plugin_dir_str not in sys.path:
             sys.path.insert(0, plugin_dir_str)
+            inserted = True
 
-        spec = importlib.util.spec_from_file_location(
-            f"garrison_plugin_{game_type}", plugin_file
-        )
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        # Also register the schema module under a unique name to prevent cache collisions
+        schema_key = f"garrison_schema_{game_type}"
+        schema_file = plugin_dir / "schema.py"
+        if schema_file.exists() and schema_key not in sys.modules:
+            schema_spec = importlib.util.spec_from_file_location(schema_key, schema_file)
+            schema_mod = importlib.util.module_from_spec(schema_spec)
+            sys.modules[schema_key] = schema_mod
+            # Also register as 'schema' temporarily so plugin.py import works
+            sys.modules["schema"] = schema_mod
+            schema_spec.loader.exec_module(schema_mod)
+
+        try:
+            spec = importlib.util.spec_from_file_location(
+                f"garrison_plugin_{game_type}", plugin_file
+            )
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+        finally:
+            # Remove plugin dir from sys.path and unset the temporary 'schema' alias
+            if inserted and plugin_dir_str in sys.path:
+                sys.path.remove(plugin_dir_str)
+            if sys.modules.get("schema") is sys.modules.get(schema_key):
+                del sys.modules["schema"]
 
         # Find the GamePlugin subclass
         plugin_class = None
