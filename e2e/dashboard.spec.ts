@@ -23,6 +23,6 @@ test.describe('Dashboard', () => {
 
   test('stats cards visible (total servers, online count)', async ({ page }) => {
     await expect(page.getByText('Total Servers')).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText('Online')).toBeVisible();
+    await expect(page.getByText(/online/i).first()).toBeVisible();
   });
 });
