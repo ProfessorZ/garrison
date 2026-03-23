@@ -102,6 +102,7 @@ export default function ServerDetailPage() {
         { key: "players", label: "Players", icon: Users },
         { key: "chat", label: "Chat", icon: MessageSquare },
         { key: "kills", label: "Kill Feed", icon: Crosshair },
+        { key: "analytics", label: "Analytics", icon: PieChart },
         { key: "metrics", label: "Metrics", icon: BarChart3 },
         { key: "schedules", label: "Schedules", icon: Clock },
         { key: "options", label: "Options", icon: SlidersHorizontal },
