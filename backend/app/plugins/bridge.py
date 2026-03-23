@@ -55,6 +55,8 @@ class ConnectedPlugin:
         """Get players list as dicts (backward-compatible with old API)."""
         if self.plugin.game_type == "factorio":
             raw = await self.send_command("/players online")
+        elif self.plugin.game_type == "minecraft":
+            raw = await self.send_command("list")
         elif self.plugin.game_type == "hll":
             # HLL uses custom protocol: GetServerInformation with Name=players
             raw = await self.send_command("GetServerInformation", '{"Name": "players", "Value": ""}')
