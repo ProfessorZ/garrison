@@ -145,6 +145,11 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
   function openAction(type: ActionType, player: EnrichedPlayer) {
     setOpenMenu(null);
     setModal({ type, player });
+    // Auto-select first available role when opening promote modal
+    if (type === "promote" && availableRoles.length > 0) {
+      const nonNoneRoles = availableRoles.filter(r => r !== "none");
+      setSelectedRole(nonNoneRoles[0] ?? "");
+    }
   }
 
   const handleConfirm = () => {
@@ -168,6 +173,7 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
         break;
       case "promote":
         if (selectedRole) promoteMutation.mutate({ name: player.name, role: selectedRole });
+        else showToast("Please select a role");
         break;
       case "demote":
         demoteMutation.mutate(player.name);
