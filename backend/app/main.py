@@ -85,8 +85,22 @@ def _register_plugin_schemas(loader: PluginLoader):
 
         rcon_commands = []
         for cmd in cmds:
+            # Handle both CommandDef objects and plain dicts
+            if isinstance(cmd, dict):
+                from app.plugins.base import CommandDef as _CD
+                cmd = _CD(
+                    name=cmd.get("name", ""),
+                    description=cmd.get("description", ""),
+                    category=cmd.get("category", "General"),
+                    params=cmd.get("params", []),
+                    admin_only=cmd.get("admin_only", False),
+                    example=cmd.get("example", ""),
+                )
             params = []
             for p in (cmd.params or []):
+                if isinstance(p, dict):
+                    from app.plugins.base import CommandParam as _CP
+                    p = _CP(name=p.get("name",""), type=p.get("type","string"), required=p.get("required",False), description=p.get("description",""), choices=p.get("choices",[]))
                 params.append(SchemaParam(
                     name=p.name,
                     type=_type_map.get(p.type, ParamType.STRING),
