@@ -62,6 +62,8 @@ class ConnectedPlugin:
             raw = await self.send_command("GetServerInformation", '{"Name": "players", "Value": ""}')
         else:
             raw = await self.send_command("players")
+        if not raw or raw.startswith("Error:"):
+            return []
         players = await self.plugin.parse_players(raw)
         return [{"name": p.name, **({"steam_id": p.steam_id} if p.steam_id else {})} for p in players]
 
