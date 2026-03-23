@@ -18,9 +18,25 @@ logger = logging.getLogger(__name__)
 # de-duplicate across polls.  Keyed by server_id.
 _last_event_ts: dict[int, datetime] = {}
 
+# Per-server lock to prevent concurrent RCON connections from multiple pollers
+import asyncio as _asyncio
+_server_locks: dict[int, _asyncio.Lock] = {}
+
 
 async def _poll_server_events(server_id: int) -> None:
     """Poll events from a single server and persist new ones. 20s timeout."""
+    import asyncio
+    # Acquire per-server lock to avoid concurrent RCON connections from
+    # simultaneous pollers hammering the same server.
+    if server_id not in _server_locks:
+        _server_locks[server_id] = _asyncio.Lock()
+    if _server_locks[server_id].locked():
+        return  # another poll already running for this server
+    async with _server_locks[server_id]:
+        await _do_poll_server_events(server_id)
+
+
+async def _do_poll_server_events(server_id: int) -> None:
     import asyncio
     try:
         await asyncio.wait_for(_poll_server_events_impl(server_id), timeout=20.0)
