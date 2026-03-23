@@ -58,6 +58,7 @@ class RconConnection:
         self._lock = asyncio.Lock()
         self._request_id = 0
         self._authenticated = False
+        self._nonconformant_ids = False  # True for servers that ignore request IDs
 
     @property
     def connected(self) -> bool:
@@ -97,8 +98,13 @@ class RconConnection:
             raise ConnectionRefusedError("RCON authentication failed (bad password)")
         if resp_type == PacketType.SERVERDATA_AUTH_RESPONSE and resp_id == -1:
             raise ConnectionRefusedError("RCON authentication failed (bad password)")
-        if resp_id == auth_id:
-            # Auth confirmed (type=2 standard, or type=0 HumanitZ-style)
+        if resp_id == auth_id and resp_type != PacketType.SERVERDATA_RESPONSE_VALUE:
+            # Standard auth response (type=2)
+            self._authenticated = True
+            return
+        if resp_id == auth_id and resp_type == PacketType.SERVERDATA_RESPONSE_VALUE:
+            # HumanitZ-style: type=0, id=auth_id — server won't echo real cmd IDs
+            self._nonconformant_ids = True
             self._authenticated = True
             return
         # Otherwise read the actual auth response (standard two-packet flow)
@@ -125,10 +131,12 @@ class RconConnection:
             await self._writer.drain()
 
             body_parts: list[str] = []
-            # Read until we get the response for our command
+            # Read until we get the response for our command.
+            # Some servers (e.g. HumanitZ) always respond with the auth ID (1)
+            # regardless of the request ID — accept either.
             while True:
                 resp_id, _resp_type, body = await _read_packet(self._reader)
-                if resp_id == cmd_id:
+                if resp_id == cmd_id or (self._nonconformant_ids and resp_id != -1):
                     body_parts.append(body)
                     break
 
