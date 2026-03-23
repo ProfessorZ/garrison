@@ -124,15 +124,18 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
     ws.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
+        const cleanOutput = (s: string) => s && s.trim() !== "None" ? s : null;
         if (data.type === "response") {
           // Command echo + output from server
           if (data.command) addLine("command", data.command);
-          if (data.output) addLine("output", data.output);
+          const out = cleanOutput(data.output);
+          if (out) addLine("output", out);
         } else if (data.type === "history") {
           // Replay history on connect
           for (const entry of data.entries ?? []) {
             if (entry.command) addLine("command", entry.command);
-            if (entry.output) addLine("output", entry.output);
+            const out = cleanOutput(entry.output);
+            if (out) addLine("output", out);
           }
         } else if (data.type === "error") {
           addLine("error", data.message ?? data.error ?? "Unknown error");
@@ -143,7 +146,8 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
         } else {
           // Fallback for older/unknown formats
           if (data.command) addLine("command", data.command);
-          if (data.output) addLine("output", data.output);
+          const out = cleanOutput(data.output);
+          if (out) addLine("output", out);
           if (data.error) addLine("error", data.error);
         }
       } catch {
