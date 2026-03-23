@@ -265,9 +265,10 @@ async def poll_players(ctx: dict = None) -> None:
                 # On first poll for this server, seed previous_names from open DB sessions
                 # to avoid creating duplicate join events on worker restart.
                 if server.id not in _server_players:
+                    from sqlalchemy.orm import selectinload
                     open_sessions = await db.execute(
                         select(PlayerSession)
-                        .join(PlayerSession.player)
+                        .options(selectinload(PlayerSession.player))
                         .where(
                             PlayerSession.server_id == server.id,
                             PlayerSession.left_at.is_(None),
