@@ -91,14 +91,17 @@ class RconConnection:
         await self._writer.drain()
 
         # Server sends an empty RESPONSE_VALUE first, then AUTH_RESPONSE
+        # (some servers like HumanitZ send type=0 with matching ID instead of type=2)
         resp_id, resp_type, _ = await _read_packet(self._reader)
-        # Some servers skip the empty response, check if this is already the auth response
+        if resp_id == -1:
+            raise ConnectionRefusedError("RCON authentication failed (bad password)")
         if resp_type == PacketType.SERVERDATA_AUTH_RESPONSE and resp_id == -1:
             raise ConnectionRefusedError("RCON authentication failed (bad password)")
-        if resp_type == PacketType.SERVERDATA_AUTH_RESPONSE and resp_id == auth_id:
+        if resp_id == auth_id:
+            # Auth confirmed (type=2 standard, or type=0 HumanitZ-style)
             self._authenticated = True
             return
-        # Otherwise read the actual auth response
+        # Otherwise read the actual auth response (standard two-packet flow)
         resp_id, resp_type, _ = await _read_packet(self._reader)
         if resp_id == -1:
             raise ConnectionRefusedError("RCON authentication failed (bad password)")
