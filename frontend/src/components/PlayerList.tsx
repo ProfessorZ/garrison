@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -388,30 +389,54 @@ function ActionMenu({
   onAction: (type: ActionType) => void;
   onClose: () => void;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
+
+  const calcPos = useCallback(() => {
+    if (btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setMenuPos({ top: r.bottom + 4, right: window.innerWidth - r.right });
+    }
+  }, []);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) { setMenuPos(null); return; }
+    calcPos();
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      if (
+        btnRef.current && !btnRef.current.contains(e.target as Node) &&
+        menuRef.current && !menuRef.current.contains(e.target as Node)
+      ) onClose();
     };
     document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [isOpen, onClose]);
+    window.addEventListener("scroll", calcPos, true);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      window.removeEventListener("scroll", calcPos, true);
+    };
+  }, [isOpen, onClose, calcPos]);
 
   return (
-    <div className="relative inline-block" ref={ref}>
+    <div className="relative inline-block">
       <button
+        ref={btnRef}
         onClick={(e) => { e.stopPropagation(); onToggle(); }}
         className="inline-flex items-center justify-center rounded-md p-1.5 text-[#64748b] hover:text-[#e2e8f0] transition-colors"
         style={{ background: isOpen ? "#1a1f2e" : "transparent" }}
       >
         <MoreVertical className="h-4 w-4" />
       </button>
-      {isOpen && (
+      {isOpen && menuPos && createPortal(
         <div
-          className="absolute right-0 top-full mt-1 z-30 rounded-lg py-1 shadow-xl min-w-[160px] animate-fade-in"
-          style={{ background: "#1e293b", border: "1px solid rgba(255,255,255,0.08)" }}
+          ref={menuRef}
+          className="fixed z-[9999] rounded-lg py-1 shadow-xl min-w-[160px] animate-fade-in"
+          style={{
+            top: menuPos.top,
+            right: menuPos.right,
+            background: "#1e293b",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
         >
           {actions.map((a) => {
             const Icon = a.icon;
@@ -427,7 +452,8 @@ function ActionMenu({
               </button>
             );
           })}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
