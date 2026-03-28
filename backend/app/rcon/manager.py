@@ -93,7 +93,7 @@ class RconConnection:
 
         # Server sends an empty RESPONSE_VALUE first, then AUTH_RESPONSE
         # (some servers like HumanitZ send type=0 with matching ID instead of type=2)
-        resp_id, resp_type, _ = await _read_packet(self._reader)
+        resp_id, resp_type, resp_body = await _read_packet(self._reader)
         if resp_id == -1:
             raise ConnectionRefusedError("RCON authentication failed (bad password)")
         if resp_type == PacketType.SERVERDATA_AUTH_RESPONSE and resp_id == -1:
@@ -102,12 +102,12 @@ class RconConnection:
             # Standard auth response (type=2)
             self._authenticated = True
             return
-        if resp_id == auth_id and resp_type == PacketType.SERVERDATA_RESPONSE_VALUE:
-            # HumanitZ-style: type=0, id=auth_id — server won't echo real cmd IDs
+        if resp_id == auth_id and resp_type == PacketType.SERVERDATA_RESPONSE_VALUE and resp_body:
+            # HumanitZ-style: type=0, non-empty body, id=auth_id — server won't echo real cmd IDs
             self._nonconformant_ids = True
             self._authenticated = True
             return
-        # Otherwise read the actual auth response (standard two-packet flow)
+        # Standard two-packet flow: first packet was empty type=0, now read the real auth response
         resp_id, resp_type, _ = await _read_packet(self._reader)
         if resp_id == -1:
             raise ConnectionRefusedError("RCON authentication failed (bad password)")
