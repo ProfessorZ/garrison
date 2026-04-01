@@ -21,6 +21,7 @@ class ServerUpdate(BaseModel):
     rcon_port: int | None = None
     rcon_password: str | None = None
     game_type: str | None = None
+    discord_channel_id: int | None = None
 
 
 class ServerOut(BaseModel):
@@ -34,6 +35,7 @@ class ServerOut(BaseModel):
     last_status: bool | None = None
     last_checked: datetime | None = None
     player_count: int | None = None
+    discord_channel_id: int | None = None
 
     model_config = {"from_attributes": True}
 

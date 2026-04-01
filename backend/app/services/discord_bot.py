@@ -8,7 +8,6 @@ from discord import app_commands
 from sqlalchemy import select
 
 from app.auth.security import decrypt_rcon_password
-from app.config import settings
 from app.database import async_session
 from app.models.activity_log import ActivityLog, ActionType
 from app.models.server import Server
@@ -64,18 +63,34 @@ async def _get_linked_user(discord_user_id: int) -> User | None:
 
 async def _check_permission(
     interaction: discord.Interaction, min_role: UserRole
-) -> User | None:
-    """Check if Discord user has a linked Garrison account with sufficient role.
+) -> tuple[User | None, Server | None]:
+    """Check Discord permissions for this command.
 
-    Returns the User if authorized, or None after sending an error reply.
+    Two modes:
+    1. Channel-scoped: If channel maps to a server via discord_channel_id, allow
+    2. Global: Require linked Garrison account with minimum role
+
+    Returns (User, server):
+    - In channel-scoped mode: (None, server) - authorized via Discord channel
+    - In global mode: (linked_user, None) - authorized via Garrison role
+
+    Returns (None, None) after sending an error reply.
     """
+    # First: check if Discord channel maps to a server
+    if interaction.channel_id:
+        server = await _find_server_by_channel(interaction.channel_id)
+        if server:
+            # Channel-scoped: user is already authorized by Discord channel perms
+            return (None, server)
+
+    # Fallback: require linked Garrison account + role
     user = await _get_linked_user(interaction.user.id)
     if not user:
         await interaction.response.send_message(
             "Link your Discord account in Garrison settings first.",
             ephemeral=True,
         )
-        return None
+        return (None, None)
 
     user_level = ROLE_HIERARCHY.get(UserRole(user.role), 0)
     required_level = ROLE_HIERARCHY[min_role]
@@ -84,9 +99,36 @@ async def _check_permission(
             f"You need **{min_role.value}** or higher role. Your current role: **{user.role}**.",
             ephemeral=True,
         )
-        return None
+        return (None, None)
 
-    return user
+    return (user, None)
+
+
+async def _find_server_by_channel(channel_id: int) -> Server | None:
+    """Find server by discord_channel_id."""
+    async with async_session() as db:
+        result = await db.execute(
+            select(Server).where(Server.discord_channel_id == channel_id)
+        )
+        return result.scalar_one_or_none()
+
+
+async def _find_server_by_game(
+    game_type: str, name: str | None = None
+) -> Server | None:
+    """Find server by game_type (and optional name match)."""
+    async with async_session() as db:
+        if name:
+            result = await db.execute(select(Server).where(Server.name.ilike(name)))
+            srv = result.scalar_one_or_none()
+            if srv:
+                return srv
+
+        result = await db.execute(select(Server).where(Server.game_type == game_type))
+        servers = result.scalars().all()
+        if len(servers) == 1:
+            return servers[0]
+        return None
 
 
 async def _log_discord_action(
@@ -94,12 +136,14 @@ async def _log_discord_action(
     command: str,
     detail: str,
     server_id: int | None = None,
+    discord_user_id: str | None = None,
 ) -> None:
     """Log a Discord bot command to the activity log."""
     async with async_session() as db:
         entry = ActivityLog(
             server_id=server_id,
-            user_id=user.id,
+            user_id=user.id if user else None,
+            discord_user_id=discord_user_id,
             action=ActionType.DISCORD_COMMAND,
             detail=f"[Discord] /{command}: {detail}",
         )
@@ -173,12 +217,14 @@ def _setup_commands(bot: GarrisonBot) -> None:
     @bot.tree.command(name="players", description="List online players for a server")
     @app_commands.describe(server="Server name")
     async def cmd_players(interaction: discord.Interaction, server: str) -> None:
-        user = await _check_permission(interaction, UserRole.VIEWER)
-        if not user:
+        user, srv_from_channel = await _check_permission(interaction, UserRole.VIEWER)
+        if user is None and srv_from_channel is None:
             return
 
         await interaction.response.defer()
-        srv = await _find_server(server)
+
+        # Use server from channel if available, otherwise look up by name
+        srv = srv_from_channel or await _find_server(server)
         if not srv:
             await interaction.followup.send(f"Server '{server}' not found.")
             return
@@ -187,7 +233,11 @@ def _setup_commands(bot: GarrisonBot) -> None:
         players = snapshot.get(srv.id, set())
 
         await _log_discord_action(
-            user, "players", f"Listed players on {srv.name}", server_id=srv.id
+            user,
+            "players",
+            f"Listed players on {srv.name}",
+            server_id=srv.id,
+            discord_user_id=str(interaction.user.id) if srv_from_channel else None,
         )
 
         if not players:
@@ -211,12 +261,14 @@ def _setup_commands(bot: GarrisonBot) -> None:
     async def cmd_kick(
         interaction: discord.Interaction, server: str, player: str, reason: str = ""
     ) -> None:
-        user = await _check_permission(interaction, UserRole.MODERATOR)
-        if not user:
+        user, srv_from_channel = await _check_permission(
+            interaction, UserRole.MODERATOR
+        )
+        if user is None and srv_from_channel is None:
             return
 
         await interaction.response.defer()
-        srv = await _find_server(server)
+        srv = srv_from_channel or await _find_server(server)
         if not srv:
             await interaction.followup.send(f"Server '{server}' not found.")
             return
@@ -230,12 +282,18 @@ def _setup_commands(bot: GarrisonBot) -> None:
             finally:
                 await plugin.disconnect()
 
+            discord_id = str(interaction.user.id) if srv_from_channel else None
+            by_line = (
+                f"By Discord user {discord_id}" if discord_id else f"By {user.username}"
+            )
+
             await _log_discord_action(
                 user,
                 "kick",
                 f"Kicked {player} from {srv.name}"
                 + (f" (reason: {reason})" if reason else ""),
                 server_id=srv.id,
+                discord_user_id=discord_id,
             )
 
             embed = discord.Embed(
@@ -244,7 +302,7 @@ def _setup_commands(bot: GarrisonBot) -> None:
                 + (f"\nReason: {reason}" if reason else ""),
                 color=0xFFBF24,
             )
-            embed.set_footer(text=f"By {user.username}")
+            embed.set_footer(text=by_line)
             await interaction.followup.send(embed=embed)
         except Exception as e:
             await interaction.followup.send(f"Kick failed: {e}")
@@ -258,12 +316,12 @@ def _setup_commands(bot: GarrisonBot) -> None:
     async def cmd_ban(
         interaction: discord.Interaction, server: str, player: str, reason: str = ""
     ) -> None:
-        user = await _check_permission(interaction, UserRole.ADMIN)
-        if not user:
+        user, srv_from_channel = await _check_permission(interaction, UserRole.ADMIN)
+        if user is None and srv_from_channel is None:
             return
 
         await interaction.response.defer()
-        srv = await _find_server(server)
+        srv = srv_from_channel or await _find_server(server)
         if not srv:
             await interaction.followup.send(f"Server '{server}' not found.")
             return
@@ -277,12 +335,18 @@ def _setup_commands(bot: GarrisonBot) -> None:
             finally:
                 await plugin.disconnect()
 
+            discord_id = str(interaction.user.id) if srv_from_channel else None
+            by_line = (
+                f"By Discord user {discord_id}" if discord_id else f"By {user.username}"
+            )
+
             await _log_discord_action(
                 user,
                 "ban",
                 f"Banned {player} from {srv.name}"
                 + (f" (reason: {reason})" if reason else ""),
                 server_id=srv.id,
+                discord_user_id=discord_id,
             )
 
             embed = discord.Embed(
@@ -291,7 +355,7 @@ def _setup_commands(bot: GarrisonBot) -> None:
                 + (f"\nReason: {reason}" if reason else ""),
                 color=0xFF4757,
             )
-            embed.set_footer(text=f"By {user.username}")
+            embed.set_footer(text=by_line)
             await interaction.followup.send(embed=embed)
         except Exception as e:
             await interaction.followup.send(f"Ban failed: {e}")
@@ -301,12 +365,12 @@ def _setup_commands(bot: GarrisonBot) -> None:
     async def cmd_rcon(
         interaction: discord.Interaction, server: str, command: str
     ) -> None:
-        user = await _check_permission(interaction, UserRole.ADMIN)
-        if not user:
+        user, srv_from_channel = await _check_permission(interaction, UserRole.ADMIN)
+        if user is None and srv_from_channel is None:
             return
 
         await interaction.response.defer()
-        srv = await _find_server(server)
+        srv = srv_from_channel or await _find_server(server)
         if not srv:
             await interaction.followup.send(f"Server '{server}' not found.")
             return
@@ -320,14 +384,20 @@ def _setup_commands(bot: GarrisonBot) -> None:
             finally:
                 await plugin.disconnect()
 
+            discord_id = str(interaction.user.id) if srv_from_channel else None
+
             await _log_discord_action(
                 user,
                 "rcon",
                 f"Executed `{command}` on {srv.name}",
                 server_id=srv.id,
+                discord_user_id=discord_id,
             )
 
             result_text = output[:1900] if output else "(no output)"
+            by_line = (
+                f"By Discord user {discord_id}" if discord_id else f"By {user.username}"
+            )
             embed = discord.Embed(
                 title=f"RCON: {srv.name}",
                 color=0x3B82F6,
@@ -336,7 +406,7 @@ def _setup_commands(bot: GarrisonBot) -> None:
             embed.add_field(
                 name="Output", value=f"```\n{result_text}\n```", inline=False
             )
-            embed.set_footer(text=f"By {user.username}")
+            embed.set_footer(text=by_line)
             await interaction.followup.send(embed=embed)
         except Exception as e:
             await interaction.followup.send(f"RCON error: {e}")
@@ -348,12 +418,12 @@ def _setup_commands(bot: GarrisonBot) -> None:
     async def cmd_broadcast(
         interaction: discord.Interaction, server: str, message: str
     ) -> None:
-        user = await _check_permission(interaction, UserRole.ADMIN)
-        if not user:
+        user, srv_from_channel = await _check_permission(interaction, UserRole.ADMIN)
+        if user is None and srv_from_channel is None:
             return
 
         await interaction.response.defer()
-        srv = await _find_server(server)
+        srv = srv_from_channel or await _find_server(server)
         if not srv:
             await interaction.followup.send(f"Server '{server}' not found.")
             return
@@ -373,11 +443,17 @@ def _setup_commands(bot: GarrisonBot) -> None:
             finally:
                 await plugin.disconnect()
 
+            discord_id = str(interaction.user.id) if srv_from_channel else None
+            by_line = (
+                f"By Discord user {discord_id}" if discord_id else f"By {user.username}"
+            )
+
             await _log_discord_action(
                 user,
                 "broadcast",
                 f"Broadcast on {srv.name}: {message}",
                 server_id=srv.id,
+                discord_user_id=discord_id,
             )
 
             embed = discord.Embed(
@@ -385,7 +461,7 @@ def _setup_commands(bot: GarrisonBot) -> None:
                 description=f"```\n{message}\n```",
                 color=0x3B82F6,
             )
-            embed.set_footer(text=f"By {user.username}")
+            embed.set_footer(text=by_line)
             await interaction.followup.send(embed=embed)
         except Exception as e:
             await interaction.followup.send(f"Broadcast failed: {e}")
@@ -393,12 +469,12 @@ def _setup_commands(bot: GarrisonBot) -> None:
     @bot.tree.command(name="save", description="Save the game world (Admin+)")
     @app_commands.describe(server="Server name")
     async def cmd_save(interaction: discord.Interaction, server: str) -> None:
-        user = await _check_permission(interaction, UserRole.ADMIN)
-        if not user:
+        user, srv_from_channel = await _check_permission(interaction, UserRole.ADMIN)
+        if user is None and srv_from_channel is None:
             return
 
         await interaction.response.defer()
-        srv = await _find_server(server)
+        srv = srv_from_channel or await _find_server(server)
         if not srv:
             await interaction.followup.send(f"Server '{server}' not found.")
             return
@@ -418,8 +494,17 @@ def _setup_commands(bot: GarrisonBot) -> None:
             finally:
                 await plugin.disconnect()
 
+            discord_id = str(interaction.user.id) if srv_from_channel else None
+            by_line = (
+                f"By Discord user {discord_id}" if discord_id else f"By {user.username}"
+            )
+
             await _log_discord_action(
-                user, "save", f"Saved world on {srv.name}", server_id=srv.id
+                user,
+                "save",
+                f"Saved world on {srv.name}",
+                server_id=srv.id,
+                discord_user_id=discord_id,
             )
 
             embed = discord.Embed(
@@ -427,7 +512,7 @@ def _setup_commands(bot: GarrisonBot) -> None:
                 description=result or "Save command executed",
                 color=0x00D4AA,
             )
-            embed.set_footer(text=f"By {user.username}")
+            embed.set_footer(text=by_line)
             await interaction.followup.send(embed=embed)
         except Exception as e:
             await interaction.followup.send(f"Save failed: {e}")

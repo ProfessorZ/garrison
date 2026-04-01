@@ -29,11 +29,20 @@ class ActivityLog(Base):
     __tablename__ = "activity_logs"
 
     id = Column(Integer, primary_key=True)
-    server_id = Column(Integer, ForeignKey("servers.id", ondelete="SET NULL"), nullable=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    server_id = Column(
+        Integer, ForeignKey("servers.id", ondelete="SET NULL"), nullable=True
+    )
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    discord_user_id = Column(
+        String(50), nullable=True
+    )  # Discord user ID when action from Discord
     action = Column(String(50), nullable=False)
     detail = Column(Text, default="")
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
 
     server = relationship("Server", lazy="selectin")
     user = relationship("User", lazy="selectin")
