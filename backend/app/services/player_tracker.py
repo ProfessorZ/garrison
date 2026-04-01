@@ -241,6 +241,7 @@ async def _handle_player_leave(db: AsyncSession, name: str, server_id: int, now:
     player.last_seen = now
 
 
+# @lat: [[players#Player Sessions]]
 async def poll_players(ctx: dict = None) -> None:
     """Poll all servers for player changes. Called by ARQ cron every minute."""
     async with async_session() as db:

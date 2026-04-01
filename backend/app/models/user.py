@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
 from app.database import Base
 
 
+# @lat: [[auth#Role Hierarchy]]
 class UserRole(str, enum.Enum):
     OWNER = "OWNER"
     ADMIN = "ADMIN"

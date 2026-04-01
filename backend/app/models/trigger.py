@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
+# @lat: [[automation#Triggers]]
 class Trigger(Base):
     __tablename__ = "triggers"
 

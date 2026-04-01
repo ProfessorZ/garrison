@@ -200,6 +200,7 @@ async def sync_plugin_manifest(plugins_dir: str):
             logger.error("Failed to install plugin %s: %s", url, e)
 
 
+# @lat: [[backend#Application Startup]]
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Sync plugins from manifest before loading

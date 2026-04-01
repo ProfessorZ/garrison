@@ -254,6 +254,7 @@ async def _execute_action(trigger: Trigger, context: dict, db: AsyncSession) -> 
     return f"Unknown action type: {trigger.action_type}"
 
 
+# @lat: [[automation#Triggers]]
 async def fire_event(event_type: str, server_id: int | None, context: dict) -> None:
     """
     Called when an event occurs. Loads matching triggers and executes them.

@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
+# @lat: [[servers#Server Management]]
 class Server(Base):
     __tablename__ = "servers"
 

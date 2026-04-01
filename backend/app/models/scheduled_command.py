@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
+# @lat: [[automation#Scheduled Commands]]
 class ScheduledCommand(Base):
     __tablename__ = "scheduled_commands"
 

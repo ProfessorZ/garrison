@@ -51,6 +51,7 @@ class ServerOption:
     choices: list[str] = field(default_factory=list)
 
 
+# @lat: [[plugins#GamePlugin]]
 class GamePlugin(ABC):
     """Base class for all Garrison game plugins. API version 1."""
 

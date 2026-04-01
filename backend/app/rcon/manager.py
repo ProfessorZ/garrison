@@ -46,6 +46,7 @@ async def _read_packet(reader: asyncio.StreamReader) -> tuple[int, int, str]:
     return request_id, packet_type, body
 
 
+# @lat: [[rcon#Non-Conformant Servers]]
 class RconConnection:
     """A single persistent RCON connection to a game server."""
 
@@ -167,6 +168,7 @@ class RconConnection:
         self._reader = None
 
 
+# @lat: [[rcon#RconManager]]
 class RconManager:
     """
     Connection pool that maintains one persistent RCON connection per server_id.

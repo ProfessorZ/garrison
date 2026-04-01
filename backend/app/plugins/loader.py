@@ -10,6 +10,7 @@ from .base import GamePlugin
 logger = logging.getLogger(__name__)
 
 
+# @lat: [[plugins#Plugin Lifecycle]]
 class PluginLoader:
     def __init__(self, plugins_dir: str):
         self.plugins_dir = Path(plugins_dir)

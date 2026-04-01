@@ -20,6 +20,7 @@ from app.rcon.manager import rcon_manager
 logger = logging.getLogger(__name__)
 
 
+# @lat: [[plugins#ConnectedPlugin Bridge]]
 class ConnectedPlugin:
     """Wraps a GamePlugin with an active RCON connection, providing
     a similar interface to the old GamePlugin class for easy migration.

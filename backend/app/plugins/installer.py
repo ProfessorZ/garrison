@@ -9,6 +9,7 @@ from pathlib import Path
 MAX_ZIP_SIZE = 50 * 1024 * 1024  # 50MB
 
 
+# @lat: [[plugins#Plugin Lifecycle]]
 class PluginInstaller:
     def __init__(self, plugins_dir: str):
         self.plugins_dir = Path(plugins_dir)

@@ -6,6 +6,7 @@ from typing import Callable
 logger = logging.getLogger(__name__)
 
 
+# @lat: [[backend#Background Worker]]
 def with_lock(lock_name: str, ttl_seconds: int = 55):
     """Decorator: skip the cron job if another worker holds the lock."""
 

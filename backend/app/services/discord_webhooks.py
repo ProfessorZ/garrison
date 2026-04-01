@@ -134,6 +134,7 @@ def _build_embed(
     return embed
 
 
+# @lat: [[discord#Webhooks]]
 async def notify_event(
     event_type: str,
     title: str,

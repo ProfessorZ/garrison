@@ -15,6 +15,7 @@ def _role_level(role: str) -> int:
         return 0
 
 
+# @lat: [[auth#Role Hierarchy]]
 def require_role(min_role: UserRole):
     """Dependency: require a minimum global role."""
 

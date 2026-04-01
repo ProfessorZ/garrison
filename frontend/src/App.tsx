@@ -27,6 +27,7 @@ const queryClient = new QueryClient({
   },
 });
 
+// @lat: [[frontend#Routing]]
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
