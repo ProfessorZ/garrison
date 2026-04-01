@@ -1,3 +1,4 @@
+# @lat: [[garrison#Authentication & Authorization]]
 from datetime import datetime, timedelta, timezone
 
 from cryptography.fernet import Fernet

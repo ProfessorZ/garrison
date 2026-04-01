@@ -1,3 +1,4 @@
+# @lat: [[garrison#Analytics]]
 """Game analytics derived from game_events table."""
 
 from collections import Counter

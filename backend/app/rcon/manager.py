@@ -1,3 +1,4 @@
+# @lat: [[garrison#RCON Management]]
 """
 Async RCON Connection Manager using raw sockets (Source RCON protocol).
 

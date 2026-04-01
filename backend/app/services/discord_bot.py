@@ -1,3 +1,4 @@
+# @lat: [[garrison#Discord Integration]]
 import asyncio
 import logging
 from typing import Optional

@@ -1,3 +1,4 @@
+# @lat: [[garrison#Plugin System]]
 import importlib.util
 import json
 import logging

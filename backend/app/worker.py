@@ -1,3 +1,4 @@
+# @lat: [[garrison#Background Services (ARQ Worker)]]
 """ARQ worker configuration.
 
 All background jobs that previously ran inside FastAPI via APScheduler
