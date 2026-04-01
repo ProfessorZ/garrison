@@ -1,4 +1,4 @@
-# @lat: [[garrison#Background Services (ARQ Worker)]]
+# @lat: [[lat.md/lat#Garrison#Background Services (ARQ Worker)]]
 """ARQ worker configuration.
 
 All background jobs that previously ran inside FastAPI via APScheduler
@@ -73,7 +73,9 @@ _parsed = urlparse(settings.REDIS_URL)
 _redis_settings = RedisSettings(
     host=_parsed.hostname or "redis",
     port=_parsed.port or 6379,
-    database=int(_parsed.path.lstrip("/") or 0) if _parsed.path and _parsed.path != "/" else 0,
+    database=int(_parsed.path.lstrip("/") or 0)
+    if _parsed.path and _parsed.path != "/"
+    else 0,
     password=_parsed.password,
 )
 
@@ -85,6 +87,7 @@ _EVERY_5_MIN = {0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55}
 
 
 # ── Worker class ─────────────────────────────────────────────────────────────
+
 
 class WorkerSettings:
     functions = []  # on-demand jobs (for future use)

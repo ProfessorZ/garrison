@@ -1,0 +1,24 @@
+[submodule "plugins/garrison-plugin-rust"]
+	path = plugins/garrison-plugin-rust
+	url = git@github.com:ProfessorZ/garrison-plugin-rust.git
+[submodule "plugins/garrison-plugin-zomboid"]
+	path = plugins/garrison-plugin-zomboid
+	url = git@github.com:ProfessorZ/garrison-plugin-zomboid.git
+[submodule "plugins/garrison-plugin-factorio"]
+	path = plugins/garrison-plugin-factorio
+	url = git@github.com:ProfessorZ/garrison-plugin-factorio.git
+[submodule "plugins/garrison-plugin-hll"]
+	path = plugins/garrison-plugin-hll
+	url = git@github.com:ProfessorZ/garrison-plugin-hll.git
+[submodule "plugins/garrison-plugin-dayz"]
+	path = plugins/garrison-plugin-dayz
+	url = git@github.com:ProfessorZ/garrison-plugin-dayz.git
+[submodule "plugins/garrison-plugin-arma-reforger"]
+	path = plugins/garrison-plugin-arma-reforger
+	url = git@github.com:ProfessorZ/garrison-plugin-arma-reforger.git
+[submodule "plugins/garrison-plugin-minecraft"]
+	path = plugins/garrison-plugin-minecraft
+	url = git@github.com:ProfessorZ/garrison-plugin-minecraft.git
+[submodule "plugins/garrison-plugin-beammp"]
+	path = plugins/garrison-plugin-beammp
+	url = git@github.com:ProfessorZ/garrison-plugin-beammp.git

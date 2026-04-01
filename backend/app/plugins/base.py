@@ -1,4 +1,4 @@
-# @lat: [[garrison#Plugin System]]
+# @lat: [[lat.md/lat#Garrison#Plugin System]]
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -90,7 +90,9 @@ class GamePlugin(ABC):
 
     async def set_option(self, send_command, name: str, value: str) -> str:
         """Override to support setting server options."""
-        raise NotImplementedError(f"{self.display_name} does not support server options")
+        raise NotImplementedError(
+            f"{self.display_name} does not support server options"
+        )
 
     async def kick_player(self, send_command, name: str, reason: str = "") -> str:
         raise NotImplementedError
@@ -101,10 +103,14 @@ class GamePlugin(ABC):
     async def unban_player(self, send_command, name: str) -> str:
         raise NotImplementedError
 
-    async def teleport_player(self, send_command, name: str, x: float, y: float, z: float) -> str:
+    async def teleport_player(
+        self, send_command, name: str, x: float, y: float, z: float
+    ) -> str:
         raise NotImplementedError
 
-    async def give_item(self, send_command, player: str, item: str, count: int = 1) -> str:
+    async def give_item(
+        self, send_command, player: str, item: str, count: int = 1
+    ) -> str:
         raise NotImplementedError
 
     async def get_maps(self, send_command) -> list[str]:

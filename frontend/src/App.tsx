@@ -1,4 +1,4 @@
-// @lat: [[garrison#Architecture]]
+// @lat: [[lat.md/lat#Garrison#Architecture]]
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./contexts/AuthContext";

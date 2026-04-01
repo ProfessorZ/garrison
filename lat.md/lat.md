@@ -23,3 +23,31 @@ The knowledge graph is organized into these interconnected spec files:
 - [[auth]] — JWT authentication, role hierarchy, per-server permissions
 - [[discord]] — Webhooks, bot commands, OAuth login
 - [[infrastructure]] — Docker Compose stack, Nginx proxy, build files
+
+## Architecture
+
+The application uses a layered architecture with FastAPI as the REST API layer, SQLAlchemy async for database operations, and ARQ for background job processing. The frontend communicates via REST endpoints and WebSockets for real-time console output.
+
+## RCON Management
+
+RCON connections are managed through an async connection pool that maintains persistent connections per server. The [[rcon#RconManager]] handles connection lifecycle, auto-reconnect, and command queuing.
+
+## Plugin System
+
+The [[plugins#Plugin System]] provides game-specific implementations through a structured plugin architecture. Each game type has a dedicated plugin that handles RCON command mapping and game events.
+
+## Discord Integration
+
+The [[discord#Discord Integration]] module provides bidirectional communication with Discord via webhooks for notifications and bot commands for admin actions.
+
+## Background Services (ARQ Worker)
+
+Background job processing is handled by ARQ workers that process queued commands, scheduled automation tasks, and async analytics.
+
+## Authentication & Authorization
+
+JWT-based authentication with role-based access control. See [[auth#Authentication and Authorization]] for detailed permissions and token management.
+
+## Analytics
+
+The analytics module derives game statistics from the game_events table, aggregating metrics like player counts, session durations, and server activity over time.

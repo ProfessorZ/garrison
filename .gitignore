@@ -24,3 +24,7 @@ docker-compose.override.yml
 *~
 .DS_Store
 /plugins/
+.claude
+.mcp.json
+.cursor
+.opencode

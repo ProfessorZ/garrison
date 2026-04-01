@@ -1,4 +1,4 @@
-# @lat: [[garrison#Discord Integration]]
+# @lat: [[lat.md/lat#Garrison#Discord Integration]]
 import asyncio
 import logging
 from typing import Optional
@@ -186,7 +186,9 @@ def _setup_commands(bot: GarrisonBot) -> None:
         snapshot = get_online_players_snapshot()
         players = snapshot.get(srv.id, set())
 
-        await _log_discord_action(user, "players", f"Listed players on {srv.name}", server_id=srv.id)
+        await _log_discord_action(
+            user, "players", f"Listed players on {srv.name}", server_id=srv.id
+        )
 
         if not players:
             await interaction.followup.send(f"No players online on **{srv.name}**.")
@@ -203,8 +205,12 @@ def _setup_commands(bot: GarrisonBot) -> None:
     # --- MODERATOR+ commands ---
 
     @bot.tree.command(name="kick", description="Kick a player (Moderator+)")
-    @app_commands.describe(server="Server name", player="Player name", reason="Kick reason")
-    async def cmd_kick(interaction: discord.Interaction, server: str, player: str, reason: str = "") -> None:
+    @app_commands.describe(
+        server="Server name", player="Player name", reason="Kick reason"
+    )
+    async def cmd_kick(
+        interaction: discord.Interaction, server: str, player: str, reason: str = ""
+    ) -> None:
         user = await _check_permission(interaction, UserRole.MODERATOR)
         if not user:
             return
@@ -225,14 +231,17 @@ def _setup_commands(bot: GarrisonBot) -> None:
                 await plugin.disconnect()
 
             await _log_discord_action(
-                user, "kick",
-                f"Kicked {player} from {srv.name}" + (f" (reason: {reason})" if reason else ""),
+                user,
+                "kick",
+                f"Kicked {player} from {srv.name}"
+                + (f" (reason: {reason})" if reason else ""),
                 server_id=srv.id,
             )
 
             embed = discord.Embed(
                 title=f"Player Kicked: {player}",
-                description=f"Kicked from **{srv.name}**" + (f"\nReason: {reason}" if reason else ""),
+                description=f"Kicked from **{srv.name}**"
+                + (f"\nReason: {reason}" if reason else ""),
                 color=0xFFBF24,
             )
             embed.set_footer(text=f"By {user.username}")
@@ -243,8 +252,12 @@ def _setup_commands(bot: GarrisonBot) -> None:
     # --- ADMIN+ commands ---
 
     @bot.tree.command(name="ban", description="Ban a player (Admin+)")
-    @app_commands.describe(server="Server name", player="Player name", reason="Ban reason")
-    async def cmd_ban(interaction: discord.Interaction, server: str, player: str, reason: str = "") -> None:
+    @app_commands.describe(
+        server="Server name", player="Player name", reason="Ban reason"
+    )
+    async def cmd_ban(
+        interaction: discord.Interaction, server: str, player: str, reason: str = ""
+    ) -> None:
         user = await _check_permission(interaction, UserRole.ADMIN)
         if not user:
             return
@@ -265,14 +278,17 @@ def _setup_commands(bot: GarrisonBot) -> None:
                 await plugin.disconnect()
 
             await _log_discord_action(
-                user, "ban",
-                f"Banned {player} from {srv.name}" + (f" (reason: {reason})" if reason else ""),
+                user,
+                "ban",
+                f"Banned {player} from {srv.name}"
+                + (f" (reason: {reason})" if reason else ""),
                 server_id=srv.id,
             )
 
             embed = discord.Embed(
                 title=f"Player Banned: {player}",
-                description=f"Banned from **{srv.name}**" + (f"\nReason: {reason}" if reason else ""),
+                description=f"Banned from **{srv.name}**"
+                + (f"\nReason: {reason}" if reason else ""),
                 color=0xFF4757,
             )
             embed.set_footer(text=f"By {user.username}")
@@ -282,7 +298,9 @@ def _setup_commands(bot: GarrisonBot) -> None:
 
     @bot.tree.command(name="rcon", description="Execute RCON command (Admin+)")
     @app_commands.describe(server="Server name", command="RCON command to execute")
-    async def cmd_rcon(interaction: discord.Interaction, server: str, command: str) -> None:
+    async def cmd_rcon(
+        interaction: discord.Interaction, server: str, command: str
+    ) -> None:
         user = await _check_permission(interaction, UserRole.ADMIN)
         if not user:
             return
@@ -303,7 +321,8 @@ def _setup_commands(bot: GarrisonBot) -> None:
                 await plugin.disconnect()
 
             await _log_discord_action(
-                user, "rcon",
+                user,
+                "rcon",
                 f"Executed `{command}` on {srv.name}",
                 server_id=srv.id,
             )
@@ -314,7 +333,9 @@ def _setup_commands(bot: GarrisonBot) -> None:
                 color=0x3B82F6,
             )
             embed.add_field(name="Command", value=f"`{command}`", inline=False)
-            embed.add_field(name="Output", value=f"```\n{result_text}\n```", inline=False)
+            embed.add_field(
+                name="Output", value=f"```\n{result_text}\n```", inline=False
+            )
             embed.set_footer(text=f"By {user.username}")
             await interaction.followup.send(embed=embed)
         except Exception as e:

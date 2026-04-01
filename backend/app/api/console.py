@@ -1,4 +1,4 @@
-# @lat: [[garrison#RCON Management]]
+# @lat: [[lat.md/lat#Garrison#RCON Management]]
 import asyncio
 import json
 import logging
@@ -48,12 +48,20 @@ async def send_command(
         output = await plugin.send_command(data.command)
     finally:
         await plugin.disconnect()
-    await log_activity(db, server_id=server_id, user_id=_user.id, action=ActionType.COMMAND, detail=data.command)
+    await log_activity(
+        db,
+        server_id=server_id,
+        user_id=_user.id,
+        action=ActionType.COMMAND,
+        detail=data.command,
+    )
     await db.commit()
     return CommandResponse(output=output)
 
 
-async def _ws_check_server_access(username: str, server_id: int) -> tuple[int | None, bool]:
+async def _ws_check_server_access(
+    username: str, server_id: int
+) -> tuple[int | None, bool]:
     """Check if a WebSocket user has MODERATOR+ access to a server.
 
     Returns (user_id, has_access).
@@ -76,7 +84,11 @@ async def _ws_check_server_access(username: str, server_id: int) -> tuple[int | 
             )
         )
         perm = perm_res.scalar_one_or_none()
-        if perm and ROLE_HIERARCHY.get(UserRole(perm.role), 0) >= ROLE_HIERARCHY[UserRole.MODERATOR]:
+        if (
+            perm
+            and ROLE_HIERARCHY.get(UserRole(perm.role), 0)
+            >= ROLE_HIERARCHY[UserRole.MODERATOR]
+        ):
             return user.id, True
 
         return user.id, False
@@ -121,13 +133,19 @@ async def websocket_console(websocket: WebSocket, server_id: int):
         return
     password = decrypt_rcon_password(server.rcon_password_encrypted)
     try:
-        await plugin.connect(server.host, server.rcon_port, password, server_id=server.id)
+        await plugin.connect(
+            server.host, server.rcon_port, password, server_id=server.id
+        )
     except Exception as e:
-        await websocket.send_json({"type": "error", "message": f"RCON connection failed: {e}"})
+        await websocket.send_json(
+            {"type": "error", "message": f"RCON connection failed: {e}"}
+        )
         await websocket.close(code=4002)
         return
 
-    await websocket.send_json({"type": "connected", "server_id": server_id, "server_name": server.name})
+    await websocket.send_json(
+        {"type": "connected", "server_id": server_id, "server_name": server.name}
+    )
 
     # Send existing command history for this server
     history = list(_command_history[server_id])
@@ -174,14 +192,24 @@ async def websocket_console(websocket: WebSocket, server_id: int):
             # Log command activity
             try:
                 async with async_session() as _db:
-                    await log_activity(_db, server_id=server_id, user_id=ws_user_id, action=ActionType.COMMAND, detail=command)
+                    await log_activity(
+                        _db,
+                        server_id=server_id,
+                        user_id=ws_user_id,
+                        action=ActionType.COMMAND,
+                        detail=command,
+                    )
                     await _db.commit()
             except Exception:
                 logger.debug("Failed to log WS command activity", exc_info=True)
 
-            await websocket.send_json({"type": "response", "command": command, "output": output})
+            await websocket.send_json(
+                {"type": "response", "command": command, "output": output}
+            )
     except WebSocketDisconnect:
-        logger.info("WebSocket disconnected for server %s (user=%s)", server_id, username)
+        logger.info(
+            "WebSocket disconnected for server %s (user=%s)", server_id, username
+        )
     except Exception as e:
         logger.error("WebSocket error for server %s: %s", server_id, e)
     finally:

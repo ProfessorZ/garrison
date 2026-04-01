@@ -1,4 +1,4 @@
-# @lat: [[garrison#Analytics]]
+# @lat: [[lat.md/lat#Garrison#Analytics]]
 """Game analytics derived from game_events table."""
 
 from collections import Counter
@@ -65,10 +65,18 @@ async def kill_stats(
         "period": period,
         "total_kills": sum(killer_counts.values()),
         "total_teamkills": sum(teamkill_counts.values()),
-        "top_killers": [{"name": n, "kills": c} for n, c in killer_counts.most_common(10)],
-        "top_weapons": [{"weapon": w, "kills": c} for w, c in weapon_counts.most_common(10)],
-        "most_killed": [{"name": n, "deaths": c} for n, c in victim_counts.most_common(10)],
-        "teamkillers": [{"name": n, "teamkills": c} for n, c in teamkill_counts.most_common(10)],
+        "top_killers": [
+            {"name": n, "kills": c} for n, c in killer_counts.most_common(10)
+        ],
+        "top_weapons": [
+            {"weapon": w, "kills": c} for w, c in weapon_counts.most_common(10)
+        ],
+        "most_killed": [
+            {"name": n, "deaths": c} for n, c in victim_counts.most_common(10)
+        ],
+        "teamkillers": [
+            {"name": n, "teamkills": c} for n, c in teamkill_counts.most_common(10)
+        ],
     }
 
 
@@ -101,5 +109,7 @@ async def map_stats(
 
     return {
         "period": period,
-        "maps_played": [{"map": m, "times_played": c} for m, c in map_counts.most_common(20)],
+        "maps_played": [
+            {"map": m, "times_played": c} for m, c in map_counts.most_common(20)
+        ],
     }

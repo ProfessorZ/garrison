@@ -1,4 +1,4 @@
-# @lat: [[garrison#Plugin System]]
+# @lat: [[lat.md/lat#Garrison#Plugin System]]
 import importlib.util
 import json
 import logging
@@ -62,7 +62,9 @@ class PluginLoader:
                 text=True,
             )
             if result.returncode != 0:
-                raise ValueError(f"Failed to install plugin dependencies: {result.stderr}")
+                raise ValueError(
+                    f"Failed to install plugin dependencies: {result.stderr}"
+                )
 
         # Load plugin.py
         plugin_file = plugin_dir / "plugin.py"
@@ -82,7 +84,9 @@ class PluginLoader:
         schema_key = f"garrison_schema_{game_type}"
         schema_file = plugin_dir / "schema.py"
         if schema_file.exists() and schema_key not in sys.modules:
-            schema_spec = importlib.util.spec_from_file_location(schema_key, schema_file)
+            schema_spec = importlib.util.spec_from_file_location(
+                schema_key, schema_file
+            )
             schema_mod = importlib.util.module_from_spec(schema_spec)
             sys.modules[schema_key] = schema_mod
             # Also register as 'schema' temporarily so plugin.py import works
@@ -141,7 +145,9 @@ class PluginLoader:
             {
                 "id": m.get("id") or m.get("game_type"),
                 "name": m.get("name", m.get("id") or m.get("game_type")),
-                "display_name": m.get("display_name", m.get("id") or m.get("game_type")),
+                "display_name": m.get(
+                    "display_name", m.get("id") or m.get("game_type")
+                ),
                 "version": m.get("version", "0.0.0"),
                 "description": m.get("description", ""),
                 "author": m.get("author", ""),

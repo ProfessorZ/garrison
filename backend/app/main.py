@@ -1,4 +1,4 @@
-# @lat: [[garrison#Architecture]]
+# @lat: [[lat.md/lat#Garrison#Architecture]]
 import asyncio
 import logging
 import os
@@ -15,7 +15,29 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from app.config import settings, APP_VERSION, APP_NAME
-from app.api import auth, servers, console, players, scheduler, activity, dashboard, chat, commands, users, server_options, known_players, plugins, webhooks, ban_lists, triggers, metrics, ban_templates, events, hll, analytics
+from app.api import (
+    auth,
+    servers,
+    console,
+    players,
+    scheduler,
+    activity,
+    dashboard,
+    chat,
+    commands,
+    users,
+    server_options,
+    known_players,
+    plugins,
+    webhooks,
+    ban_lists,
+    triggers,
+    metrics,
+    ban_templates,
+    events,
+    hll,
+    analytics,
+)
 from app.database import engine
 from app.rcon.manager import rcon_manager
 from app.plugins.loader import PluginLoader
@@ -28,7 +50,10 @@ limiter = Limiter(key_func=get_remote_address, default_limits=[settings.RATE_LIM
 
 PLUGINS_DIR = os.environ.get(
     "GARRISON_PLUGINS_DIR",
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "plugins"),
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        "plugins",
+    ),
 )
 
 
@@ -89,6 +114,7 @@ def _register_plugin_schemas(loader: PluginLoader):
             # Handle both CommandDef objects and plain dicts
             if isinstance(cmd, dict):
                 from app.plugins.base import CommandDef as _CD
+
                 cmd = _CD(
                     name=cmd.get("name", ""),
                     description=cmd.get("description", ""),
@@ -98,24 +124,35 @@ def _register_plugin_schemas(loader: PluginLoader):
                     example=cmd.get("example", ""),
                 )
             params = []
-            for p in (cmd.params or []):
+            for p in cmd.params or []:
                 if isinstance(p, dict):
                     from app.plugins.base import CommandParam as _CP
-                    p = _CP(name=p.get("name",""), type=p.get("type","string"), required=p.get("required",False), description=p.get("description",""), choices=p.get("choices",[]))
-                params.append(SchemaParam(
-                    name=p.name,
-                    type=_type_map.get(p.type, ParamType.STRING),
-                    required=p.required,
-                    description=p.description,
-                    enum_values=p.choices if p.choices else None,
-                ))
-            rcon_commands.append(RconCommandSchema(
-                name=cmd.name,
-                description=cmd.description,
-                usage=cmd.example or cmd.name,
-                category=_cat_map.get(cmd.category, CommandCategory.SERVER),
-                parameters=params,
-            ))
+
+                    p = _CP(
+                        name=p.get("name", ""),
+                        type=p.get("type", "string"),
+                        required=p.get("required", False),
+                        description=p.get("description", ""),
+                        choices=p.get("choices", []),
+                    )
+                params.append(
+                    SchemaParam(
+                        name=p.name,
+                        type=_type_map.get(p.type, ParamType.STRING),
+                        required=p.required,
+                        description=p.description,
+                        enum_values=p.choices if p.choices else None,
+                    )
+                )
+            rcon_commands.append(
+                RconCommandSchema(
+                    name=cmd.name,
+                    description=cmd.description,
+                    usage=cmd.example or cmd.name,
+                    category=_cat_map.get(cmd.category, CommandCategory.SERVER),
+                    parameters=params,
+                )
+            )
 
         schema = GameCommandSchema(
             game_name=game_type,
@@ -124,14 +161,16 @@ def _register_plugin_schemas(loader: PluginLoader):
             commands=rcon_commands,
         )
         register_schema(game_type, schema)
-        logger.info("Registered %d commands for plugin %s", len(rcon_commands), game_type)
+        logger.info(
+            "Registered %d commands for plugin %s", len(rcon_commands), game_type
+        )
 
 
 async def sync_plugin_manifest(plugins_dir: str):
     """Read plugins.txt and install any plugins not already present."""
     manifest_paths = [
-        Path("/app/plugins.txt"),                                # Docker mount
-        Path(__file__).parent.parent.parent / "plugins.txt",     # dev
+        Path("/app/plugins.txt"),  # Docker mount
+        Path(__file__).parent.parent.parent / "plugins.txt",  # dev
     ]
 
     manifest_file = None
@@ -173,20 +212,28 @@ async def sync_plugin_manifest(plugins_dir: str):
             logger.info("Updating plugin: %s", repo_name)
             try:
                 import subprocess
+
                 result = subprocess.run(
                     ["git", "pull", "--ff-only"],
                     cwd=str(plugin_dir),
-                    capture_output=True, text=True, timeout=30
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
                 )
                 if result.returncode == 0:
-                    logger.info("Updated plugin %s: %s", repo_name, result.stdout.strip())
+                    logger.info(
+                        "Updated plugin %s: %s", repo_name, result.stdout.strip()
+                    )
                     # Clear pycache so updated code is loaded
                     import shutil
+
                     pycache = plugin_dir / "__pycache__"
                     if pycache.exists():
                         shutil.rmtree(pycache)
                 else:
-                    logger.warning("git pull failed for %s: %s", repo_name, result.stderr.strip())
+                    logger.warning(
+                        "git pull failed for %s: %s", repo_name, result.stderr.strip()
+                    )
             except Exception as e:
                 logger.warning("Could not update plugin %s: %s", repo_name, e)
             continue
@@ -228,12 +275,14 @@ async def lifespan(app: FastAPI):
 
     logger.info(
         "Plugin system initialized: %d plugins loaded from %s",
-        len(loader.plugins), PLUGINS_DIR,
+        len(loader.plugins),
+        PLUGINS_DIR,
     )
 
     # Start Discord bot if configured
     if settings.DISCORD_BOT_TOKEN and settings.DISCORD_GUILD_ID:
         from app.services.discord_bot import start_bot
+
         try:
             await start_bot(
                 token=settings.DISCORD_BOT_TOKEN,
@@ -251,6 +300,7 @@ async def lifespan(app: FastAPI):
     # Shutdown Discord bot
     if settings.DISCORD_BOT_TOKEN and settings.DISCORD_GUILD_ID:
         from app.services.discord_bot import stop_bot
+
         try:
             await stop_bot()
         except Exception as e:

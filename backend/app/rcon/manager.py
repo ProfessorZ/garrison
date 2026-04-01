@@ -1,4 +1,4 @@
-# @lat: [[garrison#RCON Management]]
+# @lat: [[lat.md/lat#Garrison#RCON Management]]
 """
 Async RCON Connection Manager using raw sockets (Source RCON protocol).
 
@@ -13,6 +13,7 @@ from enum import IntEnum
 logger = logging.getLogger(__name__)
 
 # --- Source RCON Protocol Constants ---
+
 
 class PacketType(IntEnum):
     SERVERDATA_RESPONSE_VALUE = 0
@@ -104,7 +105,11 @@ class RconConnection:
             # Standard auth response (type=2)
             self._authenticated = True
             return
-        if resp_id == auth_id and resp_type == PacketType.SERVERDATA_RESPONSE_VALUE and resp_body:
+        if (
+            resp_id == auth_id
+            and resp_type == PacketType.SERVERDATA_RESPONSE_VALUE
+            and resp_body
+        ):
             # HumanitZ-style: type=0, non-empty body, id=auth_id — server won't echo real cmd IDs
             self._nonconformant_ids = True
             self._authenticated = True
@@ -220,7 +225,9 @@ class RconManager:
         try:
             return await conn.send_command(command)
         except Exception as e:
-            logger.warning("RCON command failed for server %s, reconnecting: %s", server_id, e)
+            logger.warning(
+                "RCON command failed for server %s, reconnecting: %s", server_id, e
+            )
             # Try reconnecting once
             try:
                 await conn.close()

@@ -1,6 +1,8 @@
 # Plugin System
 
-Garrison uses a plugin architecture to support multiple games. Each game (Zomboid, Factorio, HLL, DayZ, Minecraft, BeamMP, Arma Reforger) is an external plugin conforming to the GamePlugin interface.
+Garrison uses a plugin architecture to support multiple games. Each game (Rust, Zomboid, Factorio, HLL, DayZ, Minecraft, BeamMP, Arma Reforger) is an external plugin conforming to the GamePlugin interface.
+
+Plugins are managed as git submodules in the `plugins/` directory, cloned via `git clone --recursive` or `git submodule update --init --recursive`.
 
 ## GamePlugin
 
@@ -20,7 +22,7 @@ Each plugin is a directory containing:
 - `schema.py` — RCON command definitions and categories
 - `options.py` — (optional) server option handling
 
-Plugins are listed in `plugins.txt` for auto-install on startup.
+Plugins are git submodules. Add new plugins with `git submodule add git@github.com:ProfessorZ/garrison-plugin-<game>.git plugins/garrison-plugin-<game>`.
 
 ## Plugin Lifecycle
 

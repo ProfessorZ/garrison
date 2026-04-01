@@ -1,4 +1,4 @@
-# @lat: [[garrison#Authentication & Authorization]]
+# @lat: [[lat.md/lat#Garrison#Authentication & Authorization]]
 from datetime import datetime, timedelta, timezone
 
 from cryptography.fernet import Fernet
@@ -26,7 +26,9 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    )
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
 
