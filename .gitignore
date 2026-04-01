@@ -23,7 +23,6 @@ docker-compose.override.yml
 *.swo
 *~
 .DS_Store
-/plugins/
 .claude
 .mcp.json
 .cursor
