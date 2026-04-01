@@ -341,6 +341,97 @@ def _setup_commands(bot: GarrisonBot) -> None:
         except Exception as e:
             await interaction.followup.send(f"RCON error: {e}")
 
+    @bot.tree.command(
+        name="broadcast", description="Broadcast a message to all players (Admin+)"
+    )
+    @app_commands.describe(server="Server name", message="Message to broadcast")
+    async def cmd_broadcast(
+        interaction: discord.Interaction, server: str, message: str
+    ) -> None:
+        user = await _check_permission(interaction, UserRole.ADMIN)
+        if not user:
+            return
+
+        await interaction.response.defer()
+        srv = await _find_server(server)
+        if not srv:
+            await interaction.followup.send(f"Server '{server}' not found.")
+            return
+
+        try:
+            plugin = get_plugin(srv.game_type)
+            if not hasattr(plugin, "broadcast"):
+                await interaction.followup.send(
+                    f"{srv.game_type} does not support broadcast."
+                )
+                return
+
+            password = decrypt_rcon_password(srv.rcon_password_encrypted)
+            await plugin.connect(srv.host, srv.rcon_port, password, server_id=srv.id)
+            try:
+                result = await plugin.broadcast(message)
+            finally:
+                await plugin.disconnect()
+
+            await _log_discord_action(
+                user,
+                "broadcast",
+                f"Broadcast on {srv.name}: {message}",
+                server_id=srv.id,
+            )
+
+            embed = discord.Embed(
+                title=f"Broadcast Sent: {srv.name}",
+                description=f"```\n{message}\n```",
+                color=0x3B82F6,
+            )
+            embed.set_footer(text=f"By {user.username}")
+            await interaction.followup.send(embed=embed)
+        except Exception as e:
+            await interaction.followup.send(f"Broadcast failed: {e}")
+
+    @bot.tree.command(name="save", description="Save the game world (Admin+)")
+    @app_commands.describe(server="Server name")
+    async def cmd_save(interaction: discord.Interaction, server: str) -> None:
+        user = await _check_permission(interaction, UserRole.ADMIN)
+        if not user:
+            return
+
+        await interaction.response.defer()
+        srv = await _find_server(server)
+        if not srv:
+            await interaction.followup.send(f"Server '{server}' not found.")
+            return
+
+        try:
+            plugin = get_plugin(srv.game_type)
+            if not hasattr(plugin, "save_world"):
+                await interaction.followup.send(
+                    f"{srv.game_type} does not support world saves."
+                )
+                return
+
+            password = decrypt_rcon_password(srv.rcon_password_encrypted)
+            await plugin.connect(srv.host, srv.rcon_port, password, server_id=srv.id)
+            try:
+                result = await plugin.save_world()
+            finally:
+                await plugin.disconnect()
+
+            await _log_discord_action(
+                user, "save", f"Saved world on {srv.name}", server_id=srv.id
+            )
+
+            embed = discord.Embed(
+                title=f"World Saved: {srv.name}",
+                description=result or "Save command executed",
+                color=0x00D4AA,
+            )
+            embed.set_footer(text=f"By {user.username}")
+            await interaction.followup.send(embed=embed)
+        except Exception as e:
+            await interaction.followup.send(f"Save failed: {e}")
+
 
 async def _find_server(name: str) -> Server | None:
     async with async_session() as db:
