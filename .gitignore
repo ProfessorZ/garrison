@@ -27,3 +27,17 @@ docker-compose.override.yml
 .mcp.json
 .cursor
 .opencode
+
+# Local environments and caches
+backend/.venv/
+.python-version
+.venv/
+venv/
+ENV/
+env/
+lat.md/.cache/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+coverage/
+*.log
