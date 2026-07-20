@@ -31,3 +31,5 @@ Plugins are git submodules. Add new plugins with `git submodule add git@github.c
 ## ConnectedPlugin Bridge
 
 [[backend/app/plugins/bridge.py#ConnectedPlugin]] wraps a `GamePlugin` instance and provides it with an [[rcon#RconManager]] connection. This decouples plugins from RCON connection management — plugins just call `send_command(cmd)` and the bridge handles connection acquisition and release.
+
+`broadcast` and `save_world` are delegated to the underlying plugin; callers should check `hasattr(connected_plugin.plugin, "broadcast")` (i.e. on the wrapped plugin, not the wrapper) to detect support before calling.

@@ -102,6 +102,14 @@ class ConnectedPlugin:
     async def demote_player(self, player_name: str) -> str:
         return await self.plugin.demote_player(self.send_command, player_name)
 
+    async def broadcast(self, message: str) -> str:
+        """Broadcast a message to all players, if the underlying plugin supports it."""
+        return await self.plugin.broadcast(self.send_command, message)
+
+    async def save_world(self) -> str:
+        """Trigger a world save, if the underlying plugin supports it."""
+        return await self.plugin.save_world(self.send_command)
+
     async def message_player(self, player_name: str, message: str) -> str:
         return await self.plugin.message_player(self.send_command, player_name, message)
 

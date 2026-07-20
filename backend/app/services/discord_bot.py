@@ -61,6 +61,29 @@ async def _get_linked_user(discord_user_id: int) -> User | None:
         return result.scalar_one_or_none()
 
 
+def _has_discord_permission(interaction: discord.Interaction, min_role: UserRole) -> bool:
+    """Check whether the invoking Discord member holds a Discord permission
+    appropriate for min_role, so channel-scoped mode cannot be used to bypass
+    the Garrison role check for privileged (MODERATOR+) commands.
+
+    Mapping: ADMIN/OWNER require Administrator or Manage Server; MODERATOR
+    requires Administrator, Manage Server, Kick Members, or Ban Members.
+    """
+    perms = getattr(interaction.user, "guild_permissions", None)
+    if perms is None:
+        return False
+    if min_role in (UserRole.ADMIN, UserRole.OWNER):
+        return perms.administrator or perms.manage_guild
+    if min_role == UserRole.MODERATOR:
+        return (
+            perms.administrator
+            or perms.manage_guild
+            or perms.kick_members
+            or perms.ban_members
+        )
+    return True
+
+
 async def _check_permission(
     interaction: discord.Interaction, min_role: UserRole
 ) -> tuple[User | None, Server | None]:
@@ -68,6 +91,9 @@ async def _check_permission(
 
     Two modes:
     1. Channel-scoped: If channel maps to a server via discord_channel_id, allow
+       VIEWER-level commands for anyone in the channel, and privileged
+       (MODERATOR+) commands only for Discord members with an appropriate
+       Discord permission (e.g. Manage Server, Kick/Ban Members).
     2. Global: Require linked Garrison account with minimum role
 
     Returns (User, server):
@@ -79,8 +105,11 @@ async def _check_permission(
     # First: check if Discord channel maps to a server
     if interaction.channel_id:
         server = await _find_server_by_channel(interaction.channel_id)
-        if server:
-            # Channel-scoped: user is already authorized by Discord channel perms
+        if server and (
+            min_role == UserRole.VIEWER
+            or _has_discord_permission(interaction, min_role)
+        ):
+            # Channel-scoped: user is authorized by Discord channel/role perms
             return (None, server)
 
     # Fallback: require linked Garrison account + role
@@ -430,7 +459,7 @@ def _setup_commands(bot: GarrisonBot) -> None:
 
         try:
             plugin = get_plugin(srv.game_type)
-            if not hasattr(plugin, "broadcast"):
+            if not hasattr(plugin.plugin, "broadcast"):
                 await interaction.followup.send(
                     f"{srv.game_type} does not support broadcast."
                 )
@@ -481,7 +510,7 @@ def _setup_commands(bot: GarrisonBot) -> None:
 
         try:
             plugin = get_plugin(srv.game_type)
-            if not hasattr(plugin, "save_world"):
+            if not hasattr(plugin.plugin, "save_world"):
                 await interaction.followup.send(
                     f"{srv.game_type} does not support world saves."
                 )
