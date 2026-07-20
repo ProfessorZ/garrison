@@ -31,13 +31,13 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 const EVENT_COLORS: Record<string, string> = {
-  player_join: "#00d4aa",
-  player_leave: "#ff4757",
-  player_count_above: "#ffa502",
-  player_count_below: "#ffa502",
-  server_online: "#00d4aa",
-  server_offline: "#ff4757",
-  chat_message: "#3b82f6",
+  player_join: "#ffb224",
+  player_leave: "#d96b5c",
+  player_count_above: "#e3b454",
+  player_count_below: "#e3b454",
+  server_online: "#ffb224",
+  server_offline: "#d96b5c",
+  chat_message: "#67b7e2",
 };
 
 function timeAgo(dateStr: string | null | undefined): string {
@@ -133,19 +133,19 @@ export default function TriggerManager({ serverId }: Props) {
     setModalOpen(true);
   };
 
-  const inputStyle = { background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" };
+  const inputStyle = { background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" };
 
   return (
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-[#e2e8f0] uppercase tracking-wider">
+        <h3 className="text-sm font-bold text-[#e8e3d8] uppercase tracking-wider">
           Triggers
         </h3>
         <button
           onClick={openCreate}
           className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-150"
-          style={{ background: "#00d4aa", color: "#0a0e1a" }}
+          style={{ background: "#ffb224", color: "#0b0a08" }}
         >
           <Plus className="h-3 w-3" /> Add Trigger
         </button>
@@ -154,21 +154,21 @@ export default function TriggerManager({ serverId }: Props) {
       {/* Trigger list */}
       {isLoading ? (
         <div className="flex items-center justify-center h-32">
-          <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
+          <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#ffb224] border-r-transparent" />
         </div>
       ) : triggers.length === 0 ? (
-        <div className="text-center py-12 rounded-xl" style={{ background: "#0a0e1a", border: "1px solid rgba(255,255,255,0.06)" }}>
-          <Zap className="h-8 w-8 text-[#1a1f2e] mx-auto mb-2" />
-          <p className="text-sm text-[#94a3b8]">No triggers configured</p>
-          <p className="text-xs text-[#64748b] mt-1">Add a trigger to automate actions on server events</p>
+        <div className="text-center py-12 rounded-xl" style={{ background: "#0b0a08", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <Zap className="h-8 w-8 text-[#12100b] mx-auto mb-2" />
+          <p className="text-sm text-[#8a8271]">No triggers configured</p>
+          <p className="text-xs text-[#6b6455] mt-1">Add a trigger to automate actions on server events</p>
         </div>
       ) : (
-        <div className="rounded-xl overflow-hidden" style={{ background: "#0a0e1a", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="rounded-xl overflow-hidden" style={{ background: "#0b0a08", border: "1px solid rgba(255,255,255,0.06)" }}>
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                 {["Name", "Event", "Action", "Status", "Last Fired", "Fires", "Actions"].map((h, i) => (
-                  <th key={h} className={`${i === 6 ? "text-right" : "text-left"} px-4 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider`}>{h}</th>
+                  <th key={h} className={`${i === 6 ? "text-right" : "text-left"} px-4 py-2.5 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider`}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -176,57 +176,57 @@ export default function TriggerManager({ serverId }: Props) {
               {triggers.map((t) => (
                 <tr key={t.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
                   <td className="px-4 py-2.5">
-                    <div className="text-sm text-[#e2e8f0] font-medium">{t.name}</div>
+                    <div className="text-sm text-[#e8e3d8] font-medium">{t.name}</div>
                     {t.server_name && (
-                      <div className="text-[11px] text-[#64748b]">{t.server_name}</div>
+                      <div className="text-[11px] text-[#6b6455]">{t.server_name}</div>
                     )}
                     {!t.server_id && (
-                      <div className="text-[11px] text-[#ffa502]">Global</div>
+                      <div className="text-[11px] text-[#e3b454]">Global</div>
                     )}
                   </td>
                   <td className="px-4 py-2.5">
                     <span
                       className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold"
                       style={{
-                        background: `${EVENT_COLORS[t.event_type] || "#3b82f6"}15`,
-                        color: EVENT_COLORS[t.event_type] || "#3b82f6",
+                        background: `${EVENT_COLORS[t.event_type] || "#67b7e2"}15`,
+                        color: EVENT_COLORS[t.event_type] || "#67b7e2",
                       }}
                     >
                       {EVENT_LABELS[t.event_type] || t.event_type}
                     </span>
                     {t.event_config && t.event_type === "chat_message" && !!(t.event_config as Record<string, unknown>).pattern && (
-                      <div className="text-[11px] text-[#64748b] mt-0.5" style={{ fontFamily: "var(--font-mono)" }}>
+                      <div className="text-[11px] text-[#6b6455] mt-0.5" style={{ fontFamily: "var(--font-mono)" }}>
                         /{String((t.event_config as Record<string, unknown>).pattern)}/
                       </div>
                     )}
                     {t.event_config && (t.event_type === "player_count_above" || t.event_type === "player_count_below") && (
-                      <div className="text-[11px] text-[#64748b] mt-0.5">
+                      <div className="text-[11px] text-[#6b6455] mt-0.5">
                         Threshold: {String((t.event_config as Record<string, unknown>).threshold)}
                       </div>
                     )}
                   </td>
                   <td className="px-4 py-2.5">
-                    <div className="text-xs text-[#94a3b8]">{ACTION_LABELS[t.action_type] || t.action_type}</div>
+                    <div className="text-xs text-[#8a8271]">{ACTION_LABELS[t.action_type] || t.action_type}</div>
                     {t.action_type === "rcon_command" && t.action_config && (
-                      <div className="text-[11px] text-[#64748b] mt-0.5 max-w-[180px] truncate" style={{ fontFamily: "var(--font-mono)" }}>
+                      <div className="text-[11px] text-[#6b6455] mt-0.5 max-w-[180px] truncate" style={{ fontFamily: "var(--font-mono)" }}>
                         {String((t.action_config as Record<string, unknown>).command || "")}
                       </div>
                     )}
                   </td>
                   <td className="px-4 py-2.5">
-                    <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${t.is_active ? "text-[#00d4aa]" : "text-[#64748b]"}`}>
-                      <span className={`h-1.5 w-1.5 rounded-full ${t.is_active ? "bg-[#00d4aa] status-online" : "bg-[#64748b]"}`} />
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${t.is_active ? "text-[#ffb224]" : "text-[#6b6455]"}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${t.is_active ? "bg-[#ffb224] status-online" : "bg-[#6b6455]"}`} />
                       {t.is_active ? "Active" : "Paused"}
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 text-xs text-[#64748b]">{timeAgo(t.last_fired_at)}</td>
-                  <td className="px-4 py-2.5 text-xs text-[#64748b]" style={{ fontFamily: "var(--font-mono)" }}>{t.fire_count}</td>
+                  <td className="px-4 py-2.5 text-xs text-[#6b6455]">{timeAgo(t.last_fired_at)}</td>
+                  <td className="px-4 py-2.5 text-xs text-[#6b6455]" style={{ fontFamily: "var(--font-mono)" }}>{t.fire_count}</td>
                   <td className="px-4 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => testMutation.mutate(t.id)}
                         disabled={testMutation.isPending}
-                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-[#e2e8f0] transition-all duration-150"
+                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-[#e8e3d8] transition-all duration-150"
                         style={inputStyle}
                         title="Test"
                       >
@@ -234,7 +234,7 @@ export default function TriggerManager({ serverId }: Props) {
                       </button>
                       <button
                         onClick={() => toggleMutation.mutate(t.id)}
-                        className="inline-flex items-center rounded-md px-2 py-1 text-xs text-[#e2e8f0] transition-all duration-150"
+                        className="inline-flex items-center rounded-md px-2 py-1 text-xs text-[#e8e3d8] transition-all duration-150"
                         style={inputStyle}
                         title={t.is_active ? "Pause" : "Resume"}
                       >
@@ -242,7 +242,7 @@ export default function TriggerManager({ serverId }: Props) {
                       </button>
                       <button
                         onClick={() => openEdit(t)}
-                        className="inline-flex items-center rounded-md px-2 py-1 text-xs text-[#e2e8f0] transition-all duration-150"
+                        className="inline-flex items-center rounded-md px-2 py-1 text-xs text-[#e8e3d8] transition-all duration-150"
                         style={inputStyle}
                         title="Edit"
                       >
@@ -250,15 +250,15 @@ export default function TriggerManager({ serverId }: Props) {
                       </button>
                       <button
                         onClick={() => { if (confirm("Delete this trigger?")) deleteMutation.mutate(t.id); }}
-                        className="inline-flex items-center rounded-md px-2 py-1 text-xs text-[#ff4757] transition-all duration-150"
-                        style={{ background: "rgba(255,71,87,0.08)", border: "1px solid rgba(255,71,87,0.12)" }}
+                        className="inline-flex items-center rounded-md px-2 py-1 text-xs text-[#d96b5c] transition-all duration-150"
+                        style={{ background: "rgba(217, 107, 92,0.08)", border: "1px solid rgba(217, 107, 92,0.12)" }}
                         title="Delete"
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
                     </div>
                     {testResult?.id === t.id && (
-                      <div className="text-[11px] text-[#00d4aa] mt-1 text-right max-w-[200px] truncate animate-fade-in">
+                      <div className="text-[11px] text-[#ffb224] mt-1 text-right max-w-[200px] truncate animate-fade-in">
                         {testResult.text}
                       </div>
                     )}

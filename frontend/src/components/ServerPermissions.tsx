@@ -12,9 +12,9 @@ interface ServerPermissionsProps {
 const SERVER_ROLES = ["ADMIN", "MODERATOR", "VIEWER"];
 
 const ROLE_COLORS: Record<string, { text: string; bg: string }> = {
-  ADMIN: { text: "#ff4757", bg: "rgba(255,71,87,0.08)" },
-  MODERATOR: { text: "#3b82f6", bg: "rgba(59,130,246,0.08)" },
-  VIEWER: { text: "#64748b", bg: "rgba(100,116,139,0.08)" },
+  ADMIN: { text: "#d96b5c", bg: "rgba(217, 107, 92,0.08)" },
+  MODERATOR: { text: "#67b7e2", bg: "rgba(59,130,246,0.08)" },
+  VIEWER: { text: "#6b6455", bg: "rgba(100,116,139,0.08)" },
 };
 
 export default function ServerPermissions({ serverId }: ServerPermissionsProps) {
@@ -64,28 +64,28 @@ export default function ServerPermissions({ serverId }: ServerPermissionsProps) 
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["server-permissions", serverId] }),
   });
 
-  const inputCls = "w-full rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none transition-all duration-150";
-  const inputStyle = { background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" };
+  const inputCls = "w-full rounded-lg px-3 py-2.5 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none transition-all duration-150";
+  const inputStyle = { background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-32">
-        <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
+        <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#ffb224] border-r-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl p-6" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+    <div className="rounded-xl p-6" style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}>
       <div className="flex items-center justify-between mb-5">
-        <h3 className="text-sm font-bold text-[#e2e8f0] flex items-center gap-2 uppercase tracking-wider">
-          <Shield className="h-4 w-4 text-[#00d4aa]" />
+        <h3 className="text-sm font-bold text-[#e8e3d8] flex items-center gap-2 uppercase tracking-wider">
+          <Shield className="h-4 w-4 text-[#ffb224]" />
           Server Access
         </h3>
         <button
           onClick={() => setShowAdd(!showAdd)}
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-[#0a0e1a] transition-all duration-150"
-          style={{ background: "#00d4aa" }}
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-[#0b0a08] transition-all duration-150"
+          style={{ background: "#ffb224" }}
         >
           <UserPlus className="h-3.5 w-3.5" /> Add User
         </button>
@@ -93,9 +93,9 @@ export default function ServerPermissions({ serverId }: ServerPermissionsProps) 
 
       {showAdd && (
         <div className="mb-5 p-4 rounded-xl space-y-3 animate-fade-in"
-          style={{ background: "#0a0e1a", border: "1px solid rgba(255,255,255,0.06)" }}>
+          style={{ background: "#0b0a08", border: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#64748b]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6b6455]" />
             <input
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setSelectedUserId(null); }}
@@ -106,25 +106,25 @@ export default function ServerPermissions({ serverId }: ServerPermissionsProps) 
           </div>
 
           {searchQuery && availableUsers.length > 0 && !selectedUserId && (
-            <div className="rounded-lg max-h-32 overflow-y-auto" style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div className="rounded-lg max-h-32 overflow-y-auto" style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}>
               {availableUsers.map((u: User) => (
                 <button
                   key={u.id}
                   onClick={() => { setSelectedUserId(u.id); setSearchQuery(u.username); }}
-                  className="w-full text-left px-3 py-2 text-sm text-[#e2e8f0] transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm text-[#e8e3d8] transition-colors"
                   style={{ background: "transparent" }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
                   {u.username}
-                  <span className="text-xs text-[#64748b] ml-2">{u.role}</span>
+                  <span className="text-xs text-[#6b6455] ml-2">{u.role}</span>
                 </button>
               ))}
             </div>
           )}
 
           {searchQuery && availableUsers.length === 0 && !selectedUserId && (
-            <p className="text-xs text-[#64748b]">No matching users available.</p>
+            <p className="text-xs text-[#6b6455]">No matching users available.</p>
           )}
 
           <div className="flex items-center gap-3">
@@ -134,19 +134,19 @@ export default function ServerPermissions({ serverId }: ServerPermissionsProps) 
             <button
               onClick={() => grantMutation.mutate()}
               disabled={!selectedUserId || grantMutation.isPending}
-              className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-bold text-[#0a0e1a] disabled:opacity-30 transition-all duration-150 shrink-0"
-              style={{ background: "#00d4aa" }}
+              className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-bold text-[#0b0a08] disabled:opacity-30 transition-all duration-150 shrink-0"
+              style={{ background: "#ffb224" }}
             >
               {grantMutation.isPending ? "Granting..." : "Grant Access"}
             </button>
           </div>
 
-          {grantMutation.isError && <p className="text-xs text-[#ff4757]">Failed to grant access.</p>}
+          {grantMutation.isError && <p className="text-xs text-[#d96b5c]">Failed to grant access.</p>}
         </div>
       )}
 
       {permissions.length === 0 ? (
-        <p className="text-sm text-[#94a3b8] text-center py-8">
+        <p className="text-sm text-[#8a8271] text-center py-8">
           No per-user permissions set. Global Admins and Owners already have full access.
         </p>
       ) : (
@@ -155,13 +155,13 @@ export default function ServerPermissions({ serverId }: ServerPermissionsProps) 
             const roleStyle = ROLE_COLORS[perm.role] || ROLE_COLORS.VIEWER;
             return (
               <div key={perm.id} className="flex items-center justify-between p-3.5 rounded-xl"
-                style={{ background: "#0a0e1a", border: "1px solid rgba(255,255,255,0.04)" }}>
+                style={{ background: "#0b0a08", border: "1px solid rgba(255,255,255,0.04)" }}>
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-[#e2e8f0]"
-                    style={{ background: "#1a1f2e" }}>
+                  <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-[#e8e3d8]"
+                    style={{ background: "#12100b" }}>
                     {perm.username?.charAt(0).toUpperCase() || "?"}
                   </div>
-                  <span className="text-sm font-semibold text-[#e2e8f0]">
+                  <span className="text-sm font-semibold text-[#e8e3d8]">
                     {perm.username || `User #${perm.user_id}`}
                   </span>
                 </div>
@@ -169,8 +169,8 @@ export default function ServerPermissions({ serverId }: ServerPermissionsProps) 
                   <select
                     value={perm.role}
                     onChange={(e) => updateMutation.mutate({ userId: perm.user_id, role: e.target.value })}
-                    className="rounded-lg px-2 py-1 text-xs text-[#e2e8f0] focus:outline-none"
-                    style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                    className="rounded-lg px-2 py-1 text-xs text-[#e8e3d8] focus:outline-none"
+                    style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
                   >
                     {SERVER_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                   </select>
@@ -181,7 +181,7 @@ export default function ServerPermissions({ serverId }: ServerPermissionsProps) 
                   <button
                     onClick={() => revokeMutation.mutate(perm.user_id)}
                     disabled={revokeMutation.isPending}
-                    className="p-1.5 rounded-md text-[#64748b] hover:text-[#ff4757] transition-all duration-150"
+                    className="p-1.5 rounded-md text-[#6b6455] hover:text-[#d96b5c] transition-all duration-150"
                     style={{ background: "transparent" }}
                     title="Revoke access"
                   >

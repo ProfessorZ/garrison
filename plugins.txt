@@ -9,3 +9,10 @@ https://github.com/ProfessorZ/garrison-plugin-dayz
 https://github.com/ProfessorZ/garrison-plugin-arma-reforger
 https://github.com/ProfessorZ/garrison-plugin-minecraft
 https://github.com/ProfessorZ/garrison-plugin-beammp
+https://github.com/ProfessorZ/garrison-plugin-rust
+https://github.com/ProfessorZ/garrison-plugin-terraria
+https://github.com/ProfessorZ/garrison-plugin-valheim
+https://github.com/ProfessorZ/garrison-plugin-assettocorsa
+https://github.com/ProfessorZ/garrison-plugin-stationeers
+https://github.com/ProfessorZ/garrison-plugin-humanitz
+https://github.com/ProfessorZ/garrison-plugin-icarus

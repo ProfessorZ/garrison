@@ -3,16 +3,26 @@ import type { ActivityFilters, PaginatedActivity, ActivityEntry } from "../types
 
 export const activityApi = {
   getActivity: async (filters?: ActivityFilters): Promise<PaginatedActivity> => {
-    const params: Record<string, string | number> = {};
+    const perPage = filters?.per_page ?? 20;
+    const page = filters?.page ?? 1;
+    const params: Record<string, string | number> = {
+      limit: perPage,
+      offset: (page - 1) * perPage,
+    };
     if (filters?.server_id) params.server_id = filters.server_id;
-    if (filters?.user) params.user = filters.user;
     if (filters?.action) params.action = filters.action;
-    if (filters?.date_from) params.date_from = filters.date_from;
-    if (filters?.date_to) params.date_to = filters.date_to;
-    if (filters?.page) params.offset = ((filters.page - 1) * (filters.per_page ?? 20));
-    if (filters?.per_page) params.limit = filters.per_page;
+    // Backend accepts user_id (numeric), not username string
+    if (filters?.user && /^\d+$/.test(filters.user)) {
+      params.user_id = Number(filters.user);
+    }
     const res = await client.get<ActivityEntry[]>("/activity", { params });
-    return { items: res.data, total: res.data.length };
+    const items = res.data ?? [];
+    // If we got a full page, assume there may be more
+    const total =
+      items.length < perPage
+        ? (page - 1) * perPage + items.length
+        : page * perPage + 1;
+    return { items, total };
   },
 
   getServerActivity: async (
@@ -24,6 +34,11 @@ export const activityApi = {
       `/servers/${serverId}/activity`,
       { params: { limit: perPage, offset: (page - 1) * perPage } }
     );
-    return { items: res.data, total: res.data.length };
+    const items = res.data ?? [];
+    const total =
+      items.length < perPage
+        ? (page - 1) * perPage + items.length
+        : page * perPage + 1;
+    return { items, total };
   },
 };
