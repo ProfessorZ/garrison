@@ -85,4 +85,14 @@ export const knownPlayersApi = {
     const res = await client.get<AltAccount[]>(`/players/${playerId}/alts`);
     return res.data;
   },
+
+  getSteam: async (playerId: number) => {
+    const res = await client.get(`/players/${playerId}/steam`);
+    return res.data;
+  },
+
+  refreshSteam: async (playerId: number) => {
+    const res = await client.post(`/players/${playerId}/steam/refresh`);
+    return res.data;
+  },
 };

@@ -200,16 +200,16 @@ export default function BanListDetailPage() {
   if (isLoading || !banList) {
     return (
       <div className="max-w-5xl mx-auto animate-fade-in">
-        <div className="h-4 w-28 rounded bg-[#1a1f2e] animate-pulse mb-5" />
+        <div className="h-4 w-28 rounded bg-[#12100b] animate-pulse mb-5" />
         <div
           className="rounded-xl p-6 mb-6"
           style={{
-            background: "#111827",
+            background: "#0e0c09",
             border: "1px solid rgba(255,255,255,0.06)",
           }}
         >
-          <div className="h-6 w-48 rounded bg-[#1a1f2e] animate-pulse mb-2" />
-          <div className="h-3 w-32 rounded bg-[#1a1f2e] animate-pulse" />
+          <div className="h-6 w-48 rounded bg-[#12100b] animate-pulse mb-2" />
+          <div className="h-3 w-32 rounded bg-[#12100b] animate-pulse" />
         </div>
       </div>
     );
@@ -230,7 +230,7 @@ export default function BanListDetailPage() {
       {/* Back */}
       <Link
         to="/ban-lists"
-        className="inline-flex items-center gap-1.5 text-xs text-[#64748b] hover:text-[#e2e8f0] mb-5 transition-colors font-medium"
+        className="inline-flex items-center gap-1.5 text-xs text-[#6b6455] hover:text-[#e8e3d8] mb-5 transition-colors font-medium"
       >
         <ArrowLeft className="h-3 w-3" />
         Back to ban lists
@@ -240,7 +240,7 @@ export default function BanListDetailPage() {
       <div
         className="rounded-xl p-6 mb-6"
         style={{
-          background: "#111827",
+          background: "#0e0c09",
           border: "1px solid rgba(255,255,255,0.06)",
         }}
       >
@@ -250,9 +250,9 @@ export default function BanListDetailPage() {
               type="text"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
-              className="w-full rounded-lg px-3 py-2 text-sm text-[#e2e8f0] focus:outline-none"
+              className="w-full rounded-lg px-3 py-2 text-sm text-[#e8e3d8] focus:outline-none"
               style={{
-                background: "#1a1f2e",
+                background: "#12100b",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             />
@@ -261,13 +261,13 @@ export default function BanListDetailPage() {
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
               placeholder="Description"
-              className="w-full rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none"
+              className="w-full rounded-lg px-3 py-2 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none"
               style={{
-                background: "#1a1f2e",
+                background: "#12100b",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             />
-            <label className="flex items-center gap-2 text-sm text-[#e2e8f0] cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-[#e8e3d8] cursor-pointer">
               <input
                 type="checkbox"
                 checked={editGlobal}
@@ -280,16 +280,16 @@ export default function BanListDetailPage() {
               <button
                 onClick={() => updateMutation.mutate()}
                 disabled={updateMutation.isPending}
-                className="rounded-lg px-4 py-2 text-xs font-bold text-[#0a0e1a]"
-                style={{ background: "#00d4aa" }}
+                className="rounded-lg px-4 py-2 text-xs font-bold text-[#0b0a08]"
+                style={{ background: "#ffb224" }}
               >
                 Save
               </button>
               <button
                 onClick={() => setEditing(false)}
-                className="rounded-lg px-4 py-2 text-xs font-medium text-[#94a3b8]"
+                className="rounded-lg px-4 py-2 text-xs font-medium text-[#8a8271]"
                 style={{
-                  background: "#1a1f2e",
+                  background: "#12100b",
                   border: "1px solid rgba(255,255,255,0.06)",
                 }}
               >
@@ -301,20 +301,20 @@ export default function BanListDetailPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 mb-1">
-                <h2 className="text-2xl font-bold text-[#e2e8f0]">
+                <h2 className="text-2xl font-bold text-[#e8e3d8]">
                   {banList.name}
                 </h2>
                 {banList.is_global && (
-                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#ffa502] bg-[rgba(255,165,2,0.08)]">
+                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#e3b454] bg-[rgba(255,165,2,0.08)]">
                     <Globe className="h-2.5 w-2.5" />
                     GLOBAL
                   </span>
                 )}
               </div>
               {banList.description && (
-                <p className="text-sm text-[#64748b]">{banList.description}</p>
+                <p className="text-sm text-[#6b6455]">{banList.description}</p>
               )}
-              <p className="text-xs text-[#64748b] mt-1">
+              <p className="text-xs text-[#6b6455] mt-1">
                 Created by {banList.created_by_username || "Unknown"} on{" "}
                 {formatDate(banList.created_at)}
               </p>
@@ -322,9 +322,9 @@ export default function BanListDetailPage() {
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setEditing(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-[#e2e8f0] transition-all duration-150"
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium text-[#e8e3d8] transition-all duration-150"
                 style={{
-                  background: "#1a1f2e",
+                  background: "#12100b",
                   border: "1px solid rgba(255,255,255,0.06)",
                 }}
               >
@@ -336,10 +336,10 @@ export default function BanListDetailPage() {
                   if (confirm("Delete this ban list?"))
                     deleteMutation.mutate();
                 }}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-[#ff4757] transition-all duration-150"
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-[#d96b5c] transition-all duration-150"
                 style={{
-                  background: "rgba(255,71,87,0.08)",
-                  border: "1px solid rgba(255,71,87,0.12)",
+                  background: "rgba(217, 107, 92,0.08)",
+                  border: "1px solid rgba(217, 107, 92,0.12)",
                 }}
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -357,19 +357,19 @@ export default function BanListDetailPage() {
             label: "Active Entries",
             value: banList.entry_count,
             icon: Users,
-            accent: "#ff4757",
+            accent: "#d96b5c",
           },
           {
             label: "Servers",
             value: banList.server_count,
             icon: Server,
-            accent: "#00d4aa",
+            accent: "#ffb224",
           },
           {
             label: "Type",
             value: banList.is_global ? "Global" : "Selective",
             icon: Globe,
-            accent: "#ffa502",
+            accent: "#e3b454",
           },
         ].map((stat) => {
           const Icon = stat.icon;
@@ -378,7 +378,7 @@ export default function BanListDetailPage() {
               key={stat.label}
               className="rounded-xl p-4"
               style={{
-                background: "#111827",
+                background: "#0e0c09",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             >
@@ -392,7 +392,7 @@ export default function BanListDetailPage() {
                     style={{ color: stat.accent }}
                   />
                 </div>
-                <span className="text-[10px] font-semibold text-[#64748b] uppercase tracking-wider">
+                <span className="text-[10px] font-semibold text-[#6b6455] uppercase tracking-wider">
                   {stat.label}
                 </span>
               </div>
@@ -418,14 +418,14 @@ export default function BanListDetailPage() {
               onClick={() => setTab(t.key)}
               className={`inline-flex items-center gap-1.5 px-4 py-3 text-[13px] font-semibold whitespace-nowrap transition-all duration-150 ${
                 active
-                  ? "text-[#00d4aa]"
-                  : "text-[#64748b] hover:text-[#e2e8f0]"
+                  ? "text-[#ffb224]"
+                  : "text-[#6b6455] hover:text-[#e8e3d8]"
               }`}
               style={{
                 background: "transparent",
                 borderRadius: 0,
                 borderBottom: active
-                  ? "2px solid #00d4aa"
+                  ? "2px solid #ffb224"
                   : "2px solid transparent",
                 marginBottom: "-1px",
               }}
@@ -445,23 +445,23 @@ export default function BanListDetailPage() {
             {/* Search + Add */}
             <div className="flex items-center gap-3 mb-4">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748b] pointer-events-none" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6b6455] pointer-events-none" />
                 <input
                   type="text"
                   value={entrySearch}
                   onChange={(e) => setEntrySearch(e.target.value)}
                   placeholder="Search entries..."
-                  className="w-full rounded-lg pl-10 pr-4 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none"
+                  className="w-full rounded-lg pl-10 pr-4 py-2 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none"
                   style={{
-                    background: "#111827",
+                    background: "#0e0c09",
                     border: "1px solid rgba(255,255,255,0.06)",
                   }}
                 />
               </div>
               <button
                 onClick={() => setShowAddEntry(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-[#0a0e1a] shrink-0"
-                style={{ background: "#00d4aa" }}
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-[#0b0a08] shrink-0"
+                style={{ background: "#ffb224" }}
               >
                 <Plus className="h-3.5 w-3.5" />
                 Add Entry
@@ -473,17 +473,17 @@ export default function BanListDetailPage() {
               <div
                 className="rounded-xl p-4 mb-4"
                 style={{
-                  background: "#111827",
+                  background: "#0e0c09",
                   border: "1px solid rgba(255,255,255,0.06)",
                 }}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-bold text-[#e2e8f0]">
+                  <h4 className="text-sm font-bold text-[#e8e3d8]">
                     Add Player to List
                   </h4>
                   <button
                     onClick={() => setShowAddEntry(false)}
-                    className="text-[#64748b] hover:text-[#e2e8f0]"
+                    className="text-[#6b6455] hover:text-[#e8e3d8]"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -494,9 +494,9 @@ export default function BanListDetailPage() {
                     value={newPlayerName}
                     onChange={(e) => setNewPlayerName(e.target.value)}
                     placeholder="Player name"
-                    className="flex-1 rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none"
+                    className="flex-1 rounded-lg px-3 py-2 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none"
                     style={{
-                      background: "#1a1f2e",
+                      background: "#12100b",
                       border: "1px solid rgba(255,255,255,0.06)",
                     }}
                   />
@@ -505,9 +505,9 @@ export default function BanListDetailPage() {
                     value={newReason}
                     onChange={(e) => setNewReason(e.target.value)}
                     placeholder="Reason (optional)"
-                    className="flex-1 rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none"
+                    className="flex-1 rounded-lg px-3 py-2 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none"
                     style={{
-                      background: "#1a1f2e",
+                      background: "#12100b",
                       border: "1px solid rgba(255,255,255,0.06)",
                     }}
                   />
@@ -516,8 +516,8 @@ export default function BanListDetailPage() {
                     disabled={
                       !newPlayerName.trim() || addEntryMutation.isPending
                     }
-                    className="rounded-lg px-4 py-2 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 shrink-0"
-                    style={{ background: "#00d4aa" }}
+                    className="rounded-lg px-4 py-2 text-xs font-bold text-[#0b0a08] disabled:opacity-50 shrink-0"
+                    style={{ background: "#ffb224" }}
                   >
                     {addEntryMutation.isPending ? "Adding..." : "Add"}
                   </button>
@@ -529,14 +529,14 @@ export default function BanListDetailPage() {
             <div
               className="rounded-xl overflow-hidden"
               style={{
-                background: "#111827",
+                background: "#0e0c09",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             >
               {entries.length === 0 ? (
                 <div className="py-16 text-center">
-                  <Users className="h-8 w-8 text-[#1a1f2e] mx-auto mb-3" />
-                  <p className="text-sm text-[#94a3b8]">
+                  <Users className="h-8 w-8 text-[#12100b] mx-auto mb-3" />
+                  <p className="text-sm text-[#8a8271]">
                     {debouncedSearch
                       ? "No matching entries"
                       : "No entries yet"}
@@ -553,19 +553,19 @@ export default function BanListDetailPage() {
                               "1px solid rgba(255,255,255,0.06)",
                           }}
                         >
-                          <th className="text-left px-5 py-3 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">
+                          <th className="text-left px-5 py-3 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider">
                             Player
                           </th>
-                          <th className="text-left px-5 py-3 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">
+                          <th className="text-left px-5 py-3 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider">
                             Reason
                           </th>
-                          <th className="text-left px-5 py-3 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">
+                          <th className="text-left px-5 py-3 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider">
                             Added By
                           </th>
-                          <th className="text-left px-5 py-3 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">
+                          <th className="text-left px-5 py-3 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider">
                             Expires
                           </th>
-                          <th className="text-left px-5 py-3 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">
+                          <th className="text-left px-5 py-3 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider">
                             Actions
                           </th>
                         </tr>
@@ -587,37 +587,37 @@ export default function BanListDetailPage() {
                             <td className="px-5 py-3">
                               <div className="flex items-center gap-2">
                                 <div
-                                  className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold text-[#e2e8f0] shrink-0"
-                                  style={{ background: "#1a1f2e" }}
+                                  className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold text-[#e8e3d8] shrink-0"
+                                  style={{ background: "#12100b" }}
                                 >
                                   {e.player_name.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                  <span className="text-sm font-semibold text-[#e2e8f0]">
+                                  <span className="text-sm font-semibold text-[#e8e3d8]">
                                     {e.player_name}
                                   </span>
                                   {!e.is_active && (
-                                    <span className="ml-2 text-[10px] font-bold text-[#64748b] bg-[rgba(255,255,255,0.03)] rounded-full px-2 py-0.5">
+                                    <span className="ml-2 text-[10px] font-bold text-[#6b6455] bg-[rgba(255,255,255,0.03)] rounded-full px-2 py-0.5">
                                       INACTIVE
                                     </span>
                                   )}
                                 </div>
                               </div>
                             </td>
-                            <td className="px-5 py-3 text-xs text-[#94a3b8] max-w-xs truncate">
+                            <td className="px-5 py-3 text-xs text-[#8a8271] max-w-xs truncate">
                               {e.reason || "—"}
                             </td>
-                            <td className="px-5 py-3 text-xs text-[#64748b]">
+                            <td className="px-5 py-3 text-xs text-[#6b6455]">
                               {e.added_by_username || "—"}
                             </td>
-                            <td className="px-5 py-3 text-xs text-[#64748b]">
+                            <td className="px-5 py-3 text-xs text-[#6b6455]">
                               {e.expires_at ? (
                                 <span className="inline-flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
                                   {formatDate(e.expires_at)}
                                 </span>
                               ) : (
-                                <span className="text-[#ff4757]">
+                                <span className="text-[#d96b5c]">
                                   Permanent
                                 </span>
                               )}
@@ -627,7 +627,7 @@ export default function BanListDetailPage() {
                                 onClick={() =>
                                   removeEntryMutation.mutate(e.id)
                                 }
-                                className="text-[#64748b] hover:text-[#ff4757] transition-colors"
+                                className="text-[#6b6455] hover:text-[#d96b5c] transition-colors"
                                 title="Remove"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -646,7 +646,7 @@ export default function BanListDetailPage() {
                         borderTop: "1px solid rgba(255,255,255,0.06)",
                       }}
                     >
-                      <span className="text-xs text-[#64748b]">
+                      <span className="text-xs text-[#6b6455]">
                         Page {entryPage} of {entryPages}
                       </span>
                       <div className="flex items-center gap-2">
@@ -655,9 +655,9 @@ export default function BanListDetailPage() {
                             setEntryPage((p) => Math.max(1, p - 1))
                           }
                           disabled={entryPage <= 1}
-                          className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e2e8f0] disabled:opacity-30"
+                          className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e8e3d8] disabled:opacity-30"
                           style={{
-                            background: "#1a1f2e",
+                            background: "#12100b",
                             border: "1px solid rgba(255,255,255,0.06)",
                           }}
                         >
@@ -670,9 +670,9 @@ export default function BanListDetailPage() {
                             )
                           }
                           disabled={entryPage >= entryPages}
-                          className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e2e8f0] disabled:opacity-30"
+                          className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e8e3d8] disabled:opacity-30"
                           style={{
-                            background: "#1a1f2e",
+                            background: "#12100b",
                             border: "1px solid rgba(255,255,255,0.06)",
                           }}
                         >
@@ -693,8 +693,8 @@ export default function BanListDetailPage() {
             <div className="flex justify-end mb-4">
               <button
                 onClick={() => setShowAddServer(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-[#0a0e1a]"
-                style={{ background: "#00d4aa" }}
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-[#0b0a08]"
+                style={{ background: "#ffb224" }}
               >
                 <Plus className="h-3.5 w-3.5" />
                 Assign Server
@@ -705,17 +705,17 @@ export default function BanListDetailPage() {
               <div
                 className="rounded-xl p-4 mb-4"
                 style={{
-                  background: "#111827",
+                  background: "#0e0c09",
                   border: "1px solid rgba(255,255,255,0.06)",
                 }}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-bold text-[#e2e8f0]">
+                  <h4 className="text-sm font-bold text-[#e8e3d8]">
                     Assign Server
                   </h4>
                   <button
                     onClick={() => setShowAddServer(false)}
-                    className="text-[#64748b] hover:text-[#e2e8f0]"
+                    className="text-[#6b6455] hover:text-[#e8e3d8]"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -728,9 +728,9 @@ export default function BanListDetailPage() {
                         e.target.value ? Number(e.target.value) : ""
                       )
                     }
-                    className="rounded-lg px-3 py-2 text-sm text-[#e2e8f0] focus:outline-none"
+                    className="rounded-lg px-3 py-2 text-sm text-[#e8e3d8] focus:outline-none"
                     style={{
-                      background: "#1a1f2e",
+                      background: "#12100b",
                       border: "1px solid rgba(255,255,255,0.06)",
                     }}
                   >
@@ -746,7 +746,7 @@ export default function BanListDetailPage() {
                         </option>
                       ))}
                   </select>
-                  <label className="flex items-center gap-2 text-sm text-[#e2e8f0] cursor-pointer">
+                  <label className="flex items-center gap-2 text-sm text-[#e8e3d8] cursor-pointer">
                     <input
                       type="checkbox"
                       checked={autoEnforce}
@@ -760,8 +760,8 @@ export default function BanListDetailPage() {
                     disabled={
                       !selectedServerId || assignServerMutation.isPending
                     }
-                    className="rounded-lg px-4 py-2 text-xs font-bold text-[#0a0e1a] disabled:opacity-50"
-                    style={{ background: "#00d4aa" }}
+                    className="rounded-lg px-4 py-2 text-xs font-bold text-[#0b0a08] disabled:opacity-50"
+                    style={{ background: "#ffb224" }}
                   >
                     Assign
                   </button>
@@ -772,17 +772,17 @@ export default function BanListDetailPage() {
             <div
               className="rounded-xl overflow-hidden"
               style={{
-                background: "#111827",
+                background: "#0e0c09",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             >
               {servers.length === 0 ? (
                 <div className="py-16 text-center">
-                  <Server className="h-8 w-8 text-[#1a1f2e] mx-auto mb-3" />
-                  <p className="text-sm text-[#94a3b8]">
+                  <Server className="h-8 w-8 text-[#12100b] mx-auto mb-3" />
+                  <p className="text-sm text-[#8a8271]">
                     No servers assigned
                   </p>
-                  <p className="text-xs text-[#64748b] mt-1">
+                  <p className="text-xs text-[#6b6455] mt-1">
                     {banList.is_global
                       ? "This is a global list — it applies to all servers automatically"
                       : "Assign servers to apply this ban list"}
@@ -796,21 +796,21 @@ export default function BanListDetailPage() {
                       className="flex items-center justify-between p-5"
                     >
                       <div>
-                        <p className="text-sm font-semibold text-[#e2e8f0]">
+                        <p className="text-sm font-semibold text-[#e8e3d8]">
                           {s.server_name || `Server #${s.server_id}`}
                         </p>
                         <div className="flex items-center gap-3 mt-1">
                           {s.auto_enforce ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#00d4aa] bg-[rgba(0,212,170,0.08)] rounded-full px-2 py-0.5">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#ffb224] bg-[rgba(255, 178, 36,0.08)] rounded-full px-2 py-0.5">
                               <Shield className="h-2.5 w-2.5" />
                               AUTO-ENFORCE
                             </span>
                           ) : (
-                            <span className="text-[10px] text-[#64748b]">
+                            <span className="text-[10px] text-[#6b6455]">
                               Manual only
                             </span>
                           )}
-                          <span className="text-xs text-[#64748b]">
+                          <span className="text-xs text-[#6b6455]">
                             Added {formatDate(s.added_at)}
                           </span>
                         </div>
@@ -819,9 +819,9 @@ export default function BanListDetailPage() {
                         <button
                           onClick={() => syncMutation.mutate(s.server_id)}
                           disabled={syncMutation.isPending}
-                          className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-[#e2e8f0] transition-all duration-150"
+                          className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-[#e8e3d8] transition-all duration-150"
                           style={{
-                            background: "#1a1f2e",
+                            background: "#12100b",
                             border: "1px solid rgba(255,255,255,0.06)",
                           }}
                           title="Push bans to server"
@@ -836,9 +836,9 @@ export default function BanListDetailPage() {
                             importServerMutation.mutate(s.server_id)
                           }
                           disabled={importServerMutation.isPending}
-                          className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-[#e2e8f0] transition-all duration-150"
+                          className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-[#e8e3d8] transition-all duration-150"
                           style={{
-                            background: "#1a1f2e",
+                            background: "#12100b",
                             border: "1px solid rgba(255,255,255,0.06)",
                           }}
                           title="Import bans from server"
@@ -850,7 +850,7 @@ export default function BanListDetailPage() {
                           onClick={() =>
                             unassignServerMutation.mutate(s.server_id)
                           }
-                          className="text-[#64748b] hover:text-[#ff4757] transition-colors"
+                          className="text-[#6b6455] hover:text-[#d96b5c] transition-colors"
                           title="Remove"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -871,17 +871,17 @@ export default function BanListDetailPage() {
             <div
               className="rounded-xl p-5"
               style={{
-                background: "#111827",
+                background: "#0e0c09",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             >
               <div className="flex items-center gap-2 mb-3">
-                <Download className="h-4 w-4 text-[#00d4aa]" />
-                <h3 className="text-sm font-bold text-[#e2e8f0]">
+                <Download className="h-4 w-4 text-[#ffb224]" />
+                <h3 className="text-sm font-bold text-[#e8e3d8]">
                   Export CSV
                 </h3>
               </div>
-              <p className="text-xs text-[#64748b] mb-4">
+              <p className="text-xs text-[#6b6455] mb-4">
                 Download all active entries as a CSV file
               </p>
               <button
@@ -895,8 +895,8 @@ export default function BanListDetailPage() {
                   a.click();
                   URL.revokeObjectURL(url);
                 }}
-                className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#0a0e1a]"
-                style={{ background: "#00d4aa" }}
+                className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#0b0a08]"
+                style={{ background: "#ffb224" }}
               >
                 <Download className="h-3.5 w-3.5" />
                 Download CSV
@@ -907,22 +907,22 @@ export default function BanListDetailPage() {
             <div
               className="rounded-xl p-5"
               style={{
-                background: "#111827",
+                background: "#0e0c09",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             >
               <div className="flex items-center gap-2 mb-3">
-                <Upload className="h-4 w-4 text-[#818cf8]" />
-                <h3 className="text-sm font-bold text-[#e2e8f0]">
+                <Upload className="h-4 w-4 text-[#67b7e2]" />
+                <h3 className="text-sm font-bold text-[#e8e3d8]">
                   Import CSV
                 </h3>
               </div>
-              <p className="text-xs text-[#64748b] mb-4">
+              <p className="text-xs text-[#6b6455] mb-4">
                 Upload a CSV with columns: name, reason, expires_at
               </p>
               <label
                 className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-white cursor-pointer"
-                style={{ background: "#818cf8" }}
+                style={{ background: "#67b7e2" }}
               >
                 <Upload className="h-3.5 w-3.5" />
                 {importCsvMutation.isPending
@@ -940,7 +940,7 @@ export default function BanListDetailPage() {
                 />
               </label>
               {importCsvMutation.isSuccess && (
-                <p className="text-xs text-[#00d4aa] mt-2">
+                <p className="text-xs text-[#ffb224] mt-2">
                   Imported {(importCsvMutation.data as any)?.imported ?? 0}{" "}
                   entries
                 </p>

@@ -105,21 +105,21 @@ export default function DiscordLinkCard() {
     <div
       className="rounded-xl p-5"
       style={{
-        background: "#111827",
+        background: "#0e0c09",
         border: "1px solid rgba(255,255,255,0.06)",
       }}
     >
       <div className="flex items-center gap-2 mb-4">
         <Link2 className="h-4 w-4 text-[#5865F2]" />
-        <h3 className="text-sm font-bold text-[#e2e8f0]">
+        <h3 className="text-sm font-bold text-[#e8e3d8]">
           Link Discord Account
         </h3>
       </div>
 
       {successMsg && (
         <div
-          className="rounded-lg px-3 py-2 mb-3 text-xs text-[#00d4aa]"
-          style={{ background: "rgba(0,212,170,0.08)" }}
+          className="rounded-lg px-3 py-2 mb-3 text-xs text-[#ffb224]"
+          style={{ background: "rgba(255, 178, 36,0.08)" }}
         >
           {successMsg}
         </div>
@@ -158,27 +158,27 @@ export default function DiscordLinkCard() {
                   Linked
                 </span>
                 {linkedUsername && (
-                  <span className="text-xs text-[#e2e8f0] font-medium">
+                  <span className="text-xs text-[#e8e3d8] font-medium">
                     {linkedUsername}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] text-[#64748b] font-mono mt-0.5 block">
+              <span className="text-[10px] text-[#6b6455] font-mono mt-0.5 block">
                 {linkedId}
               </span>
             </div>
           </div>
-          <p className="text-xs text-[#64748b]">
+          <p className="text-xs text-[#6b6455]">
             Your Discord account is linked. You can use bot slash commands based
             on your Garrison role ({user?.role}).
           </p>
           <button
             onClick={() => unlinkMutation.mutate()}
             disabled={unlinkMutation.isPending}
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[#ff4757] transition-all duration-150"
+            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[#d96b5c] transition-all duration-150"
             style={{
-              background: "rgba(255,71,87,0.08)",
-              border: "1px solid rgba(255,71,87,0.15)",
+              background: "rgba(217, 107, 92,0.08)",
+              border: "1px solid rgba(217, 107, 92,0.15)",
             }}
           >
             <Unlink className="h-3 w-3" />
@@ -187,12 +187,12 @@ export default function DiscordLinkCard() {
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-xs text-[#94a3b8]">
+          <p className="text-xs text-[#8a8271]">
             Link your Discord account to use bot slash commands like{" "}
-            <code className="text-[#00d4aa]">/players</code>,{" "}
-            <code className="text-[#00d4aa]">/kick</code>,{" "}
-            <code className="text-[#00d4aa]">/ban</code>, and{" "}
-            <code className="text-[#00d4aa]">/rcon</code> from Discord.
+            <code className="text-[#ffb224]">/players</code>,{" "}
+            <code className="text-[#ffb224]">/kick</code>,{" "}
+            <code className="text-[#ffb224]">/ban</code>, and{" "}
+            <code className="text-[#ffb224]">/rcon</code> from Discord.
           </p>
 
           {oauthEnabled && (
@@ -209,7 +209,7 @@ export default function DiscordLinkCard() {
           {oauthEnabled ? (
             <button
               onClick={() => setShowManual(!showManual)}
-              className="inline-flex items-center gap-1 text-[11px] text-[#64748b] hover:text-[#94a3b8] transition-colors"
+              className="inline-flex items-center gap-1 text-[11px] text-[#6b6455] hover:text-[#8a8271] transition-colors"
             >
               {showManual ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
               Or link manually with Discord ID
@@ -230,7 +230,7 @@ export default function DiscordLinkCard() {
                   value={discordId}
                   onChange={(e) => setDiscordId(e.target.value)}
                   placeholder="Your Discord User ID"
-                  className="flex-1 rounded-lg px-3 py-1.5 text-xs text-[#e2e8f0] placeholder-[#475569] outline-none focus:ring-1 focus:ring-[#5865F2]"
+                  className="flex-1 rounded-lg px-3 py-1.5 text-xs text-[#e8e3d8] placeholder-[#475569] outline-none focus:ring-1 focus:ring-[#5865F2]"
                   style={{
                     background: "#0d1117",
                     border: "1px solid rgba(255,255,255,0.06)",
@@ -247,14 +247,14 @@ export default function DiscordLinkCard() {
               </div>
               <button
                 onClick={() => setShowHelp(!showHelp)}
-                className="inline-flex items-center gap-1 text-[10px] text-[#64748b] hover:text-[#94a3b8] transition-colors"
+                className="inline-flex items-center gap-1 text-[10px] text-[#6b6455] hover:text-[#8a8271] transition-colors"
               >
                 <HelpCircle className="h-3 w-3" />
                 How to find your Discord User ID
               </button>
               {showHelp && (
                 <div
-                  className="rounded-lg p-3 text-[11px] text-[#94a3b8] space-y-1"
+                  className="rounded-lg p-3 text-[11px] text-[#8a8271] space-y-1"
                   style={{ background: "rgba(255,255,255,0.02)" }}
                 >
                   <p>1. Open Discord Settings &gt; Advanced</p>
@@ -268,7 +268,7 @@ export default function DiscordLinkCard() {
         </div>
       )}
 
-      {error && <p className="mt-2 text-xs text-[#ff4757]">{error}</p>}
+      {error && <p className="mt-2 text-xs text-[#d96b5c]">{error}</p>}
     </div>
   );
 }

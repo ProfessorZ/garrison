@@ -125,12 +125,12 @@ export default function PlayersPage() {
 
   const SortHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
     <th
-      className="text-left px-5 py-3 text-[11px] font-bold text-[#64748b] uppercase tracking-wider cursor-pointer select-none hover:text-[#e2e8f0] transition-colors"
+      className="text-left px-5 py-3 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider cursor-pointer select-none hover:text-[#e8e3d8] transition-colors"
       onClick={() => toggleSort(field)}
     >
       <span className="inline-flex items-center gap-1">
         {children}
-        <ArrowUpDown className={`h-3 w-3 ${sortBy === field ? "text-[#00d4aa]" : ""}`} />
+        <ArrowUpDown className={`h-3 w-3 ${sortBy === field ? "text-[#ffb224]" : ""}`} />
       </span>
     </th>
   );
@@ -141,7 +141,7 @@ export default function PlayersPage() {
       <div className="flex items-end justify-between mb-8">
         <div>
           <h2 className="text-3xl font-extrabold text-white tracking-tight">Players</h2>
-          <p className="text-[#64748b] mt-2">
+          <p className="text-[#6b6455] mt-2">
             {total} known player{total !== 1 ? "s" : ""} tracked
           </p>
         </div>
@@ -149,15 +149,15 @@ export default function PlayersPage() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748b] pointer-events-none" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6b6455] pointer-events-none" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search players by name..."
-          className="w-full rounded-xl pl-11 pr-4 py-3 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none transition-all duration-150"
+          className="w-full rounded-xl pl-11 pr-4 py-3 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none transition-all duration-150"
           style={{
-            background: "#111827",
+            background: "#0e0c09",
             border: "1px solid rgba(255,255,255,0.06)",
           }}
         />
@@ -177,12 +177,12 @@ export default function PlayersPage() {
                 key={t.key}
                 onClick={() => handleStatusChange(t.key)}
                 className={`inline-flex items-center gap-1.5 px-4 py-3 text-[13px] font-semibold whitespace-nowrap transition-all duration-150 ${
-                  active ? "text-[#00d4aa]" : "text-[#64748b] hover:text-[#e2e8f0]"
+                  active ? "text-[#ffb224]" : "text-[#6b6455] hover:text-[#e8e3d8]"
                 }`}
                 style={{
                   background: "transparent",
                   borderRadius: 0,
-                  borderBottom: active ? "2px solid #00d4aa" : "2px solid transparent",
+                  borderBottom: active ? "2px solid #ffb224" : "2px solid transparent",
                   marginBottom: "-1px",
                 }}
               >
@@ -192,8 +192,8 @@ export default function PlayersPage() {
                   <span
                     className={`ml-1 text-[10px] rounded-full px-1.5 py-0.5 tabular-nums ${
                       active
-                        ? "bg-[rgba(0,212,170,0.1)] text-[#00d4aa]"
-                        : "bg-[rgba(255,255,255,0.04)] text-[#64748b]"
+                        ? "bg-[rgba(255, 178, 36,0.1)] text-[#ffb224]"
+                        : "bg-[rgba(255,255,255,0.04)] text-[#6b6455]"
                     }`}
                   >
                     {active ? total : "·"}
@@ -209,9 +209,9 @@ export default function PlayersPage() {
           <select
             value={serverId ?? ""}
             onChange={(e) => handleServerChange(e.target.value ? Number(e.target.value) : undefined)}
-            className="appearance-none rounded-lg pl-3 pr-8 py-2 text-xs font-medium text-[#e2e8f0] focus:outline-none cursor-pointer transition-all duration-150"
+            className="appearance-none rounded-lg pl-3 pr-8 py-2 text-xs font-medium text-[#e8e3d8] focus:outline-none cursor-pointer transition-all duration-150"
             style={{
-              background: "#111827",
+              background: "#0e0c09",
               border: "1px solid rgba(255,255,255,0.06)",
             }}
           >
@@ -222,7 +222,7 @@ export default function PlayersPage() {
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-[#64748b] pointer-events-none" />
+          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-[#6b6455] pointer-events-none" />
         </div>
       </div>
 
@@ -230,21 +230,21 @@ export default function PlayersPage() {
       <div
         className="rounded-xl overflow-hidden"
         style={{
-          background: "#111827",
+          background: "#0e0c09",
           border: "1px solid rgba(255,255,255,0.06)",
         }}
       >
         {isLoading && players.length === 0 ? (
           <div className="flex items-center justify-center py-20">
-            <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
+            <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#ffb224] border-r-transparent" />
           </div>
         ) : players.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <Users className="h-8 w-8 text-[#1a1f2e] mb-3" />
-            <p className="text-sm text-[#94a3b8]">
+            <Users className="h-8 w-8 text-[#12100b] mb-3" />
+            <p className="text-sm text-[#8a8271]">
               {isSearching ? "No players found" : status === "online" ? "No players online" : status === "banned" ? "No banned players" : "No players tracked yet"}
             </p>
-            <p className="text-xs text-[#64748b] mt-1">
+            <p className="text-xs text-[#6b6455] mt-1">
               {isSearching
                 ? "Try a different search term"
                 : status === "all"
@@ -263,7 +263,7 @@ export default function PlayersPage() {
                     <SortHeader field="last_seen">Last Seen</SortHeader>
                     <SortHeader field="total_playtime_seconds">Playtime</SortHeader>
                     <SortHeader field="session_count">Sessions</SortHeader>
-                    <th className="text-left px-5 py-3 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">
+                    <th className="text-left px-5 py-3 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider">
                       Status
                     </th>
                   </tr>
@@ -289,32 +289,32 @@ export default function PlayersPage() {
                             />
                           ) : (
                             <div
-                              className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold text-[#e2e8f0] shrink-0"
-                              style={{ background: "#1a1f2e" }}
+                              className="h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold text-[#e8e3d8] shrink-0"
+                              style={{ background: "#12100b" }}
                             >
                               {p.name.charAt(0).toUpperCase()}
                             </div>
                           )}
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-sm font-semibold text-[#e2e8f0]">{p.name}</span>
+                            <span className="text-sm font-semibold text-[#e8e3d8]">{p.name}</span>
                             {p.is_banned && (
-                              <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-[#ff4757] bg-[rgba(255,71,87,0.08)]">
+                              <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-[#d96b5c] bg-[rgba(217, 107, 92,0.08)]">
                                 <Ban className="h-2.5 w-2.5" />
                                 BANNED
                               </span>
                             )}
                             {p.vac_banned && (
-                              <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold text-[#ff4757] bg-[rgba(255,71,87,0.08)]" title="VAC Banned">
+                              <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold text-[#d96b5c] bg-[rgba(217, 107, 92,0.08)]" title="VAC Banned">
                                 <ShieldAlert className="h-2.5 w-2.5" />
                               </span>
                             )}
                             {p.steam_profile_visibility != null && p.steam_profile_visibility !== 3 && (
-                              <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] text-[#64748b] bg-[rgba(255,255,255,0.04)]" title="Private Profile">
+                              <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] text-[#6b6455] bg-[rgba(255,255,255,0.04)]" title="Private Profile">
                                 <EyeOff className="h-2.5 w-2.5" />
                               </span>
                             )}
                             {(p.alt_account_ids?.length ?? 0) > 0 && (
-                              <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold text-[#fbbf24] bg-[rgba(251,191,36,0.08)]" title="Alt accounts detected">
+                              <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold text-[#e3b454] bg-[rgba(251,191,36,0.08)]" title="Alt accounts detected">
                                 <Users className="h-2.5 w-2.5" />
                                 {p.alt_account_ids!.length}
                               </span>
@@ -322,30 +322,30 @@ export default function PlayersPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5 text-xs text-[#64748b]">{formatDate(p.first_seen)}</td>
-                      <td className="px-5 py-3.5 text-xs text-[#64748b]" title={formatDate(p.last_seen)}>
+                      <td className="px-5 py-3.5 text-xs text-[#6b6455]">{formatDate(p.first_seen)}</td>
+                      <td className="px-5 py-3.5 text-xs text-[#6b6455]" title={formatDate(p.last_seen)}>
                         {relativeTime(p.last_seen)}
                       </td>
-                      <td className="px-5 py-3.5 text-xs text-[#94a3b8] font-mono">
+                      <td className="px-5 py-3.5 text-xs text-[#8a8271] font-mono">
                         <span className="inline-flex items-center gap-1">
-                          <Clock className="h-3 w-3 text-[#64748b]" />
+                          <Clock className="h-3 w-3 text-[#6b6455]" />
                           {formatPlaytime(p.total_playtime_seconds)}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-xs text-[#94a3b8] tabular-nums">{p.session_count}</td>
+                      <td className="px-5 py-3.5 text-xs text-[#8a8271] tabular-nums">{p.session_count}</td>
                       <td className="px-5 py-3.5">
                         {p.is_online ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#00d4aa] bg-[rgba(0,212,170,0.08)]">
+                          <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#ffb224] bg-[rgba(255, 178, 36,0.08)]">
                             <Wifi className="h-2.5 w-2.5" />
                             ONLINE
                             {p.current_server_name && (
-                              <span className="text-[#64748b] font-normal ml-0.5">
+                              <span className="text-[#6b6455] font-normal ml-0.5">
                                 — {p.current_server_name}
                               </span>
                             )}
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#64748b] bg-[rgba(255,255,255,0.03)]">
+                          <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#6b6455] bg-[rgba(255,255,255,0.03)]">
                             OFFLINE
                           </span>
                         )}
@@ -362,23 +362,23 @@ export default function PlayersPage() {
                 className="flex items-center justify-between px-5 py-3"
                 style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
               >
-                <span className="text-xs text-[#64748b]">
+                <span className="text-xs text-[#6b6455]">
                   Page {page} of {pages} ({total} total)
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page <= 1}
-                    className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e2e8f0] disabled:opacity-30 transition-all duration-150"
-                    style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                    className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e8e3d8] disabled:opacity-30 transition-all duration-150"
+                    style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
                   >
                     <ChevronLeft className="h-3 w-3" /> Prev
                   </button>
                   <button
                     onClick={() => setPage((p) => Math.min(pages, p + 1))}
                     disabled={page >= pages}
-                    className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e2e8f0] disabled:opacity-30 transition-all duration-150"
-                    style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                    className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e8e3d8] disabled:opacity-30 transition-all duration-150"
+                    style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
                   >
                     Next <ChevronRight className="h-3 w-3" />
                   </button>

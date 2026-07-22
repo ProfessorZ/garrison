@@ -30,8 +30,8 @@ function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   const d = payload[0]?.payload;
   return (
-    <div className="rounded-lg px-3 py-2 text-xs" style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.1)" }}>
-      <p className="text-[#94a3b8] mb-1">{new Date(d?.timestamp || label).toLocaleString()}</p>
+    <div className="rounded-lg px-3 py-2 text-xs" style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.1)" }}>
+      <p className="text-[#8a8271] mb-1">{new Date(d?.timestamp || label).toLocaleString()}</p>
       {payload.map((p: any) => (
         <p key={p.dataKey} style={{ color: p.color }} className="font-semibold">
           {p.name}: {p.value}
@@ -68,7 +68,7 @@ export default function ServerMetrics({ serverId }: { serverId: number }) {
   const avg = summary ? summary[`avg_players_${periodKey}`] : 0;
 
   const TrendIcon = heuristics?.trend === "growing" ? TrendingUp : heuristics?.trend === "declining" ? TrendingDown : Minus;
-  const trendColor = heuristics?.trend === "growing" ? "#00d4aa" : heuristics?.trend === "declining" ? "#ff4757" : "#64748b";
+  const trendColor = heuristics?.trend === "growing" ? "#ffb224" : heuristics?.trend === "declining" ? "#d96b5c" : "#6b6455";
 
   const chartData = metrics.map((m) => ({
     ...m,
@@ -93,10 +93,10 @@ export default function ServerMetrics({ serverId }: { serverId: number }) {
     }));
 
   const statCards = [
-    { label: "Uptime", value: `${(uptime * 100).toFixed(1)}%`, icon: Activity, accent: uptime >= 0.9 ? "#00d4aa" : uptime >= 0.7 ? "#fbbf24" : "#ff4757" },
-    { label: "Peak Players", value: peak, icon: Users, accent: "#818cf8" },
+    { label: "Uptime", value: `${(uptime * 100).toFixed(1)}%`, icon: Activity, accent: uptime >= 0.9 ? "#ffb224" : uptime >= 0.7 ? "#e3b454" : "#d96b5c" },
+    { label: "Peak Players", value: peak, icon: Users, accent: "#67b7e2" },
     { label: "Avg Players", value: avg, icon: Users, accent: "#00bfa5" },
-    { label: "Streak", value: `${summary?.current_streak_hours ?? 0}h`, icon: Clock, accent: "#fbbf24" },
+    { label: "Streak", value: `${summary?.current_streak_hours ?? 0}h`, icon: Clock, accent: "#e3b454" },
   ];
 
   return (
@@ -108,11 +108,11 @@ export default function ServerMetrics({ serverId }: { serverId: number }) {
             key={p}
             onClick={() => setPeriod(p)}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              period === p ? "text-[#0a0e1a]" : "text-[#64748b] hover:text-white"
+              period === p ? "text-[#0b0a08]" : "text-[#6b6455] hover:text-white"
             }`}
             style={{
-              background: period === p ? "#00d4aa" : "rgba(255,255,255,0.04)",
-              border: `1px solid ${period === p ? "#00d4aa" : "rgba(255,255,255,0.06)"}`,
+              background: period === p ? "#ffb224" : "rgba(255,255,255,0.04)",
+              border: `1px solid ${period === p ? "#ffb224" : "rgba(255,255,255,0.06)"}`,
             }}
           >
             {PERIOD_LABELS[p]}
@@ -125,10 +125,10 @@ export default function ServerMetrics({ serverId }: { serverId: number }) {
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.label} className="rounded-xl p-4" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div key={card.label} className="rounded-xl p-4" style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}>
               <div className="flex items-center gap-2 mb-2">
                 <Icon className="h-3.5 w-3.5" style={{ color: card.accent }} />
-                <span className="text-[10px] font-semibold text-[#64748b] uppercase tracking-wider">{card.label}</span>
+                <span className="text-[10px] font-semibold text-[#6b6455] uppercase tracking-wider">{card.label}</span>
               </div>
               <p className="text-2xl font-black text-white tabular-nums">{card.value}</p>
             </div>
@@ -138,27 +138,27 @@ export default function ServerMetrics({ serverId }: { serverId: number }) {
 
       {/* Heuristics Row */}
       {heuristics && (
-        <div className="rounded-xl p-4 flex flex-wrap items-center gap-6" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="rounded-xl p-4 flex flex-wrap items-center gap-6" style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="flex items-center gap-2">
             <TrendIcon className="h-4 w-4" style={{ color: trendColor }} />
-            <span className="text-sm text-[#e2e8f0] font-semibold capitalize">{heuristics.trend}</span>
+            <span className="text-sm text-[#e8e3d8] font-semibold capitalize">{heuristics.trend}</span>
             <span className="text-xs font-mono" style={{ color: trendColor }}>
               {heuristics.trend_percent > 0 ? "+" : ""}{heuristics.trend_percent}%
             </span>
           </div>
-          <div className="text-xs text-[#64748b]">
-            <span className="text-[#94a3b8] font-medium">Peak hours:</span>{" "}
+          <div className="text-xs text-[#6b6455]">
+            <span className="text-[#8a8271] font-medium">Peak hours:</span>{" "}
             {heuristics.peak_hours.length > 0
               ? heuristics.peak_hours.map((h) => `${String(h).padStart(2, "0")}:00`).join(", ")
               : "N/A"}
           </div>
-          <div className="text-xs text-[#64748b]">
-            <span className="text-[#94a3b8] font-medium">Median players:</span>{" "}
+          <div className="text-xs text-[#6b6455]">
+            <span className="text-[#8a8271] font-medium">Median players:</span>{" "}
             <span className="text-white font-semibold">{heuristics.median_players}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Zap className="h-3 w-3" style={{ color: heuristics.is_healthy ? "#00d4aa" : "#ff4757" }} />
-            <span className="text-xs font-semibold" style={{ color: heuristics.is_healthy ? "#00d4aa" : "#ff4757" }}>
+            <Zap className="h-3 w-3" style={{ color: heuristics.is_healthy ? "#ffb224" : "#d96b5c" }} />
+            <span className="text-xs font-semibold" style={{ color: heuristics.is_healthy ? "#ffb224" : "#d96b5c" }}>
               {heuristics.is_healthy ? "Healthy" : "Needs attention"}
             </span>
           </div>
@@ -166,26 +166,26 @@ export default function ServerMetrics({ serverId }: { serverId: number }) {
       )}
 
       {/* Player Count Chart */}
-      <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
-        <h4 className="text-sm font-bold text-[#e2e8f0] mb-4">Player Count</h4>
+      <div className="rounded-xl p-5" style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <h4 className="text-sm font-bold text-[#e8e3d8] mb-4">Player Count</h4>
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="time" tick={{ fill: "#64748b", fontSize: 10 }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fill: "#64748b", fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
+              <XAxis dataKey="time" tick={{ fill: "#6b6455", fontSize: 10 }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fill: "#6b6455", fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} />
               <Tooltip content={<CustomTooltip />} />
               <Line type="monotone" dataKey="player_count" stroke="#00bfa5" strokeWidth={2} dot={false} name="Players" />
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-center text-[#64748b] py-12 text-sm">No metrics data available yet</p>
+          <p className="text-center text-[#6b6455] py-12 text-sm">No metrics data available yet</p>
         )}
       </div>
 
       {/* Uptime Bar */}
-      <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
-        <h4 className="text-sm font-bold text-[#e2e8f0] mb-4">Uptime</h4>
+      <div className="rounded-xl p-5" style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <h4 className="text-sm font-bold text-[#e8e3d8] mb-4">Uptime</h4>
         {uptimeBlocks.length > 0 ? (
           <ResponsiveContainer width="100%" height={60}>
             <BarChart data={uptimeBlocks} barCategoryGap={0} barGap={0}>
@@ -194,9 +194,9 @@ export default function ServerMetrics({ serverId }: { serverId: number }) {
                 if (!active || !payload?.length) return null;
                 const d = payload[0]?.payload;
                 return (
-                  <div className="rounded-lg px-3 py-2 text-xs" style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.1)" }}>
-                    <p className="text-[#94a3b8]">{new Date(d.timestamp).toLocaleString()}</p>
-                    <p style={{ color: d.online ? "#10b981" : "#ff4757" }} className="font-semibold">
+                  <div className="rounded-lg px-3 py-2 text-xs" style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.1)" }}>
+                    <p className="text-[#8a8271]">{new Date(d.timestamp).toLocaleString()}</p>
+                    <p style={{ color: d.online ? "#9de26b" : "#d96b5c" }} className="font-semibold">
                       {d.online ? "Online" : "Offline"}
                     </p>
                   </div>
@@ -204,27 +204,27 @@ export default function ServerMetrics({ serverId }: { serverId: number }) {
               }} />
               <Bar dataKey="value" radius={[2, 2, 2, 2]}>
                 {uptimeBlocks.map((entry, i) => (
-                  <Cell key={i} fill={entry.online ? "#10b981" : "#ff4757"} fillOpacity={0.8} />
+                  <Cell key={i} fill={entry.online ? "#9de26b" : "#d96b5c"} fillOpacity={0.8} />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-center text-[#64748b] py-4 text-sm">No data</p>
+          <p className="text-center text-[#6b6455] py-4 text-sm">No data</p>
         )}
       </div>
 
       {/* Response Time Chart */}
       {rtData.length > 0 && (
-        <div className="rounded-xl p-5" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
-          <h4 className="text-sm font-bold text-[#e2e8f0] mb-4">Response Time (ms)</h4>
+        <div className="rounded-xl p-5" style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <h4 className="text-sm font-bold text-[#e8e3d8] mb-4">Response Time (ms)</h4>
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={rtData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="time" tick={{ fill: "#64748b", fontSize: 10 }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fill: "#64748b", fontSize: 10 }} tickLine={false} axisLine={false} />
+              <XAxis dataKey="time" tick={{ fill: "#6b6455", fontSize: 10 }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fill: "#6b6455", fontSize: 10 }} tickLine={false} axisLine={false} />
               <Tooltip content={<CustomTooltip />} />
-              <Line type="monotone" dataKey="response_time_ms" stroke="#818cf8" strokeWidth={2} dot={false} name="Response Time" />
+              <Line type="monotone" dataKey="response_time_ms" stroke="#67b7e2" strokeWidth={2} dot={false} name="Response Time" />
             </LineChart>
           </ResponsiveContainer>
         </div>

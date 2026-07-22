@@ -51,14 +51,14 @@ export default function BanListsPage() {
           <h2 className="text-3xl font-extrabold text-white tracking-tight">
             Ban Lists
           </h2>
-          <p className="text-[#64748b] mt-2">
+          <p className="text-[#6b6455] mt-2">
             Shared ban lists for cross-server enforcement
           </p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold text-[#0a0e1a] transition-all duration-150"
-          style={{ background: "#00d4aa" }}
+          className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold text-[#0b0a08] transition-all duration-150"
+          style={{ background: "#ffb224" }}
         >
           <Plus className="h-3.5 w-3.5" />
           Create Ban List
@@ -70,17 +70,17 @@ export default function BanListsPage() {
         <div
           className="rounded-xl p-5 mb-6"
           style={{
-            background: "#111827",
+            background: "#0e0c09",
             border: "1px solid rgba(255,255,255,0.06)",
           }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-[#e2e8f0]">
+            <h3 className="text-sm font-bold text-[#e8e3d8]">
               Create Ban List
             </h3>
             <button
               onClick={() => setShowCreate(false)}
-              className="text-[#64748b] hover:text-[#e2e8f0] transition-colors"
+              className="text-[#6b6455] hover:text-[#e8e3d8] transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -91,9 +91,9 @@ export default function BanListsPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="List name (e.g. Global Ban List)"
-              className="w-full rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none"
+              className="w-full rounded-lg px-3 py-2 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none"
               style={{
-                background: "#1a1f2e",
+                background: "#12100b",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             />
@@ -102,13 +102,13 @@ export default function BanListsPage() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Description (optional)"
-              className="w-full rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none"
+              className="w-full rounded-lg px-3 py-2 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none"
               style={{
-                background: "#1a1f2e",
+                background: "#12100b",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             />
-            <label className="flex items-center gap-2 text-sm text-[#e2e8f0] cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-[#e8e3d8] cursor-pointer">
               <input
                 type="checkbox"
                 checked={isGlobal}
@@ -121,16 +121,16 @@ export default function BanListsPage() {
               <button
                 onClick={() => createMutation.mutate()}
                 disabled={!name.trim() || createMutation.isPending}
-                className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-150"
-                style={{ background: "#00d4aa" }}
+                className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#0b0a08] disabled:opacity-50 transition-all duration-150"
+                style={{ background: "#ffb224" }}
               >
                 {createMutation.isPending ? "Creating..." : "Create"}
               </button>
               <button
                 onClick={() => setShowCreate(false)}
-                className="rounded-lg px-4 py-2 text-xs font-medium text-[#94a3b8] transition-all duration-150"
+                className="rounded-lg px-4 py-2 text-xs font-medium text-[#8a8271] transition-all duration-150"
                 style={{
-                  background: "#1a1f2e",
+                  background: "#12100b",
                   border: "1px solid rgba(255,255,255,0.06)",
                 }}
               >
@@ -145,19 +145,19 @@ export default function BanListsPage() {
       <div
         className="rounded-xl overflow-hidden"
         style={{
-          background: "#111827",
+          background: "#0e0c09",
           border: "1px solid rgba(255,255,255,0.06)",
         }}
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
+            <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#ffb224] border-r-transparent" />
           </div>
         ) : banLists.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <List className="h-8 w-8 text-[#1a1f2e] mb-3" />
-            <p className="text-sm text-[#94a3b8]">No ban lists yet</p>
-            <p className="text-xs text-[#64748b] mt-1">
+            <List className="h-8 w-8 text-[#12100b] mb-3" />
+            <p className="text-sm text-[#8a8271]">No ban lists yet</p>
+            <p className="text-xs text-[#6b6455] mt-1">
               Create a ban list to start managing cross-server bans
             </p>
           </div>
@@ -170,19 +170,19 @@ export default function BanListsPage() {
                     borderBottom: "1px solid rgba(255,255,255,0.06)",
                   }}
                 >
-                  <th className="text-left px-5 py-3 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">
+                  <th className="text-left px-5 py-3 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="text-left px-5 py-3 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">
+                  <th className="text-left px-5 py-3 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider">
                     Entries
                   </th>
-                  <th className="text-left px-5 py-3 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">
+                  <th className="text-left px-5 py-3 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider">
                     Servers
                   </th>
-                  <th className="text-left px-5 py-3 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">
+                  <th className="text-left px-5 py-3 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider">
                     Created By
                   </th>
-                  <th className="text-left px-5 py-3 text-[11px] font-bold text-[#64748b] uppercase tracking-wider">
+                  <th className="text-left px-5 py-3 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider">
                     Created
                   </th>
                 </tr>
@@ -203,38 +203,38 @@ export default function BanListsPage() {
                   >
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-[#e2e8f0]">
+                        <span className="text-sm font-semibold text-[#e8e3d8]">
                           {bl.name}
                         </span>
                         {bl.is_global && (
-                          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-[#ffa502] bg-[rgba(255,165,2,0.08)]">
+                          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-[#e3b454] bg-[rgba(255,165,2,0.08)]">
                             <Globe className="h-2.5 w-2.5" />
                             GLOBAL
                           </span>
                         )}
                       </div>
                       {bl.description && (
-                        <p className="text-xs text-[#64748b] mt-0.5 truncate max-w-xs">
+                        <p className="text-xs text-[#6b6455] mt-0.5 truncate max-w-xs">
                           {bl.description}
                         </p>
                       )}
                     </td>
                     <td className="px-5 py-3.5">
-                      <span className="inline-flex items-center gap-1 text-xs text-[#94a3b8]">
+                      <span className="inline-flex items-center gap-1 text-xs text-[#8a8271]">
                         <Users className="h-3 w-3" />
                         {bl.entry_count}
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <span className="inline-flex items-center gap-1 text-xs text-[#94a3b8]">
+                      <span className="inline-flex items-center gap-1 text-xs text-[#8a8271]">
                         <Server className="h-3 w-3" />
                         {bl.server_count}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-xs text-[#64748b]">
+                    <td className="px-5 py-3.5 text-xs text-[#6b6455]">
                       {bl.created_by_username || "—"}
                     </td>
-                    <td className="px-5 py-3.5 text-xs text-[#64748b]">
+                    <td className="px-5 py-3.5 text-xs text-[#6b6455]">
                       {formatDate(bl.created_at)}
                     </td>
                   </tr>
@@ -293,14 +293,14 @@ function BanTemplatesSection() {
           <h2 className="text-2xl font-extrabold text-white tracking-tight">
             Ban Templates
           </h2>
-          <p className="text-[#64748b] mt-1 text-sm">
+          <p className="text-[#6b6455] mt-1 text-sm">
             Pre-fill ban reason and duration when banning players
           </p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold text-[#0a0e1a] transition-all duration-150"
-          style={{ background: "#00d4aa" }}
+          className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-xs font-bold text-[#0b0a08] transition-all duration-150"
+          style={{ background: "#ffb224" }}
         >
           <Plus className="h-3.5 w-3.5" />
           Create Template
@@ -311,15 +311,15 @@ function BanTemplatesSection() {
         <div
           className="rounded-xl p-5 mb-6"
           style={{
-            background: "#111827",
+            background: "#0e0c09",
             border: "1px solid rgba(255,255,255,0.06)",
           }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-[#e2e8f0]">New Ban Template</h3>
+            <h3 className="text-sm font-bold text-[#e8e3d8]">New Ban Template</h3>
             <button
               onClick={() => setShowCreate(false)}
-              className="text-[#64748b] hover:text-[#e2e8f0] transition-colors"
+              className="text-[#6b6455] hover:text-[#e8e3d8] transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
@@ -330,39 +330,39 @@ function BanTemplatesSection() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Template name (e.g. Cheating - 7 day)"
-              className="w-full rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none"
-              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+              className="w-full rounded-lg px-3 py-2 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none"
+              style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
             />
             <input
               type="text"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Ban reason template"
-              className="w-full rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none"
-              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+              className="w-full rounded-lg px-3 py-2 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none"
+              style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
             />
             <input
               type="number"
               value={durationHours}
               onChange={(e) => setDurationHours(e.target.value)}
               placeholder="Duration in hours (leave empty for permanent)"
-              className="w-full rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none"
-              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+              className="w-full rounded-lg px-3 py-2 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none"
+              style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
               min={1}
             />
             <div className="flex gap-2">
               <button
                 onClick={() => createMutation.mutate()}
                 disabled={!name.trim() || !reason.trim() || createMutation.isPending}
-                className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-150"
-                style={{ background: "#00d4aa" }}
+                className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#0b0a08] disabled:opacity-50 transition-all duration-150"
+                style={{ background: "#ffb224" }}
               >
                 {createMutation.isPending ? "Creating..." : "Create Template"}
               </button>
               <button
                 onClick={() => setShowCreate(false)}
-                className="rounded-lg px-4 py-2 text-xs font-medium text-[#94a3b8] transition-all duration-150"
-                style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                className="rounded-lg px-4 py-2 text-xs font-medium text-[#8a8271] transition-all duration-150"
+                style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
               >
                 Cancel
               </button>
@@ -374,15 +374,15 @@ function BanTemplatesSection() {
       <div
         className="rounded-xl overflow-hidden"
         style={{
-          background: "#111827",
+          background: "#0e0c09",
           border: "1px solid rgba(255,255,255,0.06)",
         }}
       >
         {templates.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <FileText className="h-8 w-8 text-[#1a1f2e] mb-3" />
-            <p className="text-sm text-[#94a3b8]">No ban templates yet</p>
-            <p className="text-xs text-[#64748b] mt-1">
+            <FileText className="h-8 w-8 text-[#12100b] mb-3" />
+            <p className="text-sm text-[#8a8271]">No ban templates yet</p>
+            <p className="text-xs text-[#6b6455] mt-1">
               Templates pre-fill ban reason and duration when banning players
             </p>
           </div>
@@ -392,28 +392,28 @@ function BanTemplatesSection() {
               <div key={t.id} className="flex items-center justify-between px-5 py-4 group">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-[#e2e8f0]">{t.name}</span>
+                    <span className="text-sm font-semibold text-[#e8e3d8]">{t.name}</span>
                     {t.duration_hours != null ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#818cf8] bg-[rgba(129,140,248,0.08)] rounded-full px-2 py-0.5">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#67b7e2] bg-[rgba(129,140,248,0.08)] rounded-full px-2 py-0.5">
                         <Clock className="h-2.5 w-2.5" />
                         {t.duration_hours}h
                       </span>
                     ) : (
-                      <span className="inline-flex items-center text-[10px] font-medium text-[#ff4757] bg-[rgba(255,71,87,0.08)] rounded-full px-2 py-0.5">
+                      <span className="inline-flex items-center text-[10px] font-medium text-[#d96b5c] bg-[rgba(217, 107, 92,0.08)] rounded-full px-2 py-0.5">
                         PERMANENT
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-[#64748b] mt-0.5 truncate">{t.reason_template}</p>
+                  <p className="text-xs text-[#6b6455] mt-0.5 truncate">{t.reason_template}</p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-[10px] text-[#64748b]">
+                  <span className="text-[10px] text-[#6b6455]">
                     by {t.created_by_username || "—"}
                   </span>
                   <button
                     onClick={() => deleteMutation.mutate(t.id)}
                     disabled={deleteMutation.isPending}
-                    className="opacity-0 group-hover:opacity-100 rounded-md p-1.5 text-[#64748b] hover:text-[#ff4757] hover:bg-[rgba(255,71,87,0.08)] transition-all duration-150"
+                    className="opacity-0 group-hover:opacity-100 rounded-md p-1.5 text-[#6b6455] hover:text-[#d96b5c] hover:bg-[rgba(217, 107, 92,0.08)] transition-all duration-150"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

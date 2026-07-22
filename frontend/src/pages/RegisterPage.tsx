@@ -20,7 +20,6 @@ export default function RegisterPage() {
       setError("Passwords do not match");
       return;
     }
-
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
       return;
@@ -31,126 +30,148 @@ export default function RegisterPage() {
       await register(username, password);
       navigate("/", { replace: true });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Registration failed"
-      );
+      setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
       setLoading(false);
     }
   };
 
-  const inputStyle = {
-    border: "none",
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
-    outline: "none",
-    boxShadow: "none",
-  } as const;
-
-  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.style.borderBottomColor = "#00d4aa";
-    e.target.style.boxShadow = "0 1px 0 0 #00d4aa";
-  };
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.target.style.borderBottomColor = "rgba(255,255,255,0.1)";
-    e.target.style.boxShadow = "none";
-  };
-
   return (
     <div className="login-bg flex items-center justify-center min-h-screen px-4">
-      <div className="w-full max-w-sm animate-fade-in">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-extrabold tracking-[0.2em] uppercase gradient-text">
-            Garrison
-          </h1>
-          <p className="text-sm text-[#64748b] mt-2 font-medium">
-            Server Command Center
-          </p>
-        </div>
+      <div className="scanlines" aria-hidden />
+      <div className="w-full max-w-[420px] animate-fade-in">
+        <div
+          className="overflow-hidden"
+          style={{
+            border: "1px solid var(--border-accent)",
+            borderRadius: 10,
+            background: "var(--bg-card)",
+          }}
+        >
+          <div
+            className="flex items-center gap-2 px-4 py-2.5"
+            style={{
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              background: "var(--bg-elevated)",
+            }}
+          >
+            <span className="w-2 h-2 rounded-full" style={{ background: "#d96b5c" }} />
+            <span className="w-2 h-2 rounded-full" style={{ background: "#e3b454" }} />
+            <span className="w-2 h-2 rounded-full" style={{ background: "#9de26b" }} />
+            <span className="font-mono text-[11px] ml-2" style={{ color: "var(--text-muted)" }}>
+              garrison — register
+            </span>
+          </div>
 
-        <div className="rounded-xl p-8" style={{
-          background: "#111827",
-          border: "1px solid rgba(255,255,255,0.06)",
-        }}>
-          <h2 className="text-lg font-bold text-[#e2e8f0] mb-6">
-            Create account
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-2 uppercase tracking-wider">
-                Username
-              </label>
-              <input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                autoFocus
-                className="w-full px-0 py-2.5 text-sm text-[#e2e8f0] bg-transparent rounded-none"
-                style={inputStyle}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-                placeholder="Choose a username"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-2 uppercase tracking-wider">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-0 py-2.5 text-sm text-[#e2e8f0] bg-transparent rounded-none"
-                style={inputStyle}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-                placeholder="Enter password"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-2 uppercase tracking-wider">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className="w-full px-0 py-2.5 text-sm text-[#e2e8f0] bg-transparent rounded-none"
-                style={inputStyle}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-                placeholder="Confirm password"
-              />
-            </div>
+          <div className="p-8">
+            <p
+              className="font-mono font-semibold text-xl tracking-[0.18em]"
+              style={{ color: "var(--accent)", textShadow: "0 0 14px rgba(255,178,36,0.35)" }}
+            >
+              GARRISON<span style={{ color: "var(--text-dim)" }}>_OPS</span>
+            </p>
+            <p className="font-mono text-[11px] mt-1.5 mb-7" style={{ color: "var(--text-muted)" }}>
+              create operator credentials
+            </p>
 
-            {error && (
-              <p className="text-sm text-[#ff4757] rounded-lg px-3 py-2.5 animate-fade-in"
-                style={{ background: "rgba(255,71,87,0.08)" }}>
-                {error}
+            <form onSubmit={handleSubmit} className="flex flex-col gap-[18px]">
+              <div>
+                <label className="label-caps block mb-2">Operator</label>
+                <div
+                  className="flex items-center gap-2 px-3.5 py-2.5"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 6,
+                    background: "var(--bg-deepest)",
+                  }}
+                >
+                  <span className="font-mono text-[13px]" style={{ color: "var(--accent)" }}>
+                    $
+                  </span>
+                  <input
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    autoFocus
+                    placeholder="username"
+                    className="flex-1 min-w-0 bg-transparent border-none p-0 text-[13px]"
+                    style={{ boxShadow: "none", border: "none" }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="label-caps block mb-2">Passphrase</label>
+                <div
+                  className="flex items-center gap-2 px-3.5 py-2.5"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 6,
+                    background: "var(--bg-deepest)",
+                  }}
+                >
+                  <span className="font-mono text-[13px]" style={{ color: "var(--accent)" }}>
+                    *
+                  </span>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="min 6 chars"
+                    className="flex-1 min-w-0 bg-transparent border-none p-0 text-[13px]"
+                    style={{ boxShadow: "none", border: "none" }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="label-caps block mb-2">Confirm</label>
+                <div
+                  className="flex items-center gap-2 px-3.5 py-2.5"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 6,
+                    background: "var(--bg-deepest)",
+                  }}
+                >
+                  <span className="font-mono text-[13px]" style={{ color: "var(--accent)" }}>
+                    *
+                  </span>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    placeholder="repeat passphrase"
+                    className="flex-1 min-w-0 bg-transparent border-none p-0 text-[13px]"
+                    style={{ boxShadow: "none", border: "none" }}
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <p
+                  className="font-mono text-xs px-3 py-2.5 rounded"
+                  style={{ color: "var(--danger)", background: "rgba(217,107,92,0.1)" }}
+                >
+                  {error}
+                </p>
+              )}
+
+              <button type="submit" disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2">
+                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {loading ? "CREATING…" : "CREATE OPERATOR →"}
+              </button>
+
+              <p className="font-mono text-[11px] text-center" style={{ color: "var(--text-muted)" }}>
+                already registered?{" "}
+                <Link to="/login" style={{ color: "var(--accent)" }}>
+                  authenticate
+                </Link>
               </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-bold text-[#0a0e1a] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 hover:shadow-[0_0_24px_rgba(0,212,170,0.25)]"
-              style={{ background: "#00d4aa" }}
-            >
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {loading ? "Creating account..." : "Create account"}
-            </button>
-          </form>
-
-          <p className="mt-6 text-center text-xs text-[#64748b]">
-            Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-[#00d4aa] hover:text-[#00b894] font-semibold"
-            >
-              Sign in
-            </Link>
-          </p>
+            </form>
+          </div>
         </div>
       </div>
     </div>

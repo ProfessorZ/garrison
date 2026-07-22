@@ -17,30 +17,29 @@ import {
 import { activityApi } from "../api/activity";
 import type { ActivityAction, ActivityEntry } from "../types";
 
+// Keys must match the backend ActionType enum values (backend/app/models/activity_log.py)
 const ACTION_CONFIG: Record<string, { icon: typeof Terminal; color: string; label: string }> = {
-  COMMAND: { icon: Terminal, color: "#3b82f6", label: "RCON" },
-  KICK: { icon: UserX, color: "#ffa502", label: "Kick" },
-  BAN: { icon: Ban, color: "#ff4757", label: "Ban" },
-  SERVER_START: { icon: Power, color: "#00d4aa", label: "Start" },
-  SERVER_STOP: { icon: PowerOff, color: "#ff4757", label: "Stop" },
-  SERVER_CREATE: { icon: Plus, color: "#00d4aa", label: "Add" },
-  SERVER_UPDATE: { icon: Pencil, color: "#3b82f6", label: "Update" },
-  SERVER_DELETE: { icon: Trash2, color: "#ff4757", label: "Delete" },
-  SCHEDULER_CREATE: { icon: Clock, color: "#a855f7", label: "Schedule" },
-  SCHEDULER_UPDATE: { icon: Pencil, color: "#a855f7", label: "Schedule" },
+  COMMAND: { icon: Terminal, color: "#67b7e2", label: "RCON" },
+  KICK: { icon: UserX, color: "#e3b454", label: "Kick" },
+  BAN: { icon: Ban, color: "#d96b5c", label: "Ban" },
+  UNBAN: { icon: Ban, color: "#67b7e2", label: "Unban" },
+  SERVER_CREATE: { icon: Plus, color: "#ffb224", label: "Add" },
+  SERVER_UPDATE: { icon: Pencil, color: "#67b7e2", label: "Update" },
+  SERVER_DELETE: { icon: Trash2, color: "#d96b5c", label: "Delete" },
+  LOGIN: { icon: Power, color: "#ffb224", label: "Login" },
+  PERMISSION_REVOKE: { icon: PowerOff, color: "#d96b5c", label: "Perms" },
+  SCHEDULED_RUN: { icon: Clock, color: "#a855f7", label: "Schedule" },
 };
 
 const ACTION_TYPES: { value: ActivityAction; label: string }[] = [
   { value: "COMMAND", label: "RCON Command" },
   { value: "KICK", label: "Kick" },
   { value: "BAN", label: "Ban" },
-  { value: "SERVER_START", label: "Server Start" },
-  { value: "SERVER_STOP", label: "Server Stop" },
+  { value: "UNBAN", label: "Unban" },
   { value: "SERVER_CREATE", label: "Server Added" },
   { value: "SERVER_UPDATE", label: "Server Updated" },
   { value: "SERVER_DELETE", label: "Server Deleted" },
-  { value: "SCHEDULER_CREATE", label: "Scheduler Created" },
-  { value: "SCHEDULER_UPDATE", label: "Scheduler Updated" },
+  { value: "SCHEDULED_RUN", label: "Scheduled Run" },
 ];
 
 function relativeTime(dateStr: string): string {
@@ -90,12 +89,12 @@ export default function ActivityFeed({
       {!compact && (
         <div className="flex items-center gap-3 mb-4" style={{ paddingTop: 16 }}>
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#64748b]" />
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6b6455]" />
             <select
               value={filterAction}
               onChange={(e) => setFilterAction(e.target.value as ActivityAction | "")}
-              className="appearance-none rounded-lg pl-9 pr-8 py-1.5 text-xs text-[#e2e8f0] focus:outline-none transition-all duration-150"
-              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+              className="appearance-none rounded-lg pl-9 pr-8 py-1.5 text-xs text-[#e8e3d8] focus:outline-none transition-all duration-150"
+              style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
             >
               <option value="">All actions</option>
               {ACTION_TYPES.map((t) => (
@@ -108,15 +107,15 @@ export default function ActivityFeed({
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
+          <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#ffb224] border-r-transparent" />
         </div>
       ) : entries.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full mb-4" style={{ background: "#1a1f2e" }}>
-            <Activity className="h-6 w-6 text-[#64748b]" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-full mb-4" style={{ background: "#12100b" }}>
+            <Activity className="h-6 w-6 text-[#6b6455]" />
           </div>
-          <h4 className="text-sm font-semibold text-[#e2e8f0] mb-1">No activity yet</h4>
-          <p className="text-xs text-[#64748b]">Actions like commands, kicks, and bans will show up here</p>
+          <h4 className="text-sm font-semibold text-[#e8e3d8] mb-1">No activity yet</h4>
+          <p className="text-xs text-[#6b6455]">Actions like commands, kicks, and bans will show up here</p>
         </div>
       ) : (
         <div className="space-y-px">
@@ -129,8 +128,8 @@ export default function ActivityFeed({
       {compact && entries.length > 0 && (
         <Link
           to="/activity"
-          className="block text-center text-xs text-[#00d4aa] hover:text-[#00b894] mt-4 py-2 rounded-lg transition-all duration-150 font-semibold"
-          style={{ background: "rgba(0,212,170,0.04)" }}
+          className="block text-center text-xs text-[#ffb224] hover:text-[#ffc95c] mt-4 py-2 rounded-lg transition-all duration-150 font-semibold"
+          style={{ background: "rgba(255, 178, 36,0.04)" }}
         >
           View all activity &rarr;
         </Link>
@@ -148,7 +147,7 @@ function ActivityRow({
 }) {
   const config = ACTION_CONFIG[entry.action] ?? {
     icon: Activity,
-    color: "#64748b",
+    color: "#6b6455",
     label: entry.action,
   };
   const Icon = config.icon;
@@ -164,23 +163,23 @@ function ActivityRow({
     >
       <div
         className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-        style={{ background: "#1a1f2e", color: config.color }}
+        style={{ background: "#12100b", color: config.color }}
       >
         <Icon className="h-3.5 w-3.5" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-[#e2e8f0] leading-snug">
+        <p className="text-sm text-[#e8e3d8] leading-snug">
           <span className="font-bold">{entry.username ?? "System"}</span>{" "}
-          <span className="text-[#94a3b8]">{entry.detail}</span>
+          <span className="text-[#8a8271]">{entry.detail}</span>
         </p>
         <div className="flex items-center gap-2 mt-0.5">
           {entry.server_name && (
             <>
-              <span className="text-xs text-[#64748b]">{entry.server_name}</span>
+              <span className="text-xs text-[#6b6455]">{entry.server_name}</span>
               <span className="text-[rgba(255,255,255,0.08)]">&middot;</span>
             </>
           )}
-          <span className="text-xs text-[#64748b]" style={{ fontFamily: "var(--font-mono)" }}>
+          <span className="text-xs text-[#6b6455]" style={{ fontFamily: "var(--font-mono)" }}>
             {relativeTime(entry.created_at)}
           </span>
         </div>
@@ -188,7 +187,7 @@ function ActivityRow({
       {!compact && (
         <span
           className="shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-          style={{ background: "#1a1f2e", color: config.color }}
+          style={{ background: "#12100b", color: config.color }}
         >
           {config.label}
         </span>

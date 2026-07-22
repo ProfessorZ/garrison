@@ -30,7 +30,7 @@ const MODE_COLORS: Record<string, string> = {
 };
 
 function modeBadge(mode: string) {
-  const color = MODE_COLORS[mode] ?? "#94a3b8";
+  const color = MODE_COLORS[mode] ?? "#8a8271";
   return (
     <span
       className="rounded-full px-2 py-0.5 text-[10px] font-bold shrink-0"
@@ -102,6 +102,12 @@ export default function HLLMapRotation({ serverId }: Props) {
     refetchInterval: 30000,
   });
 
+  const { data: availableData } = useQuery({
+    queryKey: ["hll-available-maps", serverId],
+    queryFn: () => hllApi.getAvailableMaps(serverId),
+    staleTime: 300_000,
+  });
+
   // Fetch live status to get the actual current map (currentIndex in rotation is unreliable)
   const { data: statusData } = useQuery({
     queryKey: ["server-status-live", serverId],
@@ -120,8 +126,14 @@ export default function HLLMapRotation({ serverId }: Props) {
     setCurrentIndex(data.currentIndex);
   }
 
-  // Build library from all rotation maps (deduplicated)
-  const library = buildLibrary(serverMaps);
+  // Prefer full available-maps catalog; fall back to rotation-derived library
+  const availableMaps = (availableData?.maps ?? []) as RotationMap[];
+  const library =
+    availableMaps.length > 0
+      ? [...availableMaps].sort(
+          (a, b) => a.name.localeCompare(b.name) || a.gameMode.localeCompare(b.gameMode)
+        )
+      : buildLibrary(serverMaps);
 
   // Apply filters to library
   const filteredLibrary = library.filter((m) => {
@@ -240,7 +252,7 @@ export default function HLLMapRotation({ serverId }: Props) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-40">
-        <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
+        <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#ffb224] border-r-transparent" />
       </div>
     );
   }
@@ -249,14 +261,14 @@ export default function HLLMapRotation({ serverId }: Props) {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-[#e2e8f0] flex items-center gap-2">
-          <Map className="h-5 w-5 text-[#00d4aa]" />
+        <h2 className="text-lg font-bold text-[#e8e3d8] flex items-center gap-2">
+          <Map className="h-5 w-5 text-[#ffb224]" />
           Map Rotation
         </h2>
         {nowPlaying && (
-          <div className="text-sm text-[#94a3b8]">
+          <div className="text-sm text-[#8a8271]">
             Now playing:{" "}
-            <span className="text-[#e2e8f0] font-semibold">
+            <span className="text-[#e8e3d8] font-semibold">
               {prettifyMapName(nowPlaying.name)} — {nowPlaying.gameMode} — {nowPlaying.timeOfDay}
             </span>
           </div>
@@ -265,8 +277,8 @@ export default function HLLMapRotation({ serverId }: Props) {
 
       {error && (
         <div
-          className="rounded-lg px-4 py-3 text-sm text-[#ff4757]"
-          style={{ background: "rgba(255,71,87,0.08)", border: "1px solid rgba(255,71,87,0.15)" }}
+          className="rounded-lg px-4 py-3 text-sm text-[#d96b5c]"
+          style={{ background: "rgba(217, 107, 92,0.08)", border: "1px solid rgba(217, 107, 92,0.15)" }}
         >
           {error}
         </div>
@@ -277,22 +289,22 @@ export default function HLLMapRotation({ serverId }: Props) {
         {/* Left panel — All Maps library */}
         <div
           className="rounded-xl p-4 flex flex-col"
-          style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+          style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
         >
-          <h3 className="text-sm font-bold text-[#e2e8f0] uppercase tracking-wider mb-3">
+          <h3 className="text-sm font-bold text-[#e8e3d8] uppercase tracking-wider mb-3">
             All Maps
           </h3>
 
           {/* Search */}
           <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#64748b]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6b6455]" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search maps..."
-              className="w-full rounded-lg pl-9 pr-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none"
-              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+              className="w-full rounded-lg pl-9 pr-3 py-2 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none"
+              style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
             />
           </div>
 
@@ -300,7 +312,7 @@ export default function HLLMapRotation({ serverId }: Props) {
           <div className="flex gap-1.5 mb-3">
             {(["All", "Warfare", "Offensive", "Skirmish"] as GameModeFilter[]).map((mode) => {
               const active = modeFilter === mode;
-              const color = mode === "All" ? "#94a3b8" : MODE_COLORS[mode];
+              const color = mode === "All" ? "#8a8271" : MODE_COLORS[mode];
               return (
                 <button
                   key={mode}
@@ -308,7 +320,7 @@ export default function HLLMapRotation({ serverId }: Props) {
                   className="rounded-lg px-2.5 py-1 text-xs font-bold transition-all"
                   style={{
                     background: active ? `${color}20` : "transparent",
-                    color: active ? color : "#64748b",
+                    color: active ? color : "#6b6455",
                     border: active ? `1px solid ${color}30` : "1px solid transparent",
                   }}
                 >
@@ -321,11 +333,11 @@ export default function HLLMapRotation({ serverId }: Props) {
           {/* Map list grouped by name */}
           <div className="flex-1 overflow-y-auto max-h-[500px] space-y-3">
             {Object.keys(groupedLibrary).length === 0 ? (
-              <div className="text-sm text-[#64748b] text-center py-8">No maps match filter</div>
+              <div className="text-sm text-[#6b6455] text-center py-8">No maps match filter</div>
             ) : (
               Object.entries(groupedLibrary).map(([mapName, maps]) => (
                 <div key={mapName}>
-                  <div className="text-[11px] font-semibold text-[#64748b] uppercase tracking-wider mb-1 px-1">
+                  <div className="text-[11px] font-semibold text-[#6b6455] uppercase tracking-wider mb-1 px-1">
                     {prettifyMapName(mapName)}
                   </div>
                   <div className="space-y-0.5">
@@ -333,9 +345,9 @@ export default function HLLMapRotation({ serverId }: Props) {
                       <button
                         key={m.iD}
                         onClick={() => addToRotation(m)}
-                        className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-[#e2e8f0] hover:bg-[rgba(0,212,170,0.06)] transition-colors group"
+                        className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-[#e8e3d8] hover:bg-[rgba(255, 178, 36,0.06)] transition-colors group"
                       >
-                        <Plus className="h-3 w-3 text-[#64748b] group-hover:text-[#00d4aa] transition-colors shrink-0" />
+                        <Plus className="h-3 w-3 text-[#6b6455] group-hover:text-[#ffb224] transition-colors shrink-0" />
                         <span className="truncate">{prettifyMapName(m.name)}</span>
                         {modeBadge(m.gameMode)}
                         <span className="text-xs shrink-0" title={m.timeOfDay}>
@@ -353,17 +365,17 @@ export default function HLLMapRotation({ serverId }: Props) {
         {/* Right panel — Current Rotation */}
         <div
           className="rounded-xl p-4 flex flex-col"
-          style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+          style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
         >
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-[#e2e8f0] uppercase tracking-wider">
+            <h3 className="text-sm font-bold text-[#e8e3d8] uppercase tracking-wider">
               Current Rotation
-              <span className="text-[#64748b] font-normal ml-2">({rotation.length} maps)</span>
+              <span className="text-[#6b6455] font-normal ml-2">({rotation.length} maps)</span>
             </h3>
             {isDirty && (
               <button
                 onClick={discardChanges}
-                className="text-xs text-[#64748b] hover:text-[#ff4757] transition-colors"
+                className="text-xs text-[#6b6455] hover:text-[#d96b5c] transition-colors"
               >
                 Discard changes
               </button>
@@ -371,7 +383,7 @@ export default function HLLMapRotation({ serverId }: Props) {
           </div>
 
           {rotation.length === 0 ? (
-            <div className="text-sm text-[#64748b] text-center py-8 flex-1">
+            <div className="text-sm text-[#6b6455] text-center py-8 flex-1">
               No maps in rotation. Add maps from the library.
             </div>
           ) : (
@@ -383,17 +395,17 @@ export default function HLLMapRotation({ serverId }: Props) {
                     key={`${m.iD}-${i}`}
                     className="flex items-center gap-2 rounded-lg px-3 py-2 group transition-colors"
                     style={{
-                      background: isActive ? "rgba(0,212,170,0.06)" : "transparent",
-                      border: isActive ? "1px solid rgba(0,212,170,0.12)" : "1px solid transparent",
+                      background: isActive ? "rgba(255, 178, 36,0.06)" : "transparent",
+                      border: isActive ? "1px solid rgba(255, 178, 36,0.12)" : "1px solid transparent",
                     }}
                   >
                     {/* Number */}
-                    <span className="text-[11px] text-[#64748b] font-mono w-5 text-right shrink-0">
+                    <span className="text-[11px] text-[#6b6455] font-mono w-5 text-right shrink-0">
                       {i + 1}
                     </span>
 
                     {/* Map info */}
-                    <span className="text-sm text-[#e2e8f0] truncate">{prettifyMapName(m.name)}</span>
+                    <span className="text-sm text-[#e8e3d8] truncate">{prettifyMapName(m.name)}</span>
                     {modeBadge(m.gameMode)}
                     <span className="text-xs shrink-0" title={m.timeOfDay}>
                       {todIcon(m.timeOfDay)}
@@ -402,7 +414,7 @@ export default function HLLMapRotation({ serverId }: Props) {
                     {isActive && (
                       <span
                         className="rounded-full px-2 py-0.5 text-[10px] font-bold shrink-0"
-                        style={{ background: "rgba(0,212,170,0.1)", color: "#00d4aa" }}
+                        style={{ background: "rgba(255, 178, 36,0.1)", color: "#ffb224" }}
                       >
                         PLAYING
                       </span>
@@ -417,7 +429,7 @@ export default function HLLMapRotation({ serverId }: Props) {
                       <button
                         onClick={() => moveUp(i)}
                         disabled={i === 0}
-                        className="p-1 rounded text-[#64748b] hover:text-[#e2e8f0] disabled:opacity-20 transition-colors"
+                        className="p-1 rounded text-[#6b6455] hover:text-[#e8e3d8] disabled:opacity-20 transition-colors"
                         title="Move up"
                       >
                         <ChevronUp className="h-3.5 w-3.5" />
@@ -425,7 +437,7 @@ export default function HLLMapRotation({ serverId }: Props) {
                       <button
                         onClick={() => moveDown(i)}
                         disabled={i === rotation.length - 1}
-                        className="p-1 rounded text-[#64748b] hover:text-[#e2e8f0] disabled:opacity-20 transition-colors"
+                        className="p-1 rounded text-[#6b6455] hover:text-[#e8e3d8] disabled:opacity-20 transition-colors"
                         title="Move down"
                       >
                         <ChevronDown className="h-3.5 w-3.5" />
@@ -434,16 +446,16 @@ export default function HLLMapRotation({ serverId }: Props) {
                       {/* Change map */}
                       {changingMap === `${m.iD}-${i}` ? (
                         <div className="flex items-center gap-1 text-xs">
-                          <span className="text-[#ffa502]">Switch?</span>
+                          <span className="text-[#e3b454]">Switch?</span>
                           <button
                             onClick={() => handleChangeMap(m.iD)}
-                            className="px-1.5 py-0.5 rounded text-[#00d4aa] hover:bg-[rgba(0,212,170,0.1)] font-bold"
+                            className="px-1.5 py-0.5 rounded text-[#ffb224] hover:bg-[rgba(255, 178, 36,0.1)] font-bold"
                           >
                             Yes
                           </button>
                           <button
                             onClick={() => setChangingMap(null)}
-                            className="px-1.5 py-0.5 rounded text-[#64748b] hover:bg-[rgba(255,255,255,0.05)] font-bold"
+                            className="px-1.5 py-0.5 rounded text-[#6b6455] hover:bg-[rgba(255,255,255,0.05)] font-bold"
                           >
                             No
                           </button>
@@ -451,7 +463,7 @@ export default function HLLMapRotation({ serverId }: Props) {
                       ) : (
                         <button
                           onClick={() => setChangingMap(`${m.iD}-${i}`)}
-                          className="p-1 rounded text-[#64748b] hover:text-[#00d4aa] hover:bg-[rgba(0,212,170,0.08)] transition-colors"
+                          className="p-1 rounded text-[#6b6455] hover:text-[#ffb224] hover:bg-[rgba(255, 178, 36,0.08)] transition-colors"
                           title="Change to this map"
                         >
                           <Play className="h-3.5 w-3.5" />
@@ -461,7 +473,7 @@ export default function HLLMapRotation({ serverId }: Props) {
                       {/* Remove */}
                       <button
                         onClick={() => removeFromRotation(i)}
-                        className="p-1 rounded text-[#64748b] hover:text-[#ff4757] hover:bg-[rgba(255,71,87,0.08)] transition-colors"
+                        className="p-1 rounded text-[#6b6455] hover:text-[#d96b5c] hover:bg-[rgba(217, 107, 92,0.08)] transition-colors"
                         title="Remove from rotation"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -477,15 +489,15 @@ export default function HLLMapRotation({ serverId }: Props) {
           {isDirty && (
             <div className="mt-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
               {saving ? (
-                <div className="flex items-center gap-2 text-sm text-[#94a3b8]">
-                  <Loader2 className="h-4 w-4 animate-spin text-[#00d4aa]" />
+                <div className="flex items-center gap-2 text-sm text-[#8a8271]">
+                  <Loader2 className="h-4 w-4 animate-spin text-[#ffb224]" />
                   {saveProgress}
                 </div>
               ) : (
                 <button
                   onClick={handleSave}
                   className="w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all"
-                  style={{ background: "rgba(0,212,170,0.15)", color: "#00d4aa", border: "1px solid rgba(0,212,170,0.25)" }}
+                  style={{ background: "rgba(255, 178, 36,0.15)", color: "#ffb224", border: "1px solid rgba(255, 178, 36,0.25)" }}
                 >
                   <Save className="h-4 w-4" />
                   Save Rotation

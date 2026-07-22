@@ -15,7 +15,7 @@ interface PlayerListProps {
   gameType: string;
 }
 
-type ActionType = "message" | "kick" | "ban" | "teleport" | "give" | "promote" | "demote";
+type ActionType = "message" | "kick" | "ban" | "unban" | "teleport" | "give" | "promote" | "demote";
 
 function formatPlaytime(seconds: number): string {
   if (seconds < 60) return "<1m";
@@ -97,6 +97,16 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
     onError: (err) => handleApiError(err),
   });
 
+  const unbanMutation = useMutation({
+    mutationFn: (name: string) => serversApi.unbanPlayer(serverId, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["server-players", serverId] });
+      showToast("Player unbanned");
+      closeModal();
+    },
+    onError: (err) => handleApiError(err),
+  });
+
   const messageMutation = useMutation({
     mutationFn: ({ name, message }: { name: string; message: string }) =>
       serversApi.messagePlayer(serverId, name, message),
@@ -165,6 +175,9 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
       case "ban":
         banMutation.mutate(player.name);
         break;
+      case "unban":
+        unbanMutation.mutate(player.name);
+        break;
       case "teleport":
         teleportMutation.mutate({ name: player.name, x: Number(tpX), y: Number(tpY), z: Number(tpZ) });
         break;
@@ -182,7 +195,8 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
   };
 
   const isActionLoading =
-    kickMutation.isPending || banMutation.isPending || messageMutation.isPending ||
+    kickMutation.isPending || banMutation.isPending || unbanMutation.isPending ||
+    messageMutation.isPending ||
     teleportMutation.isPending || giveMutation.isPending ||
     promoteMutation.isPending || demoteMutation.isPending;
 
@@ -191,7 +205,8 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
   const actions: { type: ActionType; label: string; icon: typeof MessageSquare; color?: string; show: boolean }[] = [
     { type: "message", label: "Message", icon: MessageSquare, show: true },
     { type: "kick", label: "Kick", icon: UserX, show: true },
-    { type: "ban", label: "Ban", icon: Ban, color: "#ff4757", show: true },
+    { type: "ban", label: "Ban", icon: Ban, color: "#d96b5c", show: true },
+    { type: "unban", label: "Unban", icon: ShieldCheck, show: true },
     { type: "teleport", label: "Teleport", icon: MapPin, show: supportsAdvanced(gameType) },
     { type: "give", label: "Give Item", icon: Package, show: supportsAdvanced(gameType) },
     { type: "promote", label: "Promote", icon: ShieldCheck, show: availableRoles.length > 0 },
@@ -201,21 +216,21 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
 
   return (
     <div className="rounded-xl overflow-hidden" style={{
-      background: "#111827",
+      background: "#0e0c09",
       border: "1px solid rgba(255,255,255,0.06)",
     }}>
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <h3 className="text-sm font-bold text-[#e2e8f0] flex items-center gap-2">
-          <Users className="h-4 w-4 text-[#64748b]" />
+        <h3 className="text-sm font-bold text-[#e8e3d8] flex items-center gap-2">
+          <Users className="h-4 w-4 text-[#6b6455]" />
           Players
-          <span className="text-[#64748b] font-normal">({players.length})</span>
+          <span className="text-[#6b6455] font-normal">({players.length})</span>
         </h3>
         <button
           onClick={() => refetch()}
           disabled={isLoading}
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[#e2e8f0] disabled:opacity-50 transition-all duration-150"
-          style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-[#e8e3d8] disabled:opacity-50 transition-all duration-150"
+          style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
         >
           <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
           Refresh
@@ -224,13 +239,13 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
 
       {isLoading && players.length === 0 ? (
         <div className="flex items-center justify-center py-16">
-          <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
+          <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#ffb224] border-r-transparent" />
         </div>
       ) : players.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <Users className="h-8 w-8 text-[#1a1f2e] mb-3" />
-          <p className="text-sm text-[#94a3b8]">No players online</p>
-          <p className="text-xs text-[#64748b] mt-1">Players will appear here when they connect</p>
+          <Users className="h-8 w-8 text-[#12100b] mb-3" />
+          <p className="text-sm text-[#8a8271]">No players online</p>
+          <p className="text-xs text-[#6b6455] mt-1">Players will appear here when they connect</p>
         </div>
       ) : (
         <>
@@ -239,11 +254,11 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider" style={{ width: "100%" }}>Player</th>
-                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider hidden md:table-cell whitespace-nowrap" style={{ width: 120 }}>First Seen</th>
-                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider whitespace-nowrap" style={{ width: 140 }}>Playtime</th>
-                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider hidden lg:table-cell whitespace-nowrap" style={{ width: 80 }}>Sessions</th>
-                <th className="text-right px-5 py-2.5 text-[11px] font-bold text-[#64748b] uppercase tracking-wider whitespace-nowrap" style={{ width: 80 }}>Actions</th>
+                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider" style={{ width: "100%" }}>Player</th>
+                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider hidden md:table-cell whitespace-nowrap" style={{ width: 120 }}>First Seen</th>
+                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider whitespace-nowrap" style={{ width: 140 }}>Playtime</th>
+                <th className="text-left px-5 py-2.5 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider hidden lg:table-cell whitespace-nowrap" style={{ width: 80 }}>Sessions</th>
+                <th className="text-right px-5 py-2.5 text-[11px] font-bold text-[#6b6455] uppercase tracking-wider whitespace-nowrap" style={{ width: 80 }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -258,16 +273,16 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
                 >
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-[#e2e8f0] font-semibold">{p.name}</span>
+                      <span className="text-sm text-[#e8e3d8] font-semibold">{p.name}</span>
                       {p.is_banned && (
-                        <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-[#ff4757] bg-[rgba(255,71,87,0.08)]">
+                        <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-[#d96b5c] bg-[rgba(217, 107, 92,0.08)]">
                           <Ban className="h-2 w-2" /> BAN
                         </span>
                       )}
                       {p.known_player_id && (
                         <button
                           onClick={(e) => { e.stopPropagation(); navigate(`/players/${p.known_player_id}`); }}
-                          className="text-[#64748b] hover:text-[#00d4aa] transition-colors touch-compact"
+                          className="text-[#6b6455] hover:text-[#ffb224] transition-colors touch-compact"
                           title="View player profile"
                         >
                           <ExternalLink className="h-3 w-3" />
@@ -275,16 +290,16 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
                       )}
                     </div>
                   </td>
-                  <td className="px-5 py-3 text-xs text-[#64748b] hidden md:table-cell">
+                  <td className="px-5 py-3 text-xs text-[#6b6455] hidden md:table-cell">
                     {p.first_seen_on_server ? formatDate(p.first_seen_on_server) : formatDate(p.first_seen)}
                   </td>
-                  <td className="px-5 py-3 text-xs text-[#64748b]">
-                    <span className="inline-flex items-center gap-1 font-mono text-[#94a3b8]">
+                  <td className="px-5 py-3 text-xs text-[#6b6455]">
+                    <span className="inline-flex items-center gap-1 font-mono text-[#8a8271]">
                       <Clock className="h-3 w-3" />
                       {formatPlaytime(p.total_time_on_server ?? 0)}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-xs text-[#94a3b8] tabular-nums hidden lg:table-cell">
+                  <td className="px-5 py-3 text-xs text-[#8a8271] tabular-nums hidden lg:table-cell">
                     {p.sessions_on_server ?? 0}
                   </td>
                   <td className="px-5 py-3 text-right">
@@ -309,16 +324,16 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
             <div key={p.name} className="px-4 py-3">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-sm text-[#e2e8f0] font-semibold truncate">{p.name}</span>
+                  <span className="text-sm text-[#e8e3d8] font-semibold truncate">{p.name}</span>
                   {p.is_banned && (
-                    <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-[#ff4757] bg-[rgba(255,71,87,0.08)]">
+                    <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-[#d96b5c] bg-[rgba(217, 107, 92,0.08)]">
                       <Ban className="h-2 w-2" /> BAN
                     </span>
                   )}
                   {p.known_player_id && (
                     <button
                       onClick={() => navigate(`/players/${p.known_player_id}`)}
-                      className="text-[#64748b] hover:text-[#00d4aa] transition-colors touch-compact"
+                      className="text-[#6b6455] hover:text-[#ffb224] transition-colors touch-compact"
                     >
                       <ExternalLink className="h-3 w-3" />
                     </button>
@@ -333,8 +348,8 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
                   onClose={() => setOpenMenu(null)}
                 />
               </div>
-              <div className="flex items-center gap-3 text-xs text-[#64748b]">
-                <span className="inline-flex items-center gap-1 font-mono text-[#94a3b8]">
+              <div className="flex items-center gap-3 text-xs text-[#6b6455]">
+                <span className="inline-flex items-center gap-1 font-mono text-[#8a8271]">
                   <Clock className="h-3 w-3" />
                   {formatPlaytime(p.total_time_on_server ?? 0)}
                 </span>
@@ -368,7 +383,7 @@ export default function PlayerList({ serverId, gameType }: PlayerListProps) {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-fade-in rounded-lg px-4 py-3 text-sm font-medium text-[#e2e8f0] shadow-xl"
+        <div className="fixed bottom-6 right-6 z-50 animate-fade-in rounded-lg px-4 py-3 text-sm font-medium text-[#e8e3d8] shadow-xl"
           style={{ background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)" }}>
           {toast}
         </div>
@@ -428,8 +443,8 @@ function ActionMenu({
       <button
         ref={btnRef}
         onClick={(e) => { e.stopPropagation(); onToggle(); }}
-        className="inline-flex items-center justify-center rounded-md p-1.5 text-[#64748b] hover:text-[#e2e8f0] transition-colors"
-        style={{ background: isOpen ? "#1a1f2e" : "transparent" }}
+        className="inline-flex items-center justify-center rounded-md p-1.5 text-[#6b6455] hover:text-[#e8e3d8] transition-colors"
+        style={{ background: isOpen ? "#12100b" : "transparent" }}
       >
         <MoreVertical className="h-4 w-4" />
       </button>
@@ -451,7 +466,7 @@ function ActionMenu({
                 key={a.type}
                 onClick={() => onAction(a.type)}
                 className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium transition-colors hover:bg-[rgba(255,255,255,0.04)]"
-                style={{ color: a.color || "#e2e8f0" }}
+                style={{ color: a.color || "#e8e3d8" }}
               >
                 <Icon className="h-3.5 w-3.5" />
                 {a.label}
@@ -506,13 +521,14 @@ function ActionModal({
   if (!modal) return null;
 
   const { type, player } = modal;
-  const inputCls = "w-full rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none transition-all duration-150";
-  const inputStyle: React.CSSProperties = { background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" };
+  const inputCls = "w-full rounded-lg px-3 py-2.5 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none transition-all duration-150";
+  const inputStyle: React.CSSProperties = { background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" };
 
   const titles: Record<ActionType, string> = {
     message: `Message ${player.name}`,
     kick: `Kick ${player.name}?`,
     ban: `Ban ${player.name}?`,
+    unban: `Unban ${player.name}?`,
     teleport: `Teleport ${player.name}`,
     give: `Give Item to ${player.name}`,
     promote: `Promote ${player.name}`,
@@ -523,6 +539,7 @@ function ActionModal({
     message: "Send",
     kick: "Kick Player",
     ban: "Ban Player",
+    unban: "Unban Player",
     teleport: "Teleport",
     give: "Give Item",
     promote: "Promote",
@@ -530,23 +547,25 @@ function ActionModal({
   };
 
   const btnColors: Record<ActionType, string> = {
-    message: "#00d4aa",
-    kick: "#ffa502",
-    ban: "#ff4757",
-    teleport: "#00d4aa",
-    give: "#00d4aa",
+    message: "#ffb224",
+    kick: "#e3b454",
+    ban: "#d96b5c",
+    unban: "#9de26b",
+    teleport: "#ffb224",
+    give: "#ffb224",
     promote: "#6366f1",
-    demote: "#ffa502",
+    demote: "#e3b454",
   };
 
   const btnTextColors: Record<ActionType, string> = {
-    message: "#0a0e1a",
-    kick: "#0a0e1a",
+    message: "#0b0a08",
+    kick: "#0b0a08",
     ban: "#ffffff",
-    teleport: "#0a0e1a",
-    give: "#0a0e1a",
+    unban: "#0b0a08",
+    teleport: "#0b0a08",
+    give: "#0b0a08",
     promote: "#ffffff",
-    demote: "#0a0e1a",
+    demote: "#0b0a08",
   };
 
   return (
@@ -554,17 +573,17 @@ function ActionModal({
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onCancel} />
       <div
         className="relative shadow-2xl w-full p-6 animate-fade-in max-w-md mx-0 sm:mx-4 rounded-none sm:rounded-xl h-full sm:h-auto flex flex-col justify-center"
-        style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+        style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
       >
         <button
           onClick={onCancel}
-          className="absolute top-4 right-4 p-1 rounded-md text-[#64748b] hover:text-[#e2e8f0] transition-colors"
+          className="absolute top-4 right-4 p-1 rounded-md text-[#6b6455] hover:text-[#e8e3d8] transition-colors"
           style={{ background: "transparent" }}
         >
           <X className="h-4 w-4" />
         </button>
 
-        <h3 className="text-base font-bold text-[#e2e8f0] mb-4">{titles[type]}</h3>
+        <h3 className="text-base font-bold text-[#e8e3d8] mb-4">{titles[type]}</h3>
 
         <div className="space-y-3">
           {type === "message" && (
@@ -582,7 +601,7 @@ function ActionModal({
 
           {type === "kick" && (
             <>
-              <p className="text-sm text-[#94a3b8]">This will kick {player.name} from the server. They can rejoin.</p>
+              <p className="text-sm text-[#8a8271]">This will kick {player.name} from the server. They can rejoin.</p>
               <input
                 type="text"
                 placeholder="Reason (optional)"
@@ -596,7 +615,7 @@ function ActionModal({
 
           {type === "ban" && (
             <>
-              <p className="text-sm text-[#94a3b8]">This will permanently ban {player.name} from the server.</p>
+              <p className="text-sm text-[#8a8271]">This will permanently ban {player.name} from the server.</p>
               <input
                 type="text"
                 placeholder="Reason (optional)"
@@ -608,6 +627,12 @@ function ActionModal({
             </>
           )}
 
+          {type === "unban" && (
+            <p className="text-sm text-[#8a8271]">
+              Remove ban for {player.name} on this server (if the game plugin supports unban).
+            </p>
+          )}
+
           {type === "teleport" && (
             <div className="grid grid-cols-3 gap-3">
               {[
@@ -616,7 +641,7 @@ function ActionModal({
                 { label: "Z", value: tpZ, set: setTpZ },
               ].map((f) => (
                 <div key={f.label}>
-                  <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1 uppercase">{f.label}</label>
+                  <label className="block text-[11px] font-semibold text-[#8a8271] mb-1 uppercase">{f.label}</label>
                   <input
                     type="number"
                     value={f.value}
@@ -631,7 +656,7 @@ function ActionModal({
 
           {type === "promote" && (
             <div>
-              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1 uppercase">Role</label>
+              <label className="block text-[11px] font-semibold text-[#8a8271] mb-1 uppercase">Role</label>
               <select
                 autoFocus
                 value={selectedRole}
@@ -648,13 +673,13 @@ function ActionModal({
           )}
 
           {type === "demote" && (
-            <p className="text-sm text-[#94a3b8]">Remove admin/role from {player.name}?</p>
+            <p className="text-sm text-[#8a8271]">Remove admin/role from {player.name}?</p>
           )}
 
           {type === "give" && (
             <>
               <div>
-                <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1 uppercase">Item</label>
+                <label className="block text-[11px] font-semibold text-[#8a8271] mb-1 uppercase">Item</label>
                 <input
                   autoFocus
                   type="text"
@@ -664,13 +689,13 @@ function ActionModal({
                   className={inputCls}
                   style={inputStyle}
                 />
-                <p className="text-[11px] text-[#64748b] mt-1">
+                <p className="text-[11px] text-[#6b6455] mt-1">
                   {gameType === "zomboid" && "e.g. Base.Axe, Base.PistolAmmo"}
                   {gameType === "factorio" && "e.g. iron-plate, stone-furnace"}
                 </p>
               </div>
               <div>
-                <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1 uppercase">Count</label>
+                <label className="block text-[11px] font-semibold text-[#8a8271] mb-1 uppercase">Count</label>
                 <input
                   type="number"
                   min={1}
@@ -688,8 +713,8 @@ function ActionModal({
           <button
             onClick={onCancel}
             disabled={loading}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-[#e2e8f0] disabled:opacity-50 transition-all duration-150"
-            style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+            className="rounded-lg px-4 py-2 text-sm font-medium text-[#e8e3d8] disabled:opacity-50 transition-all duration-150"
+            style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
           >
             Cancel
           </button>

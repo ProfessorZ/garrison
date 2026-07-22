@@ -13,11 +13,11 @@ function Bar({ value, max, label, sub }: { value: number; max: number; label: st
   return (
     <div style={{ marginBottom: 6 }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 2 }}>
-        <span style={{ color: "#e2e8f0" }}>{label}</span>
-        <span style={{ color: "#94a3b8" }}>{sub}</span>
+        <span style={{ color: "#e8e3d8" }}>{label}</span>
+        <span style={{ color: "#8a8271" }}>{sub}</span>
       </div>
-      <div style={{ background: "#1a1f2e", borderRadius: 4, height: 8, overflow: "hidden" }}>
-        <div style={{ width: `${pct}%`, height: "100%", background: "#00d4aa", borderRadius: 4, transition: "width 0.3s" }} />
+      <div style={{ background: "#12100b", borderRadius: 4, height: 8, overflow: "hidden" }}>
+        <div style={{ width: `${pct}%`, height: "100%", background: "#ffb224", borderRadius: 4, transition: "width 0.3s" }} />
       </div>
     </div>
   );
@@ -25,15 +25,15 @@ function Bar({ value, max, label, sub }: { value: number; max: number; label: st
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 20, marginBottom: 16 }}>
-      <h3 style={{ color: "#e2e8f0", fontSize: 16, fontWeight: 700, marginBottom: 16 }}>{title}</h3>
+    <div style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: 20, marginBottom: 16 }}>
+      <h3 style={{ color: "#e8e3d8", fontSize: 16, fontWeight: 700, marginBottom: 16 }}>{title}</h3>
       {children}
     </div>
   );
 }
 
 function EmptyState({ text }: { text: string }) {
-  return <p style={{ color: "#64748b", fontSize: 13, textAlign: "center", padding: 16 }}>{text}</p>;
+  return <p style={{ color: "#6b6455", fontSize: 13, textAlign: "center", padding: 16 }}>{text}</p>;
 }
 
 export default function ServerAnalytics({ serverId }: { serverId: number }) {
@@ -68,9 +68,9 @@ export default function ServerAnalytics({ serverId }: { serverId: number }) {
             style={{
               padding: "6px 14px",
               borderRadius: 8,
-              border: "1px solid " + (period === p.key ? "#00d4aa" : "rgba(255,255,255,0.06)"),
-              background: period === p.key ? "rgba(0,212,170,0.08)" : "#111827",
-              color: period === p.key ? "#00d4aa" : "#94a3b8",
+              border: "1px solid " + (period === p.key ? "#ffb224" : "rgba(255,255,255,0.06)"),
+              background: period === p.key ? "rgba(255, 178, 36,0.08)" : "#0e0c09",
+              color: period === p.key ? "#ffb224" : "#8a8271",
               fontSize: 13,
               fontWeight: 600,
               cursor: "pointer",
@@ -83,7 +83,7 @@ export default function ServerAnalytics({ serverId }: { serverId: number }) {
 
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
-          <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-[#ffb224] border-r-transparent" />
         </div>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: 16 }}>
@@ -91,16 +91,16 @@ export default function ServerAnalytics({ serverId }: { serverId: number }) {
           <Card title="Kill Statistics">
             <div style={{ display: "flex", gap: 24, marginBottom: 20 }}>
               <div>
-                <div style={{ color: "#00d4aa", fontSize: 28, fontWeight: 800 }}>{kills?.total_kills ?? 0}</div>
-                <div style={{ color: "#64748b", fontSize: 12, fontWeight: 600 }}>Total Kills</div>
+                <div style={{ color: "#ffb224", fontSize: 28, fontWeight: 800 }}>{kills?.total_kills ?? 0}</div>
+                <div style={{ color: "#6b6455", fontSize: 12, fontWeight: 600 }}>Total Kills</div>
               </div>
               <div>
-                <div style={{ color: "#ff4757", fontSize: 28, fontWeight: 800 }}>{kills?.total_teamkills ?? 0}</div>
-                <div style={{ color: "#64748b", fontSize: 12, fontWeight: 600 }}>Team Kills</div>
+                <div style={{ color: "#d96b5c", fontSize: 28, fontWeight: 800 }}>{kills?.total_teamkills ?? 0}</div>
+                <div style={{ color: "#6b6455", fontSize: 12, fontWeight: 600 }}>Team Kills</div>
               </div>
             </div>
 
-            <h4 style={{ color: "#94a3b8", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Top Killers</h4>
+            <h4 style={{ color: "#8a8271", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Top Killers</h4>
             {kills?.top_killers.length ? (
               kills.top_killers.map((k) => <Bar key={k.name} value={k.kills} max={killerMax} label={k.name} sub={`${k.kills} kills`} />)
             ) : (
