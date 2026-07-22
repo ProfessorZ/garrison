@@ -20,33 +20,38 @@ import { activityApi } from "../api/activity";
 import { serversApi } from "../api/servers";
 import type { ActivityAction, ActivityEntry } from "../types";
 
+// Keys must match the backend ActionType enum values (backend/app/models/activity_log.py)
 const ACTION_CONFIG: Record<
-  ActivityAction,
+  string,
   { icon: typeof Terminal; color: string; label: string }
 > = {
-  rcon_command: { icon: Terminal, color: "#67b7e2", label: "RCON" },
-  kick: { icon: UserX, color: "#e3b454", label: "Kick" },
-  ban: { icon: Ban, color: "#d96b5c", label: "Ban" },
-  server_start: { icon: Power, color: "#ffb224", label: "Start" },
-  server_stop: { icon: PowerOff, color: "#d96b5c", label: "Stop" },
-  server_add: { icon: Plus, color: "#ffb224", label: "Add" },
-  server_update: { icon: Pencil, color: "#67b7e2", label: "Update" },
-  server_delete: { icon: Trash2, color: "#d96b5c", label: "Delete" },
-  scheduler_create: { icon: Clock, color: "#a855f7", label: "Schedule" },
-  scheduler_update: { icon: Pencil, color: "#a855f7", label: "Schedule" },
+  COMMAND: { icon: Terminal, color: "#67b7e2", label: "RCON" },
+  KICK: { icon: UserX, color: "#e3b454", label: "Kick" },
+  BAN: { icon: Ban, color: "#d96b5c", label: "Ban" },
+  UNBAN: { icon: Ban, color: "#67b7e2", label: "Unban" },
+  SERVER_CREATE: { icon: Plus, color: "#ffb224", label: "Add" },
+  SERVER_UPDATE: { icon: Pencil, color: "#67b7e2", label: "Update" },
+  SERVER_DELETE: { icon: Trash2, color: "#d96b5c", label: "Delete" },
+  LOGIN: { icon: Power, color: "#ffb224", label: "Login" },
+  ROLE_CHANGE: { icon: Pencil, color: "#a855f7", label: "Role" },
+  PERMISSION_GRANT: { icon: Plus, color: "#a855f7", label: "Perms" },
+  PERMISSION_REVOKE: { icon: PowerOff, color: "#d96b5c", label: "Perms" },
+  SCHEDULED_RUN: { icon: Clock, color: "#a855f7", label: "Schedule" },
+  DISCORD_COMMAND: { icon: Terminal, color: "#a855f7", label: "Discord" },
 };
 
 const ACTION_TYPES: { value: ActivityAction; label: string }[] = [
-  { value: "rcon_command", label: "RCON Command" },
-  { value: "kick", label: "Kick" },
-  { value: "ban", label: "Ban" },
-  { value: "server_start", label: "Server Start" },
-  { value: "server_stop", label: "Server Stop" },
-  { value: "server_add", label: "Server Added" },
-  { value: "server_update", label: "Server Updated" },
-  { value: "server_delete", label: "Server Deleted" },
-  { value: "scheduler_create", label: "Scheduler Created" },
-  { value: "scheduler_update", label: "Scheduler Updated" },
+  { value: "COMMAND", label: "RCON Command" },
+  { value: "KICK", label: "Kick" },
+  { value: "BAN", label: "Ban" },
+  { value: "UNBAN", label: "Unban" },
+  { value: "SERVER_CREATE", label: "Server Added" },
+  { value: "SERVER_UPDATE", label: "Server Updated" },
+  { value: "SERVER_DELETE", label: "Server Deleted" },
+  { value: "LOGIN", label: "Login" },
+  { value: "ROLE_CHANGE", label: "Role Change" },
+  { value: "SCHEDULED_RUN", label: "Scheduled Run" },
+  { value: "DISCORD_COMMAND", label: "Discord Command" },
 ];
 
 function relativeTime(dateStr: string): string {

@@ -51,9 +51,11 @@ export const serversApi = {
   },
 
   banPlayer: async (id: number, playerName: string, reason = ""): Promise<void> => {
+    // Backend reads `reason` as a query parameter, not from the request body
     await client.post(
       `/servers/${id}/players/${encodeURIComponent(playerName)}/ban`,
-      reason ? { reason } : undefined
+      undefined,
+      reason ? { params: { reason } } : undefined
     );
   },
 

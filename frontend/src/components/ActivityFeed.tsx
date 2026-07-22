@@ -17,30 +17,29 @@ import {
 import { activityApi } from "../api/activity";
 import type { ActivityAction, ActivityEntry } from "../types";
 
+// Keys must match the backend ActionType enum values (backend/app/models/activity_log.py)
 const ACTION_CONFIG: Record<string, { icon: typeof Terminal; color: string; label: string }> = {
   COMMAND: { icon: Terminal, color: "#67b7e2", label: "RCON" },
   KICK: { icon: UserX, color: "#e3b454", label: "Kick" },
   BAN: { icon: Ban, color: "#d96b5c", label: "Ban" },
-  SERVER_START: { icon: Power, color: "#ffb224", label: "Start" },
-  SERVER_STOP: { icon: PowerOff, color: "#d96b5c", label: "Stop" },
+  UNBAN: { icon: Ban, color: "#67b7e2", label: "Unban" },
   SERVER_CREATE: { icon: Plus, color: "#ffb224", label: "Add" },
   SERVER_UPDATE: { icon: Pencil, color: "#67b7e2", label: "Update" },
   SERVER_DELETE: { icon: Trash2, color: "#d96b5c", label: "Delete" },
-  SCHEDULER_CREATE: { icon: Clock, color: "#a855f7", label: "Schedule" },
-  SCHEDULER_UPDATE: { icon: Pencil, color: "#a855f7", label: "Schedule" },
+  LOGIN: { icon: Power, color: "#ffb224", label: "Login" },
+  PERMISSION_REVOKE: { icon: PowerOff, color: "#d96b5c", label: "Perms" },
+  SCHEDULED_RUN: { icon: Clock, color: "#a855f7", label: "Schedule" },
 };
 
 const ACTION_TYPES: { value: ActivityAction; label: string }[] = [
   { value: "COMMAND", label: "RCON Command" },
   { value: "KICK", label: "Kick" },
   { value: "BAN", label: "Ban" },
-  { value: "SERVER_START", label: "Server Start" },
-  { value: "SERVER_STOP", label: "Server Stop" },
+  { value: "UNBAN", label: "Unban" },
   { value: "SERVER_CREATE", label: "Server Added" },
   { value: "SERVER_UPDATE", label: "Server Updated" },
   { value: "SERVER_DELETE", label: "Server Deleted" },
-  { value: "SCHEDULER_CREATE", label: "Scheduler Created" },
-  { value: "SCHEDULER_UPDATE", label: "Scheduler Updated" },
+  { value: "SCHEDULED_RUN", label: "Scheduled Run" },
 ];
 
 function relativeTime(dateStr: string): string {

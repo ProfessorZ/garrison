@@ -22,7 +22,13 @@ export const activityApi = {
       items.length < perPage
         ? (page - 1) * perPage + items.length
         : page * perPage + 1;
-    return { items, total };
+    return {
+      items,
+      total,
+      page,
+      per_page: perPage,
+      pages: Math.max(1, Math.ceil(total / perPage)),
+    };
   },
 
   getServerActivity: async (
@@ -39,6 +45,12 @@ export const activityApi = {
       items.length < perPage
         ? (page - 1) * perPage + items.length
         : page * perPage + 1;
-    return { items, total };
+    return {
+      items,
+      total,
+      page,
+      per_page: perPage,
+      pages: Math.max(1, Math.ceil(total / perPage)),
+    };
   },
 };
