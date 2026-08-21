@@ -30,9 +30,9 @@ interface Props {
 
 const CATEGORY_CONFIG: Record<string, { icon: typeof Shield; accent: string; description: string }> = {
   // Shared / PZ categories
-  "Gameplay": { icon: Gamepad2, accent: "#00d4aa", description: "Core game mechanics and rules" },
-  "Server": { icon: Server, accent: "#818cf8", description: "Server performance and configuration" },
-  "Safehouse": { icon: Home, accent: "#fbbf24", description: "Player safehouse rules" },
+  "Gameplay": { icon: Gamepad2, accent: "#ffb224", description: "Core game mechanics and rules" },
+  "Server": { icon: Server, accent: "#67b7e2", description: "Server performance and configuration" },
+  "Safehouse": { icon: Home, accent: "#e3b454", description: "Player safehouse rules" },
   "Chat": { icon: MessageSquare, accent: "#38bdf8", description: "In-game chat settings" },
   "Anti-Cheat": { icon: Shield, accent: "#f472b6", description: "Anti-cheat protection levels" },
   "Vehicles": { icon: Car, accent: "#fb923c", description: "Vehicle spawning and behavior" },
@@ -44,7 +44,7 @@ const CATEGORY_CONFIG: Record<string, { icon: typeof Shield; accent: string; des
   "Network": { icon: Wifi, accent: "#fb923c", description: "Upload and bandwidth settings" },
   "Visibility": { icon: Eye, accent: "#a78bfa", description: "Server browser visibility" },
   // Fallback
-  "Other": { icon: Settings, accent: "#94a3b8", description: "Miscellaneous settings" },
+  "Other": { icon: Settings, accent: "#8a8271", description: "Miscellaneous settings" },
 };
 
 const CATEGORY_ORDER = Object.keys(CATEGORY_CONFIG);
@@ -133,17 +133,17 @@ export default function ServerOptions({ serverId }: Props) {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
-        <p className="text-sm text-[#64748b]">Loading server options...</p>
+        <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-[#ffb224] border-r-transparent" />
+        <p className="text-sm text-[#6b6455]">Loading server options...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-2xl p-6 text-center" style={{ background: "rgba(255,71,87,0.04)", border: "1px solid rgba(255,71,87,0.12)" }}>
-        <p className="text-sm text-[#ff4757] font-semibold">Failed to load server options</p>
-        <p className="text-xs text-[#64748b] mt-1">Make sure the server is online and RCON is accessible.</p>
+      <div className="rounded-2xl p-6 text-center" style={{ background: "rgba(217, 107, 92,0.04)", border: "1px solid rgba(217, 107, 92,0.12)" }}>
+        <p className="text-sm text-[#d96b5c] font-semibold">Failed to load server options</p>
+        <p className="text-xs text-[#6b6455] mt-1">Make sure the server is online and RCON is accessible.</p>
       </div>
     );
   }
@@ -154,22 +154,22 @@ export default function ServerOptions({ serverId }: Props) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-lg font-bold text-white">Server Configuration</h3>
-          <p className="text-sm text-[#64748b] mt-1">{options.length} options across {grouped.length} categories</p>
+          <p className="text-sm text-[#6b6455] mt-1">{options.length} options across {grouped.length} categories</p>
         </div>
         {changedCount > 0 && (
           <div className="flex items-center gap-3 shrink-0">
             <div className="flex items-center gap-2 rounded-full px-3 py-1.5" style={{ background: "rgba(255,165,2,0.08)" }}>
-              <span className="h-2 w-2 rounded-full bg-[#ffa502] animate-pulse" />
-              <span className="text-xs text-[#ffa502] font-bold">{changedCount} unsaved</span>
+              <span className="h-2 w-2 rounded-full bg-[#e3b454] animate-pulse" />
+              <span className="text-xs text-[#e3b454] font-bold">{changedCount} unsaved</span>
             </div>
             <button onClick={() => setChanges({})}
-              className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-[#e2e8f0] transition-all duration-200 hover:bg-[rgba(255,255,255,0.06)]"
+              className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-[#e8e3d8] transition-all duration-200 hover:bg-[rgba(255,255,255,0.06)]"
               style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
               <RotateCcw className="h-3 w-3" /> Reset
             </button>
             <button onClick={() => bulkMutation.mutate(changes)} disabled={bulkMutation.isPending}
-              className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-200 hover:scale-[1.02]"
-              style={{ background: "linear-gradient(135deg, #00d4aa, #00b894)" }}>
+              className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-[#0b0a08] disabled:opacity-50 transition-all duration-200 hover:scale-[1.02]"
+              style={{ background: "linear-gradient(135deg, #ffb224, #ffc95c)" }}>
               <Save className="h-3 w-3" /> {bulkMutation.isPending ? "Saving..." : "Save All"}
             </button>
           </div>
@@ -178,14 +178,14 @@ export default function ServerOptions({ serverId }: Props) {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748b] pointer-events-none" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6b6455] pointer-events-none" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search options..."
-          className="w-full rounded-2xl pl-12 pr-4 py-3.5 text-sm text-[#e2e8f0] placeholder-[#4a5568] focus:outline-none transition-all duration-200"
-          style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
-          onFocus={(e) => (e.target.style.borderColor = "rgba(0,212,170,0.3)")}
+          className="w-full rounded-2xl pl-12 pr-4 py-3.5 text-sm text-[#e8e3d8] placeholder-[#4a5568] focus:outline-none transition-all duration-200"
+          style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
+          onFocus={(e) => (e.target.style.borderColor = "rgba(255, 178, 36,0.3)")}
           onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.06)")}
         />
       </div>
@@ -199,7 +199,7 @@ export default function ServerOptions({ serverId }: Props) {
 
         return (
           <div key={category} className="rounded-2xl overflow-hidden transition-all duration-200"
-            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+            style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}>
             
             {/* Category header */}
             <button
@@ -212,14 +212,14 @@ export default function ServerOptions({ serverId }: Props) {
               <div className="flex-1 text-left">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-bold text-white">{category}</span>
-                  <span className="text-[10px] font-semibold text-[#64748b] uppercase tracking-wider">{opts.length} options</span>
-                  {hasChanges && <span className="h-2 w-2 rounded-full bg-[#ffa502] animate-pulse" />}
+                  <span className="text-[10px] font-semibold text-[#6b6455] uppercase tracking-wider">{opts.length} options</span>
+                  {hasChanges && <span className="h-2 w-2 rounded-full bg-[#e3b454] animate-pulse" />}
                 </div>
                 <p className="text-xs text-[#4a5568] mt-0.5">{config.description}</p>
               </div>
               {isCollapsed
-                ? <ChevronRight className="h-4 w-4 text-[#374151]" />
-                : <ChevronDown className="h-4 w-4 text-[#374151]" />
+                ? <ChevronRight className="h-4 w-4 text-[#5c5647]" />
+                : <ChevronDown className="h-4 w-4 text-[#5c5647]" />
               }
             </button>
 
@@ -242,11 +242,11 @@ export default function ServerOptions({ serverId }: Props) {
                       {/* Label + description */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className={`text-[13px] font-semibold ${isChanged ? "text-[#ffa502]" : "text-[#e2e8f0]"}`}>
+                          <span className={`text-[13px] font-semibold ${isChanged ? "text-[#e3b454]" : "text-[#e8e3d8]"}`}>
                             {opt.name}
                           </span>
                           {isChanged && (
-                            <span className="text-[9px] font-bold text-[#ffa502] uppercase tracking-widest px-1.5 py-0.5 rounded-full"
+                            <span className="text-[9px] font-bold text-[#e3b454] uppercase tracking-widest px-1.5 py-0.5 rounded-full"
                               style={{ background: "rgba(255,165,2,0.08)" }}>
                               modified
                             </span>
@@ -265,9 +265,9 @@ export default function ServerOptions({ serverId }: Props) {
                             className="relative w-12 h-6 rounded-full transition-all duration-300 focus:outline-none"
                             style={{
                               background: displayVal === "true"
-                                ? "linear-gradient(135deg, #00d4aa, #00b894)"
-                                : "#1a1f2e",
-                              boxShadow: displayVal === "true" ? "0 0 12px rgba(0,212,170,0.3)" : "none",
+                                ? "linear-gradient(135deg, #ffb224, #ffc95c)"
+                                : "#12100b",
+                              boxShadow: displayVal === "true" ? "0 0 12px rgba(255, 178, 36,0.3)" : "none",
                             }}
                           >
                             <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-md transition-all duration-300 ${
@@ -283,15 +283,15 @@ export default function ServerOptions({ serverId }: Props) {
                                 const step = n % 1 !== 0 ? 0.1 : 1;
                                 setOptionValue(opt.name, n % 1 !== 0 ? Math.max(0, n - step).toFixed(1) : String(Math.max(0, n - step)), opt.value);
                               }}
-                              className="px-3 py-1.5 text-sm font-bold text-[#94a3b8] hover:text-white hover:bg-[rgba(255,255,255,0.05)] transition-all"
-                              style={{ background: "#0f1420" }}
+                              className="px-3 py-1.5 text-sm font-bold text-[#8a8271] hover:text-white hover:bg-[rgba(255,255,255,0.05)] transition-all"
+                              style={{ background: "#0c0a07" }}
                             >−</button>
                             <input
                               type="text"
                               value={displayVal}
                               onChange={(e) => setOptionValue(opt.name, e.target.value, opt.value)}
                               className="w-16 py-1.5 text-sm text-center text-white focus:outline-none tabular-nums"
-                              style={{ background: "#0f1420", fontFamily: "var(--font-mono)" }}
+                              style={{ background: "#0c0a07", fontFamily: "var(--font-mono)" }}
                             />
                             <button
                               onClick={() => {
@@ -299,8 +299,8 @@ export default function ServerOptions({ serverId }: Props) {
                                 const step = n % 1 !== 0 ? 0.1 : 1;
                                 setOptionValue(opt.name, n % 1 !== 0 ? (n + step).toFixed(1) : String(n + step), opt.value);
                               }}
-                              className="px-3 py-1.5 text-sm font-bold text-[#94a3b8] hover:text-white hover:bg-[rgba(255,255,255,0.05)] transition-all"
-                              style={{ background: "#0f1420" }}
+                              className="px-3 py-1.5 text-sm font-bold text-[#8a8271] hover:text-white hover:bg-[rgba(255,255,255,0.05)] transition-all"
+                              style={{ background: "#0c0a07" }}
                             >+</button>
                           </div>
                         ) : (
@@ -310,11 +310,11 @@ export default function ServerOptions({ serverId }: Props) {
                             onChange={(e) => setOptionValue(opt.name, e.target.value, opt.value)}
                             className="w-52 rounded-xl px-3 py-2 text-sm text-white focus:outline-none transition-all duration-200"
                             style={{
-                              background: "#0f1420",
+                              background: "#0c0a07",
                               border: "1px solid rgba(255,255,255,0.08)",
                               fontFamily: "var(--font-mono)",
                             }}
-                            onFocus={(e) => (e.target.style.borderColor = "rgba(0,212,170,0.3)")}
+                            onFocus={(e) => (e.target.style.borderColor = "rgba(255, 178, 36,0.3)")}
                             onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.08)")}
                           />
                         )}
@@ -323,11 +323,11 @@ export default function ServerOptions({ serverId }: Props) {
                           <button
                             onClick={() => saveOne(opt.name)}
                             disabled={savingOption === opt.name}
-                            className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-200 hover:scale-105"
-                            style={{ background: "#00d4aa" }}
+                            className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-[#0b0a08] disabled:opacity-50 transition-all duration-200 hover:scale-105"
+                            style={{ background: "#ffb224" }}
                           >
                             {savingOption === opt.name ? (
-                              <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#0a0e1a] border-r-transparent" />
+                              <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#0b0a08] border-r-transparent" />
                             ) : (
                               <Save className="h-3 w-3" />
                             )}
@@ -344,9 +344,9 @@ export default function ServerOptions({ serverId }: Props) {
       })}
 
       {grouped.length === 0 && !isLoading && (
-        <div className="text-center py-16 rounded-2xl" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
-          <Search className="h-6 w-6 text-[#374151] mx-auto mb-3" />
-          <p className="text-sm text-[#94a3b8]">
+        <div className="text-center py-16 rounded-2xl" style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <Search className="h-6 w-6 text-[#5c5647] mx-auto mb-3" />
+          <p className="text-sm text-[#8a8271]">
             {search ? `No options match "${search}"` : "No server options available."}
           </p>
         </div>

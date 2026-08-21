@@ -50,9 +50,18 @@ export const serversApi = {
     );
   },
 
-  banPlayer: async (id: number, playerName: string): Promise<void> => {
+  banPlayer: async (id: number, playerName: string, reason = ""): Promise<void> => {
+    // Backend reads `reason` as a query parameter, not from the request body
     await client.post(
-      `/servers/${id}/players/${encodeURIComponent(playerName)}/ban`
+      `/servers/${id}/players/${encodeURIComponent(playerName)}/ban`,
+      undefined,
+      reason ? { params: { reason } } : undefined
+    );
+  },
+
+  unbanPlayer: async (id: number, playerName: string): Promise<void> => {
+    await client.post(
+      `/servers/${id}/players/${encodeURIComponent(playerName)}/unban`
     );
   },
 
@@ -81,7 +90,7 @@ export const serversApi = {
 
   giveItem: async (id: number, playerName: string, item: string, count: number = 1) => {
     const res = await client.post(
-      `/servers/${id}/players/${encodeURIComponent(playerName)}/give`,
+      `/servers/${id}/players/${encodeURIComponent(playerName)}/give-item`,
       { item, count }
     );
     return res.data;
@@ -108,8 +117,11 @@ export const serversApi = {
   },
 
   getMaps: async (id: number): Promise<string[]> => {
-    const res = await client.get<string[]>(`/servers/${id}/maps`);
-    return res.data;
+    const res = await client.get<string[] | { maps: string[] }>(`/servers/${id}/maps`);
+    const data = res.data;
+    if (Array.isArray(data)) return data;
+    if (data && Array.isArray(data.maps)) return data.maps;
+    return [];
   },
 
   changeMap: async (id: number, mapName: string) => {

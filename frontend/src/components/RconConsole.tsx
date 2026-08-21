@@ -264,51 +264,51 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
   }, [selectedIndex, showAutocomplete]);
 
   const lineColor: Record<ConsoleLine["type"], string> = {
-    command: "#e2e8f0",
-    output: "#00d4aa",
-    error: "#ff4757",
+    command: "#e8e3d8",
+    output: "#ffb224",
+    error: "#d96b5c",
     system: "rgba(255,165,2,0.7)",
   };
 
   return (
-    <div className="rounded-xl overflow-hidden flex flex-col" style={{
-      background: "#111827",
-      border: "1px solid rgba(255,255,255,0.06)",
+    <div className="rounded-lg overflow-hidden flex flex-col" style={{
+      background: "#080705",
+      border: "1px solid rgba(255,255,255,0.07)",
     }}>
-      {/* Status bar */}
-      <div className="flex items-center justify-between px-4 py-2.5" style={{
+      <div className="flex items-center justify-between px-3.5 py-2" style={{
         borderBottom: "1px solid rgba(255,255,255,0.06)",
-        background: "#111827",
+        background: "#080705",
       }}>
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-2.5 font-mono text-[10px]">
+          <span className="tracking-widest" style={{ color: "var(--accent)" }}>RCON CONSOLE</span>
           <span
-            className={`inline-block h-2 w-2 rounded-full ${
-              connState === "connecting" ? "bg-[#ffa502] animate-pulse" :
-              connState === "connected" ? "bg-[#00d4aa] status-online" :
-              "bg-[#ff4757]"
+            className={`inline-block h-1.5 w-1.5 rounded-full ${
+              connState === "connecting" ? "bg-[#e3b454] animate-pulse" :
+              connState === "connected" ? "bg-[#9de26b] blink" :
+              "bg-[#d96b5c]"
             }`}
           />
-          <span className="font-semibold" style={{
-            color: connState === "connected" ? "#00d4aa" :
-                   connState === "connecting" ? "#ffa502" : "#ff4757"
+          <span style={{
+            color: connState === "connected" ? "#9de26b" :
+                   connState === "connecting" ? "#e3b454" : "#d96b5c"
           }}>
-            {connState === "connected" && "Connected"}
-            {connState === "connecting" && "Connecting..."}
-            {connState === "disconnected" && "Disconnected"}
+            {connState === "connected" && "session live · history ↑↓ · tab to complete"}
+            {connState === "connecting" && "connecting…"}
+            {connState === "disconnected" && "disconnected"}
           </span>
         </div>
         {connState === "disconnected" && (
           <button
             onClick={connect}
-            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium text-[#e2e8f0] transition-all duration-150"
-            style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium text-[#e8e3d8] transition-all duration-150"
+            style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
           >
             <RotateCcw className="h-3 w-3" />
             Reconnect
           </button>
         )}
         {connState === "connecting" && (
-          <Loader2 className="h-3.5 w-3.5 text-[#ffa502] animate-spin" />
+          <Loader2 className="h-3.5 w-3.5 text-[#e3b454] animate-spin" />
         )}
       </div>
 
@@ -320,17 +320,17 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
         style={{ background: "#000", fontFamily: "var(--font-mono)" }}
       >
         {lines.length === 0 && (
-          <p className="text-[#64748b] select-none text-sm">
+          <p className="text-[#6b6455] select-none text-sm">
             Waiting for connection...
           </p>
         )}
         {lines.map((line) => (
           <div key={line.id} className="flex gap-2.5 text-sm leading-relaxed">
-            <span className="text-[#64748b] select-none shrink-0 text-xs leading-relaxed tabular-nums">
+            <span className="text-[#6b6455] select-none shrink-0 text-xs leading-relaxed tabular-nums">
               {formatTime(line.timestamp)}
             </span>
             {line.type === "command" && (
-              <span className="text-[#64748b] select-none">&gt;</span>
+              <span className="text-[#6b6455] select-none">&gt;</span>
             )}
             <span className="whitespace-pre-wrap break-all" style={{ color: lineColor[line.type] }}>
               {line.text}
@@ -345,14 +345,14 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
           <div
             ref={autocompleteRef}
             className="absolute bottom-full left-0 right-0 overflow-y-auto rounded-t-lg shadow-2xl z-10"
-            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)", borderBottom: "none", maxHeight: 200 }}
+            style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)", borderBottom: "none", maxHeight: 200 }}
           >
             {Object.keys(groupedCommands)
               .sort()
               .map((category) => (
                 <div key={category}>
-                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#64748b] sticky top-0"
-                    style={{ background: "#111827" }}>
+                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#6b6455] sticky top-0"
+                    style={{ background: "#0e0c09" }}>
                     {CATEGORY_LABELS[category] || category}
                   </div>
                   {groupedCommands[category].map((cmd) => {
@@ -364,18 +364,18 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
                         onClick={() => selectCommand(cmd)}
                         className="flex items-center justify-between px-3 py-1.5 cursor-pointer text-sm transition-colors"
                         style={{
-                          background: idx === selectedIndex ? "rgba(0,212,170,0.08)" : "transparent",
-                          color: idx === selectedIndex ? "#00d4aa" : "#e2e8f0",
+                          background: idx === selectedIndex ? "rgba(255, 178, 36,0.08)" : "transparent",
+                          color: idx === selectedIndex ? "#ffb224" : "#e8e3d8",
                         }}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <span style={{ fontFamily: "var(--font-mono)", color: "#00d4aa", fontWeight: 500, flexShrink: 0 }}>
+                          <span style={{ fontFamily: "var(--font-mono)", color: "#ffb224", fontWeight: 500, flexShrink: 0 }}>
                             {cmd.name}
                           </span>
-                          <span className="text-xs text-[#64748b] truncate">{cmd.description}</span>
+                          <span className="text-xs text-[#6b6455] truncate">{cmd.description}</span>
                         </div>
                         {idx === selectedIndex && (
-                          <span className="text-[10px] text-[#64748b] shrink-0 ml-2">Tab</span>
+                          <span className="text-[10px] text-[#6b6455] shrink-0 ml-2">Tab</span>
                         )}
                       </div>
                     );
@@ -387,15 +387,10 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
 
         <form
           onSubmit={sendCommand}
-          className="flex items-center gap-3 px-4 py-3"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "#0a0e1a" }}
+          className="flex items-center gap-2.5 px-4 py-3"
+          style={{ borderTop: "1px solid var(--border-accent)", background: "#0b0a08" }}
         >
-          <span
-            className={`inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
-              connState === "connected" ? "bg-[#00d4aa] status-online" : "bg-[#64748b]"
-            }`}
-          />
-          <span className="text-[#00d4aa] select-none text-sm" style={{ fontFamily: "var(--font-mono)" }}>&gt;</span>
+          <span className="text-[#ffb224] select-none text-[13px] font-mono shrink-0">&gt;</span>
           <input
             ref={inputRef}
             value={command}
@@ -403,14 +398,15 @@ export default function RconConsole({ serverId, gameType = "zomboid" }: RconCons
             onKeyDown={handleKeyDown}
             placeholder={
               connState === "connected"
-                ? "Enter RCON command..."
-                : "Waiting for connection..."
+                ? "enter rcon command… (try: players, save, help)"
+                : "waiting for connection…"
             }
             disabled={connState !== "connected"}
             autoComplete="off"
-            className="flex-1 bg-transparent border-none px-0 py-1 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none focus:ring-0 focus:border-none disabled:opacity-40"
+            className="flex-1 bg-transparent border-none px-0 py-1 text-[13px] text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none focus:ring-0 focus:border-none disabled:opacity-40"
             style={{ fontFamily: "var(--font-mono)", boxShadow: "none" }}
           />
+          <span className="blink w-2 h-[15px] shrink-0" style={{ background: "var(--accent)", opacity: 0.7 }} />
         </form>
       </div>
     </div>

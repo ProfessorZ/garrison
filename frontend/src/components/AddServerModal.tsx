@@ -1,9 +1,9 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { X, Plus, AlertCircle } from "lucide-react";
 import { serversApi } from "../api/servers";
 import { pluginsApi } from "../api/plugins";
+import { gameIcon, gameLabel } from "../lib/gameMeta";
 
 interface AddServerModalProps {
   open: boolean;
@@ -34,7 +34,6 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
     game_type: "",
   });
 
-  // Fetch installed plugins from the API (shared cache key with PluginsPage)
   const { data: pluginData } = useQuery({
     queryKey: ["plugins"],
     queryFn: pluginsApi.list,
@@ -42,7 +41,6 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
   });
   const plugins: PluginInfo[] = (pluginData?.plugins ?? []) as PluginInfo[];
 
-  // Set default game_type when plugins load
   useEffect(() => {
     if (plugins.length > 0 && !form.game_type) {
       const first = plugins[0];
@@ -53,7 +51,7 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
         rcon_port: first.default_ports?.rcon?.toString() ?? "",
       }));
     }
-  }, [plugins]);
+  }, [plugins, form.game_type]);
 
   const createServer = useMutation({
     mutationFn: serversApi.create,
@@ -105,13 +103,34 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
     const rconPort = parseInt(form.rcon_port);
     const queryPort = form.query_port ? parseInt(form.query_port) : null;
 
-    if (!form.name.trim()) { setError("Server name is required"); return; }
-    if (!form.host.trim()) { setError("Host address is required"); return; }
-    if (isNaN(port) || port < 1 || port > 65535) { setError("Game port must be between 1 and 65535"); return; }
-    if (queryPort !== null && (isNaN(queryPort) || queryPort < 1 || queryPort > 65535)) { setError("Query port must be between 1 and 65535"); return; }
-    if (isNaN(rconPort) || rconPort < 1 || rconPort > 65535) { setError("RCON port must be between 1 and 65535"); return; }
-    if (!form.rcon_password) { setError("RCON password is required"); return; }
-    if (!form.game_type) { setError("Please select a game type"); return; }
+    if (!form.name.trim()) {
+      setError("Server name is required");
+      return;
+    }
+    if (!form.host.trim()) {
+      setError("Host address is required");
+      return;
+    }
+    if (isNaN(port) || port < 1 || port > 65535) {
+      setError("Game port must be between 1 and 65535");
+      return;
+    }
+    if (queryPort !== null && (isNaN(queryPort) || queryPort < 1 || queryPort > 65535)) {
+      setError("Query port must be between 1 and 65535");
+      return;
+    }
+    if (isNaN(rconPort) || rconPort < 1 || rconPort > 65535) {
+      setError("RCON port must be between 1 and 65535");
+      return;
+    }
+    if (!form.rcon_password) {
+      setError("RCON password is required");
+      return;
+    }
+    if (!form.game_type) {
+      setError("Please select a game type");
+      return;
+    }
 
     createServer.mutate({
       name: form.name.trim(),
@@ -126,137 +145,135 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
 
   if (!open) return null;
 
-  const inputCls = "w-full rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none transition-all duration-150";
-  const inputStyle = {
-    background: "#1a1f2e",
-    border: "1px solid rgba(255,255,255,0.06)",
+  const field = {
+    background: "var(--bg-deepest)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: 4,
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0"
+        style={{ background: "rgba(5,4,3,0.75)", backdropFilter: "blur(3px)" }}
         onClick={handleClose}
       />
-      <div className="relative shadow-2xl w-full max-w-lg animate-fade-in mx-0 sm:mx-4 rounded-none sm:rounded-xl h-full sm:h-auto overflow-y-auto sm:overflow-visible"
-        style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <div className="flex items-center gap-2.5">
-            <Plus className="h-4 w-4 text-[#00d4aa]" />
-            <h2 className="text-base font-bold text-[#e2e8f0]">Add Server</h2>
-          </div>
+      <div
+        className="relative w-full max-w-[520px] mx-4 animate-fade-in overflow-hidden max-h-[95vh] overflow-y-auto"
+        style={{
+          border: "1px solid var(--border-accent)",
+          borderRadius: 10,
+          background: "var(--bg-card)",
+        }}
+      >
+        <div
+          className="flex items-center justify-between px-[18px] py-3"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          <span className="font-mono text-[11px] tracking-widest" style={{ color: "var(--accent)" }}>
+            ADD SERVER
+          </span>
           <button
             onClick={handleClose}
-            className="p-1.5 rounded-md text-[#64748b] hover:text-[#e2e8f0] transition-colors"
-            style={{ background: "transparent" }}
+            className="font-mono text-xs touch-compact"
+            style={{ color: "var(--text-muted)", minHeight: "unset" }}
           >
-            <X className="h-4 w-4" />
+            ✕
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="p-5">
           {error && (
-            <div className="flex items-center gap-2.5 mb-5 rounded-lg px-3.5 py-3 animate-fade-in"
-              style={{ background: "rgba(255,71,87,0.06)", border: "1px solid rgba(255,71,87,0.12)" }}>
-              <AlertCircle className="h-4 w-4 text-[#ff4757] shrink-0" />
-              <p className="text-sm text-[#ff4757]">{error}</p>
-            </div>
+            <p
+              className="font-mono text-xs px-3 py-2.5 rounded mb-4"
+              style={{ color: "var(--danger)", background: "rgba(217,107,92,0.1)" }}
+            >
+              {error}
+            </p>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div className="sm:col-span-2">
-              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1.5 uppercase tracking-wider">
-                Server Name
-              </label>
+              <label className="label-caps block mb-1.5">Name</label>
               <input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className={inputCls}
-                style={inputStyle}
                 placeholder="My Game Server"
+                className="w-full px-3 py-2 text-[12.5px]"
+                style={field}
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1.5 uppercase tracking-wider">
-                Host
-              </label>
+              <label className="label-caps block mb-1.5">Host</label>
               <input
                 value={form.host}
                 onChange={(e) => setForm({ ...form, host: e.target.value })}
-                className={inputCls}
-                style={inputStyle}
-                placeholder="192.168.1.100 or my-server.example.com"
+                placeholder="192.168.1.100 or host.example.com"
+                className="w-full px-3 py-2 text-[12.5px]"
+                style={field}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1.5 uppercase tracking-wider">
-                Game Port
-              </label>
+              <label className="label-caps block mb-1.5">Game Port</label>
               <input
                 type="number"
                 value={form.port}
                 onChange={(e) => setForm({ ...form, port: e.target.value })}
-                className={inputCls}
-                style={inputStyle}
-                placeholder="16261"
+                className="w-full px-3 py-2 text-[12.5px]"
+                style={field}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1.5 uppercase tracking-wider">
-                Query Port
-              </label>
-              <input
-                type="number"
-                value={form.query_port}
-                onChange={(e) => setForm({ ...form, query_port: e.target.value })}
-                className={inputCls}
-                style={inputStyle}
-                placeholder="e.g. 27015"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1.5 uppercase tracking-wider">
-                RCON Port
-              </label>
+              <label className="label-caps block mb-1.5">RCON Port</label>
               <input
                 type="number"
                 value={form.rcon_port}
                 onChange={(e) => setForm({ ...form, rcon_port: e.target.value })}
-                className={inputCls}
-                style={inputStyle}
-                placeholder="27015"
+                className="w-full px-3 py-2 text-[12.5px]"
+                style={field}
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1.5 uppercase tracking-wider">
-                RCON Password
-              </label>
+              <label className="label-caps block mb-1.5">Query Port (optional)</label>
+              <input
+                type="number"
+                value={form.query_port}
+                onChange={(e) => setForm({ ...form, query_port: e.target.value })}
+                placeholder="leave blank if same as game"
+                className="w-full px-3 py-2 text-[12.5px]"
+                style={field}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label-caps block mb-1.5">RCON Passphrase</label>
               <input
                 type="password"
                 value={form.rcon_password}
                 onChange={(e) => setForm({ ...form, rcon_password: e.target.value })}
-                className={inputCls}
-                style={inputStyle}
-                placeholder="Enter RCON password"
+                placeholder="stored encrypted"
+                className="w-full px-3 py-2 text-[12.5px]"
+                style={field}
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-[11px] font-semibold text-[#94a3b8] mb-1.5 uppercase tracking-wider">
-                Game Type
-              </label>
+              <label className="label-caps block mb-1.5">Plugin</label>
               {plugins.length === 0 ? (
-                <div className="text-sm text-[#64748b] py-2.5">No plugins installed</div>
+                <p className="font-mono text-xs py-2" style={{ color: "var(--text-muted)" }}>
+                  no plugins installed — install from System
+                </p>
               ) : (
                 <select
                   value={form.game_type}
                   onChange={(e) => handleGameTypeChange(e.target.value)}
-                  className={inputCls}
-                  style={inputStyle}
+                  className="w-full px-3 py-2 text-[12.5px]"
+                  style={field}
                 >
                   {plugins.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.icon} {p.display_name}
+                      {p.icon || gameIcon(p.id)} {p.display_name || gameLabel(p.id)}
+                      {p.default_ports?.game != null
+                        ? ` — ports ${p.default_ports.game}/${p.default_ports.rcon ?? "?"}`
+                        : ""}
                     </option>
                   ))}
                 </select>
@@ -264,23 +281,19 @@ export default function AddServerModal({ open, onClose }: AddServerModalProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 mt-6 pt-5" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="rounded-lg px-4 py-2.5 text-sm font-medium text-[#e2e8f0] transition-all duration-150"
-              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
-            >
-              Cancel
+          <div
+            className="flex justify-end gap-2.5 mt-5 pt-3.5"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+          >
+            <button type="button" onClick={handleClose} className="btn-ghost">
+              CANCEL
             </button>
             <button
               type="submit"
               disabled={createServer.isPending || plugins.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-150"
-              style={{ background: "#00d4aa" }}
+              className="btn-primary disabled:opacity-50"
             >
-              <Plus className="h-4 w-4" />
-              {createServer.isPending ? "Adding..." : "Add Server"}
+              {createServer.isPending ? "ADDING…" : "ADD + PROBE RCON"}
             </button>
           </div>
         </form>

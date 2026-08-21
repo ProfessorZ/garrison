@@ -206,6 +206,7 @@ export interface CreateServerRequest {
 }
 
 // Activity
+// Mirrors backend ActionType enum (backend/app/models/activity_log.py)
 export type ActivityAction =
   | "COMMAND"
   | "KICK"
@@ -215,10 +216,13 @@ export type ActivityAction =
   | "SERVER_UPDATE"
   | "SERVER_DELETE"
   | "LOGIN"
-  | "SCHEDULER_CREATE"
-  | "SCHEDULER_UPDATE"
-  | "SCHEDULER_DELETE"
+  | "ROLE_CHANGE"
+  | "PERMISSION_GRANT"
+  | "PERMISSION_REVOKE"
+  | "ACCESS_DENIED"
+  | "SCHEDULED_RUN"
   | "DISCORD_COMMAND"
+  | "VAC_BAN_DETECTED"
   | string;
 
 export interface ActivityEntry {

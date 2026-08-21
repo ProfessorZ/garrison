@@ -102,9 +102,9 @@ export default function TriggerModal({ open, onClose, onSave, saving, trigger, s
     onSave(form);
   };
 
-  const inputCls = "w-full rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none transition-all duration-150";
-  const inputStyle = { background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" };
-  const labelCls = "block text-[11px] font-bold text-[#94a3b8] mb-1 uppercase tracking-wider";
+  const inputCls = "w-full rounded-lg px-3 py-2.5 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none transition-all duration-150";
+  const inputStyle = { background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" };
+  const labelCls = "block text-[11px] font-bold text-[#8a8271] mb-1 uppercase tracking-wider";
 
   const needsThreshold = form.event_type === "player_count_above" || form.event_type === "player_count_below";
   const needsPattern = form.event_type === "chat_message";
@@ -117,15 +117,15 @@ export default function TriggerModal({ open, onClose, onSave, saving, trigger, s
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
         className="relative w-full max-w-2xl overflow-y-auto shadow-2xl p-4 sm:p-6 mx-0 sm:mx-4 rounded-none sm:rounded-2xl h-full sm:h-auto sm:max-h-[90vh]"
-        style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+        style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-bold text-[#e2e8f0]">
+          <h3 className="text-lg font-bold text-[#e8e3d8]">
             {trigger ? "Edit Trigger" : "Create Trigger"}
           </h3>
-          <button onClick={onClose} className="p-1 rounded-md text-[#64748b] hover:text-[#e2e8f0] transition-colors" style={{ background: "transparent" }}>
+          <button onClick={onClose} className="p-1 rounded-md text-[#6b6455] hover:text-[#e8e3d8] transition-colors" style={{ background: "transparent" }}>
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -169,7 +169,7 @@ export default function TriggerModal({ open, onClose, onSave, saving, trigger, s
                 <option key={et.value} value={et.value}>{et.label}</option>
               ))}
             </select>
-            <p className="text-xs text-[#64748b] mt-1">{EVENT_TYPES.find((e) => e.value === form.event_type)?.description}</p>
+            <p className="text-xs text-[#6b6455] mt-1">{EVENT_TYPES.find((e) => e.value === form.event_type)?.description}</p>
           </div>
 
           {/* Event Config */}
@@ -199,7 +199,7 @@ export default function TriggerModal({ open, onClose, onSave, saving, trigger, s
                 className={inputCls}
                 style={{ ...inputStyle, fontFamily: "var(--font-mono)" }}
               />
-              <p className="text-xs text-[#64748b] mt-1">Regex pattern to match against chat messages</p>
+              <p className="text-xs text-[#6b6455] mt-1">Regex pattern to match against chat messages</p>
             </div>
           )}
 
@@ -216,7 +216,7 @@ export default function TriggerModal({ open, onClose, onSave, saving, trigger, s
                 <option key={at.value} value={at.value}>{at.label}</option>
               ))}
             </select>
-            <p className="text-xs text-[#64748b] mt-1">{ACTION_TYPES.find((a) => a.value === form.action_type)?.description}</p>
+            <p className="text-xs text-[#6b6455] mt-1">{ACTION_TYPES.find((a) => a.value === form.action_type)?.description}</p>
           </div>
 
           {/* Action Config */}
@@ -231,8 +231,8 @@ export default function TriggerModal({ open, onClose, onSave, saving, trigger, s
                 className={inputCls}
                 style={{ ...inputStyle, fontFamily: "var(--font-mono)" }}
               />
-              <p className="text-xs text-[#64748b] mt-1">
-                Variables: <code className="text-[#00d4aa]">{"{player_name}"}</code> <code className="text-[#00d4aa]">{"{server_name}"}</code> <code className="text-[#00d4aa]">{"{player_count}"}</code> <code className="text-[#00d4aa]">{"{message}"}</code>
+              <p className="text-xs text-[#6b6455] mt-1">
+                Variables: <code className="text-[#ffb224]">{"{player_name}"}</code> <code className="text-[#ffb224]">{"{server_name}"}</code> <code className="text-[#ffb224]">{"{player_count}"}</code> <code className="text-[#ffb224]">{"{message}"}</code>
               </p>
             </div>
           )}
@@ -246,7 +246,7 @@ export default function TriggerModal({ open, onClose, onSave, saving, trigger, s
                 className={inputCls}
                 style={inputStyle}
               />
-              <p className="text-xs text-[#64748b] mt-1">Leave blank for default message. Uses server's webhook config.</p>
+              <p className="text-xs text-[#6b6455] mt-1">Leave blank for default message. Uses server's webhook config.</p>
             </div>
           )}
           {needsReason && (
@@ -274,7 +274,7 @@ export default function TriggerModal({ open, onClose, onSave, saving, trigger, s
               className={inputCls}
               style={inputStyle}
             />
-            <p className="text-xs text-[#64748b] mt-1">Minimum seconds between trigger fires (0 = no cooldown)</p>
+            <p className="text-xs text-[#6b6455] mt-1">Minimum seconds between trigger fires (0 = no cooldown)</p>
           </div>
 
           {/* Conditions (advanced) */}
@@ -282,12 +282,12 @@ export default function TriggerModal({ open, onClose, onSave, saving, trigger, s
             <button
               type="button"
               onClick={() => setShowConditions(!showConditions)}
-              className="text-xs font-bold text-[#64748b] hover:text-[#e2e8f0] transition-colors uppercase tracking-wider"
+              className="text-xs font-bold text-[#6b6455] hover:text-[#e8e3d8] transition-colors uppercase tracking-wider"
             >
               {showConditions ? "▼" : "▶"} Advanced Conditions
             </button>
             {showConditions && (
-              <div className="mt-3 space-y-3 rounded-xl p-4" style={{ background: "#0a0e1a", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <div className="mt-3 space-y-3 rounded-xl p-4" style={{ background: "#0b0a08", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <div>
                   <label className={labelCls}>Player Name Pattern (regex)</label>
                   <input
@@ -350,16 +350,16 @@ export default function TriggerModal({ open, onClose, onSave, saving, trigger, s
             <button
               type="submit"
               disabled={saving}
-              className="rounded-lg px-5 py-2.5 text-sm font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-150"
-              style={{ background: "#00d4aa" }}
+              className="rounded-lg px-5 py-2.5 text-sm font-bold text-[#0b0a08] disabled:opacity-50 transition-all duration-150"
+              style={{ background: "#ffb224" }}
             >
               {saving ? "Saving..." : trigger ? "Update Trigger" : "Create Trigger"}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-4 py-2.5 text-sm font-medium text-[#e2e8f0] transition-all duration-150"
-              style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+              className="rounded-lg px-4 py-2.5 text-sm font-medium text-[#e8e3d8] transition-all duration-150"
+              style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
             >
               Cancel
             </button>

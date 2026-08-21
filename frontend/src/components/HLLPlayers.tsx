@@ -83,21 +83,21 @@ export default function HLLPlayers({ serverId }: Props) {
   };
 
   const actionLabels: Record<ActionType, { label: string; color: string; icon: typeof Ban }> = {
-    punish: { label: "Punish", color: "#ffa502", icon: Skull },
-    kick: { label: "Kick", color: "#ff4757", icon: AlertTriangle },
+    punish: { label: "Punish", color: "#e3b454", icon: Skull },
+    kick: { label: "Kick", color: "#d96b5c", icon: AlertTriangle },
     "temp-ban": { label: "Temp Ban", color: "#ff6348", icon: Clock },
-    "perm-ban": { label: "Perm Ban", color: "#ff4757", icon: Ban },
+    "perm-ban": { label: "Perm Ban", color: "#d96b5c", icon: Ban },
     message: { label: "Message", color: "#38bdf8", icon: MessageSquare },
     "switch-team": { label: "Switch", color: "#a78bfa", icon: ArrowLeftRight },
   };
 
-  const inputCls = "w-full rounded-lg px-3 py-2.5 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none";
-  const inputStyle = { background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" };
+  const inputCls = "w-full rounded-lg px-3 py-2.5 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none";
+  const inputStyle = { background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-40">
-        <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
+        <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#ffb224] border-r-transparent" />
       </div>
     );
   }
@@ -105,26 +105,26 @@ export default function HLLPlayers({ serverId }: Props) {
   return (
     <div className="space-y-4">
       {error && (
-        <div className="rounded-lg px-4 py-3 text-sm text-[#ff4757]" style={{ background: "rgba(255,71,87,0.08)", border: "1px solid rgba(255,71,87,0.15)" }}>
+        <div className="rounded-lg px-4 py-3 text-sm text-[#d96b5c]" style={{ background: "rgba(217, 107, 92,0.08)", border: "1px solid rgba(217, 107, 92,0.15)" }}>
           {error}
-          <button onClick={() => setError("")} className="ml-2 text-[#ff4757] hover:text-white"><X className="h-3 w-3 inline" /></button>
+          <button onClick={() => setError("")} className="ml-2 text-[#d96b5c] hover:text-white"><X className="h-3 w-3 inline" /></button>
         </div>
       )}
 
       {/* Action Modal */}
       {activeAction && activeAction.type !== "switch-team" && (
         <div className="rounded-xl p-4" style={{
-          background: "#111827",
+          background: "#0e0c09",
           border: `1px solid ${actionLabels[activeAction.type].color}30`,
         }}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               {(() => { const Icon = actionLabels[activeAction.type].icon; return <Icon className="h-4 w-4" style={{ color: actionLabels[activeAction.type].color }} />; })()}
-              <span className="text-sm font-bold text-[#e2e8f0]">
+              <span className="text-sm font-bold text-[#e8e3d8]">
                 {actionLabels[activeAction.type].label}: {activeAction.playerName}
               </span>
             </div>
-            <button onClick={closeAction} className="p-1 text-[#64748b] hover:text-[#e2e8f0]">
+            <button onClick={closeAction} className="p-1 text-[#6b6455] hover:text-[#e8e3d8]">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -153,16 +153,16 @@ export default function HLLPlayers({ serverId }: Props) {
                 />
                 {activeAction.type === "temp-ban" && (
                   <div className="flex items-center gap-2">
-                    <label className="text-xs text-[#94a3b8] font-semibold">Duration:</label>
+                    <label className="text-xs text-[#8a8271] font-semibold">Duration:</label>
                     <input
                       type="number"
                       value={banHours}
                       onChange={(e) => setBanHours(parseInt(e.target.value) || 1)}
                       min={1}
-                      className="w-20 rounded-lg px-3 py-2 text-sm text-[#e2e8f0] focus:outline-none"
+                      className="w-20 rounded-lg px-3 py-2 text-sm text-[#e8e3d8] focus:outline-none"
                       style={inputStyle}
                     />
-                    <span className="text-xs text-[#64748b]">hours</span>
+                    <span className="text-xs text-[#6b6455]">hours</span>
                   </div>
                 )}
               </>
@@ -182,16 +182,16 @@ export default function HLLPlayers({ serverId }: Props) {
       )}
 
       {/* Player List */}
-      <div className="rounded-xl p-4" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="rounded-xl p-4" style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-[#e2e8f0] uppercase tracking-wider flex items-center gap-2">
-            <Users className="h-4 w-4 text-[#00d4aa]" />
+          <h3 className="text-sm font-bold text-[#e8e3d8] uppercase tracking-wider flex items-center gap-2">
+            <Users className="h-4 w-4 text-[#ffb224]" />
             Players ({players.length})
           </h3>
         </div>
 
         {players.length === 0 ? (
-          <div className="text-sm text-[#64748b] text-center py-8">No players online</div>
+          <div className="text-sm text-[#6b6455] text-center py-8">No players online</div>
         ) : (
           <div className="space-y-0.5">
             {players.map((p: { name: string; steam_id?: string; player_id?: string; team?: string; role?: string; level?: number }) => {
@@ -203,20 +203,20 @@ export default function HLLPlayers({ serverId }: Props) {
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
-                      style={{ background: "rgba(0,212,170,0.1)", color: "#00d4aa" }}>
+                      style={{ background: "rgba(255, 178, 36,0.1)", color: "#ffb224" }}>
                       {p.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm text-[#e2e8f0] font-medium truncate">{p.name}</div>
+                      <div className="text-sm text-[#e8e3d8] font-medium truncate">{p.name}</div>
                       <div className="flex items-center gap-2">
                         {playerId !== p.name && (
-                          <span className="text-[10px] text-[#64748b] font-mono">{playerId}</span>
+                          <span className="text-[10px] text-[#6b6455] font-mono">{playerId}</span>
                         )}
                         {p.team && (
-                          <span className="text-[10px] text-[#94a3b8] font-medium">{p.team}</span>
+                          <span className="text-[10px] text-[#8a8271] font-medium">{p.team}</span>
                         )}
                         {p.role && (
-                          <span className="text-[10px] text-[#64748b]">{p.role}</span>
+                          <span className="text-[10px] text-[#6b6455]">{p.role}</span>
                         )}
                       </div>
                     </div>
@@ -232,9 +232,9 @@ export default function HLLPlayers({ serverId }: Props) {
                           onClick={() => openAction(playerId, p.name, type)}
                           title={cfg.label}
                           className="p-1.5 rounded-md transition-colors"
-                          style={{ color: "#64748b" }}
+                          style={{ color: "#6b6455" }}
                           onMouseEnter={(e) => { e.currentTarget.style.color = cfg.color; e.currentTarget.style.background = `${cfg.color}12`; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.color = "#64748b"; e.currentTarget.style.background = "transparent"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.color = "#6b6455"; e.currentTarget.style.background = "transparent"; }}
                         >
                           <Icon className="h-3.5 w-3.5" />
                         </button>

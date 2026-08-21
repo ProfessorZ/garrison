@@ -82,16 +82,16 @@ type Tab = "sessions" | "bans" | "notes" | "alts" | "steam" | "names";
 function ProfileSkeleton() {
   return (
     <div className="max-w-5xl mx-auto animate-fade-in">
-      <div className="h-4 w-28 rounded bg-[#1a1f2e] animate-pulse mb-5" />
+      <div className="h-4 w-28 rounded bg-[#12100b] animate-pulse mb-5" />
       <div
         className="rounded-xl p-6 mb-6"
-        style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+        style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
       >
         <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-[#1a1f2e] animate-pulse shrink-0" />
+          <div className="h-16 w-16 rounded-full bg-[#12100b] animate-pulse shrink-0" />
           <div className="flex-1">
-            <div className="h-7 w-48 rounded bg-[#1a1f2e] animate-pulse mb-2" />
-            <div className="h-3 w-32 rounded bg-[#1a1f2e] animate-pulse" />
+            <div className="h-7 w-48 rounded bg-[#12100b] animate-pulse mb-2" />
+            <div className="h-3 w-32 rounded bg-[#12100b] animate-pulse" />
           </div>
         </div>
       </div>
@@ -100,10 +100,10 @@ function ProfileSkeleton() {
           <div
             key={i}
             className="rounded-xl p-4"
-            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+            style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
           >
-            <div className="h-3 w-16 rounded bg-[#1a1f2e] animate-pulse mb-3" />
-            <div className="h-6 w-12 rounded bg-[#1a1f2e] animate-pulse" />
+            <div className="h-3 w-16 rounded bg-[#12100b] animate-pulse mb-3" />
+            <div className="h-6 w-12 rounded bg-[#12100b] animate-pulse" />
           </div>
         ))}
       </div>
@@ -224,6 +224,13 @@ export default function PlayerProfilePage() {
     },
   });
 
+  const refreshSteamMutation = useMutation({
+    mutationFn: () => knownPlayersApi.refreshSteam(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["player-profile", id] });
+    },
+  });
+
   const applyTemplate = (t: BanTemplate) => {
     setBanReason(t.reason_template);
     setBanDurationHours(t.duration_hours != null ? String(t.duration_hours) : "");
@@ -261,7 +268,7 @@ export default function PlayerProfilePage() {
       {/* Back */}
       <Link
         to="/players"
-        className="inline-flex items-center gap-1.5 text-xs text-[#64748b] hover:text-[#e2e8f0] mb-5 transition-colors font-medium"
+        className="inline-flex items-center gap-1.5 text-xs text-[#6b6455] hover:text-[#e8e3d8] mb-5 transition-colors font-medium"
       >
         <ArrowLeft className="h-3 w-3" />
         Back to players
@@ -271,7 +278,7 @@ export default function PlayerProfilePage() {
       <div
         className="rounded-xl p-6 mb-5"
         style={{
-          background: "#111827",
+          background: "#0e0c09",
           border: "1px solid rgba(255,255,255,0.06)",
         }}
       >
@@ -287,41 +294,41 @@ export default function PlayerProfilePage() {
               />
             ) : (
               <div
-                className="h-16 w-16 rounded-full flex items-center justify-center text-2xl font-black text-[#e2e8f0] shrink-0"
-                style={{ background: "linear-gradient(135deg, #1a1f2e 0%, #0f1320 100%)" }}
+                className="h-16 w-16 rounded-full flex items-center justify-center text-2xl font-black text-[#e8e3d8] shrink-0"
+                style={{ background: "linear-gradient(135deg, #12100b 0%, #0f1320 100%)" }}
               >
                 {player.name.charAt(0).toUpperCase()}
               </div>
             )}
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h2 className="text-2xl font-black text-[#e2e8f0] truncate">{player.name}</h2>
+                <h2 className="text-2xl font-black text-[#e8e3d8] truncate">{player.name}</h2>
                 {player.steam_persona_name && player.steam_persona_name !== player.name && (
-                  <span className="text-sm text-[#64748b]">({player.steam_persona_name})</span>
+                  <span className="text-sm text-[#6b6455]">({player.steam_persona_name})</span>
                 )}
                 {player.steam_id && (
                   <a
                     href={`https://steamcommunity.com/profiles/${player.steam_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#64748b] hover:text-[#e2e8f0] transition-colors"
+                    className="text-[#6b6455] hover:text-[#e8e3d8] transition-colors"
                     title="View Steam Profile"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </a>
                 )}
                 {player.is_online ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-[#00d4aa] bg-[rgba(0,212,170,0.08)]">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#00d4aa] status-online" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-[#ffb224] bg-[rgba(255, 178, 36,0.08)]">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#ffb224] status-online" />
                     Online
                     {player.current_server_name && (
-                      <span className="text-[#64748b] font-normal ml-1">
+                      <span className="text-[#6b6455] font-normal ml-1">
                         — {player.current_server_name}
                       </span>
                     )}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-[#64748b] bg-[rgba(255,255,255,0.03)]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-[#6b6455] bg-[rgba(255,255,255,0.03)]">
                     Offline
                   </span>
                 )}
@@ -330,25 +337,25 @@ export default function PlayerProfilePage() {
               {/* Badges row */}
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 {player.is_banned && (
-                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#ff4757] bg-[rgba(255,71,87,0.08)]">
+                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#d96b5c] bg-[rgba(217, 107, 92,0.08)]">
                     <Ban className="h-3 w-3" />
                     BANNED
                   </span>
                 )}
                 {player.vac_banned && (
-                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#ff4757] bg-[rgba(255,71,87,0.08)]">
+                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#d96b5c] bg-[rgba(217, 107, 92,0.08)]">
                     <ShieldAlert className="h-3 w-3" />
                     VAC BAN{(player.vac_ban_count ?? 0) > 1 ? ` (${player.vac_ban_count})` : ""}
                   </span>
                 )}
                 {player.game_banned && (
-                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#ffa502] bg-[rgba(255,165,2,0.08)]">
+                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#e3b454] bg-[rgba(255,165,2,0.08)]">
                     <ShieldAlert className="h-3 w-3" />
                     GAME BAN
                   </span>
                 )}
                 {player.steam_profile_visibility != null && player.steam_profile_visibility !== 3 && (
-                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#64748b] bg-[rgba(255,255,255,0.04)]">
+                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold text-[#6b6455] bg-[rgba(255,255,255,0.04)]">
                     <EyeOff className="h-3 w-3" />
                     PRIVATE
                   </span>
@@ -356,7 +363,7 @@ export default function PlayerProfilePage() {
               </div>
 
               {/* Stats row under name */}
-              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs text-[#64748b]">
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs text-[#6b6455]">
                 <span>First seen {relativeTime(player.first_seen)}</span>
                 <span>Last seen {relativeTime(player.last_seen)}</span>
               </div>
@@ -369,8 +376,8 @@ export default function PlayerProfilePage() {
               <button
                 onClick={() => unbanMutation.mutate()}
                 disabled={unbanMutation.isPending}
-                className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#00d4aa] disabled:opacity-50 transition-all duration-150"
-                style={{ background: "rgba(0,212,170,0.08)", border: "1px solid rgba(0,212,170,0.15)" }}
+                className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#ffb224] disabled:opacity-50 transition-all duration-150"
+                style={{ background: "rgba(255, 178, 36,0.08)", border: "1px solid rgba(255, 178, 36,0.15)" }}
               >
                 <Shield className="h-3.5 w-3.5" />
                 {unbanMutation.isPending ? "Unbanning..." : "Unban Player"}
@@ -378,8 +385,8 @@ export default function PlayerProfilePage() {
             ) : (
               <button
                 onClick={() => setShowBanForm(!showBanForm)}
-                className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#ff4757] transition-all duration-150"
-                style={{ background: "rgba(255,71,87,0.08)", border: "1px solid rgba(255,71,87,0.12)" }}
+                className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#d96b5c] transition-all duration-150"
+                style={{ background: "rgba(217, 107, 92,0.08)", border: "1px solid rgba(217, 107, 92,0.12)" }}
               >
                 <Ban className="h-3.5 w-3.5" />
                 Ban Player
@@ -387,7 +394,7 @@ export default function PlayerProfilePage() {
             )}
             <button
               onClick={() => { setTab("notes"); setNoteText(""); }}
-              className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#818cf8] transition-all duration-150"
+              className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#67b7e2] transition-all duration-150"
               style={{ background: "rgba(129,140,248,0.08)", border: "1px solid rgba(129,140,248,0.12)" }}
             >
               <FileText className="h-3.5 w-3.5" />
@@ -400,12 +407,12 @@ export default function PlayerProfilePage() {
         {showBanForm && (
           <div
             className="mt-4 rounded-lg p-4"
-            style={{ background: "#1a1f2e", border: "1px solid rgba(255,71,87,0.12)" }}
+            style={{ background: "#12100b", border: "1px solid rgba(217, 107, 92,0.12)" }}
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-[#ff4757]" />
-                <span className="text-sm font-bold text-[#ff4757]">Ban Player</span>
+                <AlertTriangle className="h-4 w-4 text-[#d96b5c]" />
+                <span className="text-sm font-bold text-[#d96b5c]">Ban Player</span>
               </div>
               {banTemplates.length > 0 && (
                 <div className="relative">
@@ -415,15 +422,15 @@ export default function PlayerProfilePage() {
                       if (t) applyTemplate(t);
                     }}
                     defaultValue=""
-                    className="appearance-none rounded-lg pl-3 pr-8 py-1.5 text-xs font-medium text-[#e2e8f0] focus:outline-none cursor-pointer"
-                    style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+                    className="appearance-none rounded-lg pl-3 pr-8 py-1.5 text-xs font-medium text-[#e8e3d8] focus:outline-none cursor-pointer"
+                    style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
                   >
                     <option value="" disabled>Use template...</option>
                     {banTemplates.map((t) => (
                       <option key={t.id} value={t.id}>{t.name}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-[#64748b] pointer-events-none" />
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-[#6b6455] pointer-events-none" />
                 </div>
               )}
             </div>
@@ -433,16 +440,16 @@ export default function PlayerProfilePage() {
                 value={banReason}
                 onChange={(e) => setBanReason(e.target.value)}
                 placeholder="Reason (optional)"
-                className="flex-1 rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none"
-                style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+                className="flex-1 rounded-lg px-3 py-2 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none"
+                style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
               />
               <input
                 type="number"
                 value={banDurationHours}
                 onChange={(e) => setBanDurationHours(e.target.value)}
                 placeholder="Hours (empty = perm)"
-                className="w-44 rounded-lg px-3 py-2 text-sm text-[#e2e8f0] placeholder-[#64748b] focus:outline-none"
-                style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+                className="w-44 rounded-lg px-3 py-2 text-sm text-[#e8e3d8] placeholder-[#6b6455] focus:outline-none"
+                style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
                 min={1}
               />
             </div>
@@ -451,14 +458,14 @@ export default function PlayerProfilePage() {
                 onClick={() => banMutation.mutate()}
                 disabled={banMutation.isPending}
                 className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-white disabled:opacity-50 transition-all duration-150"
-                style={{ background: "#ff4757" }}
+                style={{ background: "#d96b5c" }}
               >
                 {banMutation.isPending ? "Banning..." : "Confirm Ban"}
               </button>
               <button
                 onClick={() => { setShowBanForm(false); setBanReason(""); setBanDurationHours(""); }}
-                className="rounded-lg px-4 py-2 text-xs font-medium text-[#94a3b8] transition-all duration-150"
-                style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+                className="rounded-lg px-4 py-2 text-xs font-medium text-[#8a8271] transition-all duration-150"
+                style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
               >
                 Cancel
               </button>
@@ -470,16 +477,16 @@ export default function PlayerProfilePage() {
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
         {([
-          { label: "First Seen", value: relativeTime(player.first_seen), icon: Calendar, accent: "#818cf8" },
-          { label: "Last Seen", value: relativeTime(player.last_seen), icon: Clock, accent: "#00d4aa" },
-          { label: "Sessions", value: player.session_count, icon: Hash, accent: "#fbbf24" },
+          { label: "First Seen", value: relativeTime(player.first_seen), icon: Calendar, accent: "#67b7e2" },
+          { label: "Last Seen", value: relativeTime(player.last_seen), icon: Clock, accent: "#ffb224" },
+          { label: "Sessions", value: player.session_count, icon: Hash, accent: "#e3b454" },
           { label: "Playtime", value: formatPlaytime(player.total_playtime_seconds), icon: Clock, accent: "#f472b6" },
           { label: "Servers", value: serversPlayed, icon: Server, accent: "#38bdf8" },
           ...(combatStats && (combatStats.kills > 0 || combatStats.deaths > 0)
             ? [
                 { label: "Kills", value: combatStats.kills, icon: Crosshair, accent: "#ef4444" },
-                { label: "Deaths", value: combatStats.deaths, icon: Skull, accent: "#64748b" },
-                { label: "K/D", value: combatStats.deaths > 0 ? (combatStats.kills / combatStats.deaths).toFixed(2) : combatStats.kills > 0 ? "\u221e" : "\u2014", icon: Crosshair, accent: "#fbbf24" },
+                { label: "Deaths", value: combatStats.deaths, icon: Skull, accent: "#6b6455" },
+                { label: "K/D", value: combatStats.deaths > 0 ? (combatStats.kills / combatStats.deaths).toFixed(2) : combatStats.kills > 0 ? "\u221e" : "\u2014", icon: Crosshair, accent: "#e3b454" },
               ]
             : []),
         ] as { label: string; value: string | number; icon: typeof Calendar; accent: string }[]).map((stat) => {
@@ -489,7 +496,7 @@ export default function PlayerProfilePage() {
               key={stat.label}
               className="rounded-xl p-4"
               style={{
-                background: "#111827",
+                background: "#0e0c09",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}
             >
@@ -497,7 +504,7 @@ export default function PlayerProfilePage() {
                 <div className="rounded-lg p-1.5" style={{ background: `${stat.accent}15` }}>
                   <Icon className="h-3.5 w-3.5" style={{ color: stat.accent }} />
                 </div>
-                <span className="text-[10px] font-semibold text-[#64748b] uppercase tracking-wider">
+                <span className="text-[10px] font-semibold text-[#6b6455] uppercase tracking-wider">
                   {stat.label}
                 </span>
               </div>
@@ -520,12 +527,12 @@ export default function PlayerProfilePage() {
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`inline-flex items-center gap-1.5 px-4 py-3 text-[13px] font-semibold whitespace-nowrap transition-all duration-150 ${
-                active ? "text-[#00d4aa]" : "text-[#64748b] hover:text-[#e2e8f0]"
+                active ? "text-[#ffb224]" : "text-[#6b6455] hover:text-[#e8e3d8]"
               }`}
               style={{
                 background: "transparent",
                 borderRadius: 0,
-                borderBottom: active ? "2px solid #00d4aa" : "2px solid transparent",
+                borderBottom: active ? "2px solid #ffb224" : "2px solid transparent",
                 marginBottom: "-1px",
               }}
             >
@@ -534,8 +541,8 @@ export default function PlayerProfilePage() {
               {t.badge && (
                 <span className={`ml-1 text-[10px] rounded-full px-1.5 py-0.5 ${
                   t.key === "bans"
-                    ? "bg-[rgba(255,71,87,0.1)] text-[#ff4757]"
-                    : "bg-[rgba(0,212,170,0.1)] text-[#00d4aa]"
+                    ? "bg-[rgba(217, 107, 92,0.1)] text-[#d96b5c]"
+                    : "bg-[rgba(255, 178, 36,0.1)] text-[#ffb224]"
                 }`}>
                   {t.badge}
                 </span>
@@ -551,12 +558,12 @@ export default function PlayerProfilePage() {
         {tab === "sessions" && (
           <div
             className="rounded-xl overflow-hidden"
-            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+            style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
           >
             {sessions.length === 0 ? (
               <div className="py-16 text-center">
-                <Clock className="h-8 w-8 text-[#1a1f2e] mx-auto mb-3" />
-                <p className="text-sm text-[#94a3b8]">No sessions recorded yet</p>
+                <Clock className="h-8 w-8 text-[#12100b] mx-auto mb-3" />
+                <p className="text-sm text-[#8a8271]">No sessions recorded yet</p>
               </div>
             ) : (
               <>
@@ -567,28 +574,28 @@ export default function PlayerProfilePage() {
                       <div className="shrink-0">
                         <div
                           className="h-9 w-9 rounded-lg flex items-center justify-center"
-                          style={{ background: s.left_at ? "rgba(129,140,248,0.08)" : "rgba(0,212,170,0.08)" }}
+                          style={{ background: s.left_at ? "rgba(129,140,248,0.08)" : "rgba(255, 178, 36,0.08)" }}
                         >
-                          <Server className="h-4 w-4" style={{ color: s.left_at ? "#818cf8" : "#00d4aa" }} />
+                          <Server className="h-4 w-4" style={{ color: s.left_at ? "#67b7e2" : "#ffb224" }} />
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#e2e8f0] truncate">
+                        <p className="text-sm font-semibold text-[#e8e3d8] truncate">
                           {s.server_name || `Server #${s.server_id}`}
                         </p>
-                        <div className="flex flex-wrap gap-x-3 text-xs text-[#64748b] mt-0.5">
+                        <div className="flex flex-wrap gap-x-3 text-xs text-[#6b6455] mt-0.5">
                           <span>{formatDate(s.joined_at)}</span>
                           {s.left_at ? (
                             <span>— {formatDate(s.left_at)}</span>
                           ) : (
-                            <span className="text-[#00d4aa] font-medium">
+                            <span className="text-[#ffb224] font-medium">
                               <Wifi className="h-3 w-3 inline mr-0.5" />Active now
                             </span>
                           )}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <span className="text-sm font-mono text-[#94a3b8]">
+                        <span className="text-sm font-mono text-[#8a8271]">
                           {formatDuration(s.duration_seconds)}
                         </span>
                       </div>
@@ -601,23 +608,23 @@ export default function PlayerProfilePage() {
                     className="flex items-center justify-between px-5 py-3"
                     style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
                   >
-                    <span className="text-xs text-[#64748b]">
+                    <span className="text-xs text-[#6b6455]">
                       Page {sessionPage} of {sessionPages}
                     </span>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setSessionPage((p) => Math.max(1, p - 1))}
                         disabled={sessionPage <= 1}
-                        className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e2e8f0] disabled:opacity-30 transition-all duration-150"
-                        style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                        className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e8e3d8] disabled:opacity-30 transition-all duration-150"
+                        style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
                       >
                         <ChevronLeft className="h-3 w-3" /> Prev
                       </button>
                       <button
                         onClick={() => setSessionPage((p) => Math.min(sessionPages, p + 1))}
                         disabled={sessionPage >= sessionPages}
-                        className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e2e8f0] disabled:opacity-30 transition-all duration-150"
-                        style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                        className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#e8e3d8] disabled:opacity-30 transition-all duration-150"
+                        style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
                       >
                         Next <ChevronRight className="h-3 w-3" />
                       </button>
@@ -635,8 +642,8 @@ export default function PlayerProfilePage() {
             <div className="flex justify-end mb-3">
               <button
                 onClick={() => setShowBanListModal(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-[#e2e8f0] transition-all duration-150"
-                style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-[#e8e3d8] transition-all duration-150"
+                style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
               >
                 <List className="h-3.5 w-3.5" />
                 Add to Ban List
@@ -646,11 +653,11 @@ export default function PlayerProfilePage() {
             {showBanListModal && (
               <div
                 className="rounded-xl p-4 mb-4"
-                style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+                style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-bold text-[#e2e8f0]">Add to Ban List</h4>
-                  <button onClick={() => setShowBanListModal(false)} className="text-[#64748b] hover:text-[#e2e8f0]">
+                  <h4 className="text-sm font-bold text-[#e8e3d8]">Add to Ban List</h4>
+                  <button onClick={() => setShowBanListModal(false)} className="text-[#6b6455] hover:text-[#e8e3d8]">
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -658,8 +665,8 @@ export default function PlayerProfilePage() {
                   <select
                     value={selectedBanListId}
                     onChange={(e) => setSelectedBanListId(e.target.value ? Number(e.target.value) : "")}
-                    className="flex-1 rounded-lg px-3 py-2 text-sm text-[#e2e8f0] focus:outline-none"
-                    style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+                    className="flex-1 rounded-lg px-3 py-2 text-sm text-[#e8e3d8] focus:outline-none"
+                    style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
                   >
                     <option value="">Select a ban list...</option>
                     {banLists.map((bl) => (
@@ -669,26 +676,26 @@ export default function PlayerProfilePage() {
                   <button
                     onClick={() => addToBanListMutation.mutate()}
                     disabled={!selectedBanListId || addToBanListMutation.isPending}
-                    className="rounded-lg px-4 py-2 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 shrink-0"
-                    style={{ background: "#00d4aa" }}
+                    className="rounded-lg px-4 py-2 text-xs font-bold text-[#0b0a08] disabled:opacity-50 shrink-0"
+                    style={{ background: "#ffb224" }}
                   >
                     {addToBanListMutation.isPending ? "Adding..." : "Add"}
                   </button>
                 </div>
                 {addToBanListMutation.isSuccess && (
-                  <p className="text-xs text-[#00d4aa] mt-2">Added to ban list</p>
+                  <p className="text-xs text-[#ffb224] mt-2">Added to ban list</p>
                 )}
               </div>
             )}
 
             <div
               className="rounded-xl overflow-hidden"
-              style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+              style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
             >
               {banList.length === 0 ? (
                 <div className="py-16 text-center">
-                  <Shield className="h-8 w-8 text-[#1a1f2e] mx-auto mb-3" />
-                  <p className="text-sm text-[#94a3b8]">No bans on record</p>
+                  <Shield className="h-8 w-8 text-[#12100b] mx-auto mb-3" />
+                  <p className="text-sm text-[#8a8271]">No bans on record</p>
                 </div>
               ) : (
                 <div className="divide-y divide-[rgba(255,255,255,0.03)]">
@@ -700,25 +707,25 @@ export default function PlayerProfilePage() {
                             <span
                               className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                                 b.is_active
-                                  ? "text-[#ff4757] bg-[rgba(255,71,87,0.08)]"
-                                  : "text-[#64748b] bg-[rgba(255,255,255,0.03)]"
+                                  ? "text-[#d96b5c] bg-[rgba(217, 107, 92,0.08)]"
+                                  : "text-[#6b6455] bg-[rgba(255,255,255,0.03)]"
                               }`}
                             >
                               {b.is_active ? "ACTIVE" : "EXPIRED"}
                             </span>
                             {b.server_name && (
-                              <span className="text-xs text-[#64748b]">
+                              <span className="text-xs text-[#6b6455]">
                                 on {b.server_name}
                               </span>
                             )}
                             {!b.server_id && (
-                              <span className="text-xs text-[#ffa502]">Global ban</span>
+                              <span className="text-xs text-[#e3b454]">Global ban</span>
                             )}
                           </div>
                           {b.reason && (
-                            <p className="text-sm text-[#e2e8f0] mb-1">{b.reason}</p>
+                            <p className="text-sm text-[#e8e3d8] mb-1">{b.reason}</p>
                           )}
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#64748b]">
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#6b6455]">
                             <span>
                               <Calendar className="h-3 w-3 inline mr-1" />
                               {formatDate(b.banned_at)}
@@ -752,25 +759,25 @@ export default function PlayerProfilePage() {
             {/* Add note form */}
             <div
               className="rounded-xl p-5 mb-4"
-              style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+              style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
             >
-              <h3 className="text-sm font-bold text-[#e2e8f0] mb-3">Add Note</h3>
+              <h3 className="text-sm font-bold text-[#e8e3d8] mb-3">Add Note</h3>
               <textarea
                 value={noteText}
                 onChange={(e) => setNoteText(e.target.value)}
                 placeholder="Write a note about this player..."
                 rows={3}
-                className="w-full rounded-lg px-4 py-3 text-sm text-[#e2e8f0] placeholder-[#64748b] resize-y focus:outline-none mb-3"
+                className="w-full rounded-lg px-4 py-3 text-sm text-[#e8e3d8] placeholder-[#6b6455] resize-y focus:outline-none mb-3"
                 style={{
-                  background: "#1a1f2e",
+                  background: "#12100b",
                   border: "1px solid rgba(255,255,255,0.06)",
                 }}
               />
               <button
                 onClick={() => { if (noteText.trim()) createNoteMutation.mutate(noteText.trim()); }}
                 disabled={!noteText.trim() || createNoteMutation.isPending}
-                className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#0a0e1a] disabled:opacity-50 transition-all duration-150"
-                style={{ background: "#00d4aa" }}
+                className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#0b0a08] disabled:opacity-50 transition-all duration-150"
+                style={{ background: "#ffb224" }}
               >
                 <Send className="h-3.5 w-3.5" />
                 {createNoteMutation.isPending ? "Saving..." : "Add Note"}
@@ -780,12 +787,12 @@ export default function PlayerProfilePage() {
             {/* Notes list */}
             <div
               className="rounded-xl overflow-hidden"
-              style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+              style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
             >
               {playerNotes.length === 0 ? (
                 <div className="py-16 text-center">
-                  <FileText className="h-8 w-8 text-[#1a1f2e] mx-auto mb-3" />
-                  <p className="text-sm text-[#94a3b8]">No notes yet</p>
+                  <FileText className="h-8 w-8 text-[#12100b] mx-auto mb-3" />
+                  <p className="text-sm text-[#8a8271]">No notes yet</p>
                 </div>
               ) : (
                 <div className="divide-y divide-[rgba(255,255,255,0.03)]">
@@ -794,21 +801,21 @@ export default function PlayerProfilePage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-semibold text-[#e2e8f0]">
+                            <span className="text-xs font-semibold text-[#e8e3d8]">
                               {note.author_username || "Unknown"}
                             </span>
-                            <span className="text-[10px] text-[#64748b]">
+                            <span className="text-[10px] text-[#6b6455]">
                               {relativeTime(note.created_at)}
                             </span>
                           </div>
-                          <p className="text-sm text-[#94a3b8] whitespace-pre-wrap break-words">
+                          <p className="text-sm text-[#8a8271] whitespace-pre-wrap break-words">
                             {note.text}
                           </p>
                         </div>
                         <button
                           onClick={() => deleteNoteMutation.mutate(note.id)}
                           disabled={deleteNoteMutation.isPending}
-                          className="opacity-0 group-hover:opacity-100 rounded-md p-1.5 text-[#64748b] hover:text-[#ff4757] hover:bg-[rgba(255,71,87,0.08)] transition-all duration-150 shrink-0"
+                          className="opacity-0 group-hover:opacity-100 rounded-md p-1.5 text-[#6b6455] hover:text-[#d96b5c] hover:bg-[rgba(217, 107, 92,0.08)] transition-all duration-150 shrink-0"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -829,21 +836,21 @@ export default function PlayerProfilePage() {
                 className="rounded-lg p-3 mb-4 flex items-center gap-2"
                 style={{ background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.15)" }}
               >
-                <AlertTriangle className="h-4 w-4 text-[#fbbf24] shrink-0" />
-                <span className="text-xs text-[#fbbf24] font-medium">
+                <AlertTriangle className="h-4 w-4 text-[#e3b454] shrink-0" />
+                <span className="text-xs text-[#e3b454] font-medium">
                   {altAccounts.length} potential alt account{altAccounts.length !== 1 ? "s" : ""} detected (shared IP address)
                 </span>
               </div>
             )}
             <div
               className="rounded-xl overflow-hidden"
-              style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+              style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
             >
               {altAccounts.length === 0 ? (
                 <div className="py-16 text-center">
-                  <Users className="h-8 w-8 text-[#1a1f2e] mx-auto mb-3" />
-                  <p className="text-sm text-[#94a3b8]">No alt accounts detected</p>
-                  <p className="text-xs text-[#64748b] mt-1">Alt detection is based on shared IP addresses</p>
+                  <Users className="h-8 w-8 text-[#12100b] mx-auto mb-3" />
+                  <p className="text-sm text-[#8a8271]">No alt accounts detected</p>
+                  <p className="text-xs text-[#6b6455] mt-1">Alt detection is based on shared IP addresses</p>
                 </div>
               ) : (
                 <div className="divide-y divide-[rgba(255,255,255,0.03)]">
@@ -854,22 +861,22 @@ export default function PlayerProfilePage() {
                       className="flex items-center gap-4 px-5 py-3.5 hover:bg-[rgba(255,255,255,0.02)] transition-colors cursor-pointer"
                     >
                       <div
-                        className="h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold text-[#e2e8f0] shrink-0"
-                        style={{ background: "#1a1f2e" }}
+                        className="h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold text-[#e8e3d8] shrink-0"
+                        style={{ background: "#12100b" }}
                       >
                         {alt.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-[#e2e8f0] truncate">{alt.name}</span>
+                          <span className="text-sm font-semibold text-[#e8e3d8] truncate">{alt.name}</span>
                           {alt.is_banned && (
-                            <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-[#ff4757] bg-[rgba(255,71,87,0.08)]">
+                            <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-[#d96b5c] bg-[rgba(217, 107, 92,0.08)]">
                               <Ban className="h-2.5 w-2.5" />
                               BANNED
                             </span>
                           )}
                         </div>
-                        <div className="flex gap-x-3 text-xs text-[#64748b] mt-0.5">
+                        <div className="flex gap-x-3 text-xs text-[#6b6455] mt-0.5">
                           <span>{alt.session_count} sessions</span>
                           <span>Last seen {relativeTime(alt.last_seen)}</span>
                         </div>
@@ -879,14 +886,14 @@ export default function PlayerProfilePage() {
                           {alt.shared_ips.slice(0, 3).map((ip) => (
                             <span
                               key={ip}
-                              className="text-[10px] font-mono text-[#64748b] rounded px-1.5 py-0.5"
+                              className="text-[10px] font-mono text-[#6b6455] rounded px-1.5 py-0.5"
                               style={{ background: "rgba(255,255,255,0.04)" }}
                             >
                               {ip}
                             </span>
                           ))}
                           {alt.shared_ips.length > 3 && (
-                            <span className="text-[10px] text-[#64748b]">
+                            <span className="text-[10px] text-[#6b6455]">
                               +{alt.shared_ips.length - 3}
                             </span>
                           )}
@@ -904,95 +911,115 @@ export default function PlayerProfilePage() {
         {tab === "steam" && (
           <div
             className="rounded-xl overflow-hidden"
-            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+            style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
           >
             {!player.steam_id ? (
               <div className="py-16 text-center">
-                <ExternalLink className="h-8 w-8 text-[#1a1f2e] mx-auto mb-3" />
-                <p className="text-sm text-[#94a3b8]">No Steam profile linked</p>
-                <p className="text-xs text-[#64748b] mt-1">Steam data will appear once the player's Steam ID is resolved</p>
+                <ExternalLink className="h-8 w-8 text-[#12100b] mx-auto mb-3" />
+                <p className="text-sm text-[#8a8271]">No Steam profile linked</p>
+                <p className="text-xs text-[#6b6455] mt-1">Steam data will appear once the player's Steam ID is resolved</p>
               </div>
             ) : (
               <div className="p-5 space-y-4">
                 {/* Steam profile summary */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <span className="text-[10px] font-semibold text-[#64748b] uppercase tracking-wider">Steam ID</span>
-                    <p className="text-sm text-[#e2e8f0] font-mono mt-1">{player.steam_id}</p>
+                    <span className="text-[10px] font-semibold text-[#6b6455] uppercase tracking-wider">Steam ID</span>
+                    <p className="text-sm text-[#e8e3d8] font-mono mt-1">{player.steam_id}</p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-semibold text-[#64748b] uppercase tracking-wider">Profile Visibility</span>
-                    <p className="text-sm text-[#e2e8f0] mt-1 flex items-center gap-1.5">
+                    <span className="text-[10px] font-semibold text-[#6b6455] uppercase tracking-wider">Profile Visibility</span>
+                    <p className="text-sm text-[#e8e3d8] mt-1 flex items-center gap-1.5">
                       {player.steam_profile_visibility === 3 ? (
-                        <><Eye className="h-3.5 w-3.5 text-[#00d4aa]" /> Public</>
+                        <><Eye className="h-3.5 w-3.5 text-[#ffb224]" /> Public</>
                       ) : player.steam_profile_visibility === 2 ? (
-                        <><EyeOff className="h-3.5 w-3.5 text-[#fbbf24]" /> Friends Only</>
+                        <><EyeOff className="h-3.5 w-3.5 text-[#e3b454]" /> Friends Only</>
                       ) : (
-                        <><EyeOff className="h-3.5 w-3.5 text-[#64748b]" /> Private</>
+                        <><EyeOff className="h-3.5 w-3.5 text-[#6b6455]" /> Private</>
                       )}
                     </p>
                   </div>
                   {player.steam_persona_name && (
                     <div>
-                      <span className="text-[10px] font-semibold text-[#64748b] uppercase tracking-wider">Persona Name</span>
-                      <p className="text-sm text-[#e2e8f0] mt-1">{player.steam_persona_name}</p>
+                      <span className="text-[10px] font-semibold text-[#6b6455] uppercase tracking-wider">Persona Name</span>
+                      <p className="text-sm text-[#e8e3d8] mt-1">{player.steam_persona_name}</p>
                     </div>
                   )}
                   <div>
-                    <span className="text-[10px] font-semibold text-[#64748b] uppercase tracking-wider">Last Steam Check</span>
-                    <p className="text-sm text-[#e2e8f0] mt-1">{player.steam_checked_at ? relativeTime(player.steam_checked_at) : "Never"}</p>
+                    <span className="text-[10px] font-semibold text-[#6b6455] uppercase tracking-wider">Last Steam Check</span>
+                    <p className="text-sm text-[#e8e3d8] mt-1">{player.steam_checked_at ? relativeTime(player.steam_checked_at) : "Never"}</p>
                   </div>
                 </div>
 
                 {/* Ban history */}
                 <div
                   className="rounded-lg p-4"
-                  style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.04)" }}
+                  style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.04)" }}
                 >
-                  <h4 className="text-xs font-bold text-[#e2e8f0] uppercase tracking-wider mb-3">VAC / Game Ban History</h4>
+                  <h4 className="text-xs font-bold text-[#e8e3d8] uppercase tracking-wider mb-3">VAC / Game Ban History</h4>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
-                      <span className="text-[10px] text-[#64748b]">VAC Bans</span>
-                      <p className={`text-lg font-black tabular-nums ${(player.vac_ban_count ?? 0) > 0 ? "text-[#ff4757]" : "text-[#e2e8f0]"}`}>
+                      <span className="text-[10px] text-[#6b6455]">VAC Bans</span>
+                      <p className={`text-lg font-black tabular-nums ${(player.vac_ban_count ?? 0) > 0 ? "text-[#d96b5c]" : "text-[#e8e3d8]"}`}>
                         {player.vac_ban_count ?? 0}
                       </p>
                     </div>
                     <div>
-                      <span className="text-[10px] text-[#64748b]">Game Bans</span>
-                      <p className={`text-lg font-black tabular-nums ${player.game_banned ? "text-[#ffa502]" : "text-[#e2e8f0]"}`}>
+                      <span className="text-[10px] text-[#6b6455]">Game Bans</span>
+                      <p className={`text-lg font-black tabular-nums ${player.game_banned ? "text-[#e3b454]" : "text-[#e8e3d8]"}`}>
                         {player.game_banned ? "Yes" : "No"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-[10px] text-[#64748b]">Days Since Last Ban</span>
-                      <p className="text-lg font-black text-[#e2e8f0] tabular-nums">
+                      <span className="text-[10px] text-[#6b6455]">Days Since Last Ban</span>
+                      <p className="text-lg font-black text-[#e8e3d8] tabular-nums">
                         {(player.days_since_last_ban ?? 0) > 0 ? player.days_since_last_ban : "\u2014"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-[10px] text-[#64748b]">Status</span>
+                      <span className="text-[10px] text-[#6b6455]">Status</span>
                       <p className="text-lg font-black tabular-nums">
                         {player.vac_banned || player.game_banned ? (
-                          <span className="text-[#ff4757]">Flagged</span>
+                          <span className="text-[#d96b5c]">Flagged</span>
                         ) : (
-                          <span className="text-[#00d4aa]">Clean</span>
+                          <span className="text-[#ffb224]">Clean</span>
                         )}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Steam profile link */}
-                <a
-                  href={`https://steamcommunity.com/profiles/${player.steam_id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#e2e8f0] transition-all duration-150 hover:bg-[rgba(255,255,255,0.04)]"
-                  style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  View Full Steam Profile
-                </a>
+                {/* Steam profile link + refresh */}
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    href={`https://steamcommunity.com/profiles/${player.steam_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold text-[#e8e3d8] transition-all duration-150 hover:bg-[rgba(255,255,255,0.04)]"
+                    style={{ background: "#12100b", border: "1px solid rgba(255,255,255,0.06)" }}
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    View Full Steam Profile
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => refreshSteamMutation.mutate()}
+                    disabled={refreshSteamMutation.isPending}
+                    className="btn-accent disabled:opacity-50"
+                  >
+                    {refreshSteamMutation.isPending ? "REFRESHING…" : "↻ REFRESH STEAM"}
+                  </button>
+                </div>
+                {refreshSteamMutation.isError && (
+                  <p className="font-mono text-xs" style={{ color: "var(--danger)" }}>
+                    {(refreshSteamMutation.error as Error)?.message || "Steam refresh failed"}
+                  </p>
+                )}
+                {refreshSteamMutation.isSuccess && (
+                  <p className="font-mono text-xs" style={{ color: "var(--success)" }}>
+                    steam data refreshed
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -1002,12 +1029,12 @@ export default function PlayerProfilePage() {
         {tab === "names" && (
           <div
             className="rounded-xl overflow-hidden"
-            style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.06)" }}
+            style={{ background: "#0e0c09", border: "1px solid rgba(255,255,255,0.06)" }}
           >
             {nameHistory.length === 0 ? (
               <div className="py-16 text-center">
-                <History className="h-8 w-8 text-[#1a1f2e] mx-auto mb-3" />
-                <p className="text-sm text-[#94a3b8]">No name history recorded</p>
+                <History className="h-8 w-8 text-[#12100b] mx-auto mb-3" />
+                <p className="text-sm text-[#8a8271]">No name history recorded</p>
               </div>
             ) : (
               <div className="p-5">
@@ -1022,20 +1049,20 @@ export default function PlayerProfilePage() {
                         <div
                           className="absolute left-0 top-1.5 h-[15px] w-[15px] rounded-full border-2 shrink-0"
                           style={{
-                            borderColor: i === 0 ? "#00d4aa" : "rgba(255,255,255,0.1)",
-                            background: i === 0 ? "rgba(0,212,170,0.15)" : "#111827",
+                            borderColor: i === 0 ? "#ffb224" : "rgba(255,255,255,0.1)",
+                            background: i === 0 ? "rgba(255, 178, 36,0.15)" : "#0e0c09",
                           }}
                         />
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-semibold ${i === 0 ? "text-[#e2e8f0]" : "text-[#94a3b8]"}`}>
+                          <p className={`text-sm font-semibold ${i === 0 ? "text-[#e8e3d8]" : "text-[#8a8271]"}`}>
                             {entry.name}
                             {i === 0 && (
-                              <span className="ml-2 text-[10px] font-bold text-[#00d4aa] bg-[rgba(0,212,170,0.08)] rounded-full px-2 py-0.5">
+                              <span className="ml-2 text-[10px] font-bold text-[#ffb224] bg-[rgba(255, 178, 36,0.08)] rounded-full px-2 py-0.5">
                                 CURRENT
                               </span>
                             )}
                           </p>
-                          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-[#64748b]">
+                          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-[#6b6455]">
                             <span>First seen: {formatDate(entry.first_seen_with_name)}</span>
                             <span>Last seen: {formatDate(entry.last_seen_with_name)}</span>
                           </div>

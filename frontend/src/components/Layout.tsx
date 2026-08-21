@@ -1,211 +1,244 @@
-import { useState, useMemo } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import {
-  LayoutDashboard,
-  Clock,
-  LogOut,
-  Shield,
-  Activity,
-  Server,
-  Menu,
-  X,
-  Users,
-  Database,
-  Bell,
-  List,
-  Zap,
-  Puzzle,
-} from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { serversApi } from "../api/servers";
+import { dashboardApi } from "../api/dashboard";
+import CommandPalette from "./CommandPalette";
+import AddServerModal from "./AddServerModal";
 
 const ROLE_COLORS: Record<string, string> = {
-  OWNER: "text-amber-400",
-  ADMIN: "text-red-400",
-  MODERATOR: "text-blue-400",
-  VIEWER: "text-[#64748b]",
+  OWNER: "#e3b454",
+  ADMIN: "#d96b5c",
+  MODERATOR: "#67b7e2",
+  VIEWER: "#8a8271",
 };
 
 export default function Layout() {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [showAddServer, setShowAddServer] = useState(false);
 
   const { data: servers = [] } = useQuery({
     queryKey: ["servers"],
     queryFn: serversApi.list,
   });
 
+  const { data: stats } = useQuery({
+    queryKey: ["dashboard-stats"],
+    queryFn: dashboardApi.getStats,
+    refetchInterval: 30000,
+  });
+
   const isAdmin = user?.role === "OWNER" || user?.role === "ADMIN";
 
   const navItems = useMemo(
     () => [
-      { path: "/", label: "Dashboard", icon: LayoutDashboard },
-      { path: "/players", label: "Players", icon: Database },
-      { path: "/ban-lists", label: "Ban Lists", icon: List },
-      { path: "/activity", label: "Activity", icon: Activity },
-      { path: "/scheduler", label: "Scheduler", icon: Clock },
+      { path: "/", label: "Fleet", match: (p: string) => p === "/" || p.startsWith("/server/") },
+      { path: "/players", label: "Players", match: (p: string) => p.startsWith("/players") },
+      { path: "/ban-lists", label: "Bans", match: (p: string) => p.startsWith("/ban-lists") },
+      {
+        path: "/scheduler",
+        label: "Automation",
+        match: (p: string) => p.startsWith("/scheduler") || p.startsWith("/triggers"),
+      },
       ...(isAdmin
         ? [
-            { path: "/triggers", label: "Triggers", icon: Zap },
-            { path: "/discord", label: "Discord", icon: Bell },
-            { path: "/plugins", label: "Plugins", icon: Puzzle },
-            { path: "/users", label: "Users", icon: Users },
+            { path: "/discord", label: "Discord", match: (p: string) => p.startsWith("/discord") },
+            {
+              path: "/plugins",
+              label: "System",
+              match: (p: string) => p.startsWith("/plugins") || p.startsWith("/users"),
+            },
           ]
         : []),
+      { path: "/activity", label: "Log", match: (p: string) => p.startsWith("/activity") },
     ],
     [isAdmin]
   );
 
-  const isActive = (path: string) => {
-    if (path === "/") return location.pathname === "/";
-    return location.pathname.startsWith(path);
-  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
-  const closeSidebar = () => setSidebarOpen(false);
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  const initials = (user?.username || "?").slice(0, 2).toUpperCase();
+  const onlineCount = stats?.online_servers ?? servers.length;
+  const playerCount = stats?.total_players ?? 0;
 
   return (
-    <div className="flex min-h-screen" style={{ background: "#0a0e1a" }}>
-      {/* Mobile header */}
-      <div className="fixed top-0 left-0 right-0 z-40 flex items-center gap-3 px-4 py-3 md:hidden"
-        style={{ background: "#111827", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-1.5 rounded-md text-[#94a3b8] hover:text-[#e2e8f0] transition-colors"
-          style={{ background: "transparent" }}
-        >
-          {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-        <span className="text-sm font-extrabold tracking-[0.15em] uppercase gradient-text">
-          Garrison
-        </span>
-      </div>
+    <div className="min-h-screen flex flex-col" style={{ background: "var(--bg-deepest)" }}>
+      <div className="scanlines" aria-hidden />
 
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
-          onClick={closeSidebar}
-        />
-      )}
-
-      {/* Sidebar */}
-      <nav
-        className={`fixed md:static inset-y-0 left-0 z-50 w-60 flex flex-col shrink-0 transition-transform duration-200 md:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-        style={{ background: "#111827", borderRight: "1px solid rgba(255,255,255,0.06)" }}
+      <header
+        className="sticky top-0 z-50 flex items-center flex-wrap gap-x-5 gap-y-3 px-4 sm:px-6 py-3"
+        style={{
+          borderBottom: "1px solid rgba(255,178,36,0.12)",
+          background: "var(--bg-card)",
+        }}
       >
-        {/* Logo */}
-        <div className="px-5 py-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <Link to="/" className="block" onClick={closeSidebar}>
-            <h1 className="text-base font-extrabold tracking-[0.2em] uppercase gradient-text">
-              Garrison
-            </h1>
-            <p className="text-[11px] mt-1 text-[#64748b] font-medium">
-              Server Command Center
-            </p>
-          </Link>
+        <Link
+          to="/"
+          className="font-mono font-semibold text-sm tracking-[0.18em] shrink-0"
+          style={{ color: "var(--accent)", textShadow: "0 0 14px rgba(255,178,36,0.35)" }}
+        >
+          GARRISON<span style={{ color: "var(--text-dim)" }}>_OPS</span>
+        </Link>
+
+        <button
+          onClick={() => setPaletteOpen(true)}
+          className="hidden sm:flex flex-1 min-w-[180px] max-w-[440px] items-center gap-2.5 px-3.5 py-2 text-left touch-compact"
+          style={{
+            border: "1px solid var(--border-accent)",
+            borderRadius: 6,
+            background: "var(--bg-elevated)",
+            minHeight: "unset",
+          }}
+        >
+          <span className="font-mono text-xs" style={{ color: "var(--accent)" }}>
+            ⌘K
+          </span>
+          <span className="font-mono text-xs truncate" style={{ color: "var(--text-muted)" }}>
+            run command, jump anywhere…
+          </span>
+        </button>
+
+        <div className="hidden md:flex gap-4 font-mono text-[11px] whitespace-nowrap shrink-0">
+          <span style={{ color: "var(--success)" }}>▲ {onlineCount} UP</span>
+          <span style={{ color: "var(--text-primary)" }}>{playerCount} PLAYERS</span>
         </div>
 
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
+        <nav className="hidden lg:flex gap-1 font-medium text-[13px] flex-wrap">
           {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
+            const active = item.match(location.pathname);
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={closeSidebar}
-                className={`flex items-center gap-2.5 px-3 py-2.5 md:py-2 rounded-md text-sm md:text-[13px] font-medium transition-all duration-150 ${
-                  active
-                    ? "text-[#00d4aa]"
-                    : "text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(255,255,255,0.04)]"
-                }`}
-                style={active ? {
-                  borderLeft: "2px solid #00d4aa",
-                  marginLeft: "-2px",
-                  paddingLeft: "calc(0.75rem + 2px)",
-                } : { borderLeft: "2px solid transparent", marginLeft: "-2px", paddingLeft: "calc(0.75rem + 2px)" }}
+                className="px-3 py-1.5 rounded-[5px] transition-colors"
+                style={{
+                  color: active ? "var(--accent)" : "var(--text-secondary)",
+                  background: active ? "var(--accent-glow)" : "transparent",
+                }}
               >
-                <Icon className="h-4 w-4" />
                 {item.label}
               </Link>
             );
           })}
+        </nav>
 
-          {/* Server list */}
-          {servers.length > 0 && (
-            <>
-              <div className="my-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }} />
-              <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#64748b]">
-                Servers
-              </p>
-              {servers.map((s) => {
-                const active = location.pathname === `/server/${s.id}`;
-                return (
-                  <Link
-                    key={s.id}
-                    to={`/server/${s.id}`}
-                    onClick={closeSidebar}
-                    className={`flex items-center gap-2 px-3 py-2.5 md:py-1.5 rounded-md text-sm md:text-[13px] transition-all duration-150 ${
-                      active
-                        ? "text-[#00d4aa]"
-                        : "text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(255,255,255,0.04)]"
-                    }`}
-                    style={active ? {
-                      borderLeft: "2px solid #00d4aa",
-                      marginLeft: "-2px",
-                      paddingLeft: "calc(0.75rem + 2px)",
-                    } : { borderLeft: "2px solid transparent", marginLeft: "-2px", paddingLeft: "calc(0.75rem + 2px)" }}
-                  >
-                    <Server className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate">{s.name}</span>
-                  </Link>
-                );
-              })}
-            </>
-          )}
-        </div>
-
-        {/* User section */}
-        <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <div className="flex items-center gap-2.5 mb-3">
-            <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-[#e2e8f0]"
-              style={{ background: "#1a1f2e" }}>
-              {user?.username?.charAt(0).toUpperCase()}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-[#e2e8f0] truncate">
-                {user?.username}
-              </p>
-              {user?.role && (
-                <p className={`flex items-center gap-1 text-[11px] font-medium ${ROLE_COLORS[user.role] || "text-[#64748b]"}`}>
-                  <Shield className="h-3 w-3" />
-                  {user.role}
-                </p>
-              )}
-            </div>
-          </div>
+        <div className="ml-auto flex items-center gap-2">
           <button
-            onClick={logout}
-            className="flex items-center justify-center gap-2 w-full rounded-md px-3 py-1.5 text-xs font-medium text-[#94a3b8] hover:text-[#e2e8f0] transition-all duration-150"
-            style={{ background: "#1a1f2e", border: "1px solid rgba(255,255,255,0.06)" }}
+            onClick={() => setPaletteOpen(true)}
+            className="sm:hidden font-mono text-[10px] px-2 py-1.5 touch-compact"
+            style={{
+              border: "1px solid var(--border-accent)",
+              borderRadius: 5,
+              color: "var(--accent)",
+              minHeight: "unset",
+            }}
           >
-            <LogOut className="h-3.5 w-3.5" />
-            Sign Out
+            ⌘K
+          </button>
+          <button
+            onClick={() => setMobileOpen((o) => !o)}
+            className="lg:hidden p-1.5 touch-compact"
+            style={{ color: "var(--text-secondary)", minHeight: "unset" }}
+            aria-label="Menu"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+          <button
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+            title="Sign out"
+            className="hidden sm:flex items-center gap-2 px-2.5 py-1.5 touch-compact"
+            style={{
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 6,
+              minHeight: "unset",
+            }}
+          >
+            <span
+              className="w-[22px] h-[22px] rounded-[5px] font-mono text-[10px] font-semibold flex items-center justify-center"
+              style={{ background: "var(--accent-glow)", color: "var(--accent)" }}
+            >
+              {initials}
+            </span>
+            <span
+              className="font-mono text-[10px]"
+              style={{ color: ROLE_COLORS[user?.role || ""] || "var(--text-secondary)" }}
+            >
+              {user?.role || "OPS"}
+            </span>
           </button>
         </div>
-      </nav>
+      </header>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto pt-16 md:pt-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Outlet />
+      {mobileOpen && (
+        <div
+          className="lg:hidden px-4 py-3 flex flex-col gap-1 z-40"
+          style={{
+            background: "var(--bg-card)",
+            borderBottom: "1px solid rgba(255,178,36,0.12)",
+          }}
+        >
+          {navItems.map((item) => {
+            const active = item.match(location.pathname);
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className="px-3 py-2.5 rounded-md text-sm font-medium"
+                style={{
+                  color: active ? "var(--accent)" : "var(--text-secondary)",
+                  background: active ? "var(--accent-glow)" : "transparent",
+                }}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+          <button
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+            className="mt-2 text-left px-3 py-2.5 font-mono text-xs"
+            style={{ color: "var(--danger)" }}
+          >
+            SIGN OUT · {user?.username}
+          </button>
         </div>
+      )}
+
+      <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 py-6">
+        <Outlet />
       </main>
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onAddServer={() => setShowAddServer(true)}
+        isAdmin={isAdmin}
+      />
+      <AddServerModal open={showAddServer} onClose={() => setShowAddServer(false)} />
     </div>
   );
 }

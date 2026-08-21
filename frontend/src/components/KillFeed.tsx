@@ -36,7 +36,7 @@ export default function KillFeed({ serverId }: KillFeedProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#00d4aa] border-r-transparent" />
+        <div className="h-5 w-5 animate-spin rounded-full border-[3px] border-[#ffb224] border-r-transparent" />
       </div>
     );
   }
@@ -46,14 +46,14 @@ export default function KillFeed({ serverId }: KillFeedProps) {
       <div
         className="rounded-xl flex items-center justify-center h-64"
         style={{
-          background: "#111827",
+          background: "#0e0c09",
           border: "1px solid rgba(255,255,255,0.06)",
         }}
       >
         <div className="text-center">
-          <Crosshair className="h-8 w-8 text-[#1a1f2e] mx-auto mb-3" />
-          <p className="text-sm text-[#94a3b8]">No kill events recorded</p>
-          <p className="text-xs text-[#64748b] mt-1">
+          <Crosshair className="h-8 w-8 text-[#12100b] mx-auto mb-3" />
+          <p className="text-sm text-[#8a8271]">No kill events recorded</p>
+          <p className="text-xs text-[#6b6455] mt-1">
             Kill events will appear here as they happen
           </p>
         </div>
@@ -66,7 +66,7 @@ export default function KillFeed({ serverId }: KillFeedProps) {
       className="rounded-xl flex flex-col"
       style={{
         height: "32rem",
-        background: "#111827",
+        background: "#0e0c09",
         border: "1px solid rgba(255,255,255,0.06)",
       }}
     >
@@ -75,11 +75,11 @@ export default function KillFeed({ serverId }: KillFeedProps) {
         className="flex items-center gap-2 px-5 py-3"
         style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
       >
-        <Crosshair className="h-4 w-4 text-[#64748b]" />
-        <span className="text-xs font-bold text-[#e2e8f0] uppercase tracking-wider">
+        <Crosshair className="h-4 w-4 text-[#6b6455]" />
+        <span className="text-xs font-bold text-[#e8e3d8] uppercase tracking-wider">
           Kill Feed
         </span>
-        <span className="text-xs text-[#64748b]">
+        <span className="text-xs text-[#6b6455]">
           &middot; {allKills.length} events
         </span>
       </div>
@@ -89,7 +89,7 @@ export default function KillFeed({ serverId }: KillFeedProps) {
         <table className="w-full text-sm">
           <thead>
             <tr
-              className="text-[10px] font-bold text-[#64748b] uppercase tracking-wider"
+              className="text-[10px] font-bold text-[#6b6455] uppercase tracking-wider"
               style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
             >
               <th className="text-left px-4 py-2.5">Time</th>
@@ -110,13 +110,13 @@ export default function KillFeed({ serverId }: KillFeedProps) {
                     borderBottom: "1px solid rgba(255,255,255,0.03)",
                   }}
                 >
-                  <td className="px-4 py-2 text-[11px] text-[#64748b] font-mono whitespace-nowrap">
+                  <td className="px-4 py-2 text-[11px] text-[#6b6455] font-mono whitespace-nowrap">
                     {formatTime(ev.timestamp)}
                   </td>
                   <td className="px-4 py-2">
                     <span
                       className="text-[13px] font-semibold"
-                      style={{ color: isTK ? "#ff4757" : "#e2e8f0" }}
+                      style={{ color: isTK ? "#d96b5c" : "#e8e3d8" }}
                     >
                       {ev.player_name ?? "Unknown"}
                     </span>
@@ -125,17 +125,17 @@ export default function KillFeed({ serverId }: KillFeedProps) {
                     {isTK ? (
                       <AlertTriangle
                         className="h-3.5 w-3.5"
-                        style={{ color: "#ff4757" }}
+                        style={{ color: "#d96b5c" }}
                       />
                     ) : (
                       <Skull
                         className="h-3.5 w-3.5"
-                        style={{ color: "#64748b" }}
+                        style={{ color: "#6b6455" }}
                       />
                     )}
                   </td>
                   <td className="px-4 py-2">
-                    <span className="text-[13px] text-[#94a3b8]">
+                    <span className="text-[13px] text-[#8a8271]">
                       {ev.target_name ?? "Unknown"}
                     </span>
                   </td>
@@ -144,7 +144,7 @@ export default function KillFeed({ serverId }: KillFeedProps) {
                       className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold"
                       style={{
                         background: "rgba(255,255,255,0.04)",
-                        color: "#94a3b8",
+                        color: "#8a8271",
                       }}
                     >
                       {ev.weapon ?? "—"}
