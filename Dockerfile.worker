@@ -7,7 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /
 WORKDIR /app
 
 COPY backend/pyproject.toml backend/uv.lock ./
-RUN UV_PROJECT_ENVIRONMENT=/usr/local uv sync --frozen --no-dev --no-cache
+RUN uv sync --frozen --no-dev --no-cache
+
+ENV PATH="/app/.venv/bin:$PATH"
 
 COPY backend/ .
 
