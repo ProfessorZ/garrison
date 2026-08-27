@@ -283,10 +283,10 @@ All bot actions from linked accounts are logged to the Garrison activity log.
 ## Development
 
 ```bash
-# Backend
+# Backend (requires uv — https://docs.astral.sh/uv/getting-started/installation/)
 cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+uv sync
+uv run uvicorn app.main:app --reload
 
 # Frontend
 cd frontend

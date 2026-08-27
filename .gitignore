@@ -5,6 +5,13 @@ __pycache__/
 *.egg-info/
 dist/
 *.whl
+backend/.venv/
+.venv/
+venv/
+.python-version
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 
 # Node
 node_modules/
